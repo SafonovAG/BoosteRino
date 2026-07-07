@@ -33,9 +33,9 @@
         ? escape(s.twiboost_error)
         : (tb.balance ?? '-') + (tb.currency ? ' ' + tb.currency : '');
       el.innerHTML = '<div class="stats-grid">' +
-        '<div class="card stat-card"><div class="value">' + (s.users ?? 0) + '</div><div class="label">Пользователей</div></div>' +
-        '<div class="card stat-card"><div class="value">' + (s.orders_today ?? 0) + '</div><div class="label">Заказов сегодня</div></div>' +
-        '<div class="card stat-card"><div class="value">' + tbLabel + '</div><div class="label">Баланс Twiboost</div></div>' +
+        '<div class="card stat-card stat-users"><span class="stat-icon">👥</span><div class="value">' + (s.users ?? 0) + '</div><div class="label">Пользователей</div></div>' +
+        '<div class="card stat-card stat-orders"><span class="stat-icon">🛒</span><div class="value">' + (s.orders_today ?? 0) + '</div><div class="label">Заказов сегодня</div></div>' +
+        '<div class="card stat-card stat-balance"><span class="stat-icon">💎</span><div class="value">' + tbLabel + '</div><div class="label">Баланс Twiboost</div></div>' +
         '</div>';
     } catch (e) {
       el.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
@@ -47,7 +47,7 @@
     if (!el) return;
     const data = await api('/api/v1/admin/services');
     const list = data.services || [];
-    el.innerHTML = '<div class="table-wrap"><table>' +
+    el.innerHTML = '<h2><span class="panel-icon">📦</span> Услуги</h2><div class="table-wrap"><table>' +
       '<thead><tr><th>ID</th><th>Название</th><th>Цена</th><th>Наценка %</th><th>Активна</th><th></th></tr></thead><tbody>' +
       list.map((s) => '<tr>' +
         '<td>' + s.id + '</td>' +
@@ -58,7 +58,7 @@
         '<td><button class="btn btn-sm btn-secondary" data-save="' + s.id + '" type="button">Сохранить</button></td>' +
         '</tr>').join('') +
       '</tbody></table></div>' +
-      '<p><button class="btn btn-primary" id="sync-services" type="button">Синхронизировать с Twiboost</button></p>';
+      '<p style="margin-top:1.25rem"><button class="btn btn-primary" id="sync-services" type="button">🔄 Синхронизировать с Twiboost</button></p>';
 
     el.querySelector('#sync-services')?.addEventListener('click', async () => {
       const r = await api('/api/v1/admin/services/sync', { method: 'POST', body: '{}' });
@@ -86,11 +86,11 @@
     const data = await api('/api/v1/admin/orders');
     const rows = data.orders || [];
     el.innerHTML = rows.length
-      ? '<div class="table-wrap"><table>' +
+      ? '<h2><span class="panel-icon">🛒</span> Заказы</h2><div class="table-wrap"><table>' +
         '<thead><tr><th>#</th><th>Email</th><th>Услуга</th><th>Сумма</th><th>Статус</th></tr></thead><tbody>' +
         rows.map((o) => '<tr><td>' + o.id + '</td><td>' + escape(o.email) + '</td><td>' + escape(o.service_name) + '</td><td>' + o.cost_rub + '</td><td>' + escape(o.status) + '</td></tr>').join('') +
         '</tbody></table></div>'
-      : '<p class="muted">Нет заказов</p>';
+      : '<p class="muted">📭 Нет заказов</p>';
   }
 
   async function loadUsers() {
@@ -99,7 +99,7 @@
     const data = await api('/api/v1/admin/users');
     const rows = data.users || [];
     const roleLabel = { user: 'Пользователь', admin: 'Админ', superadmin: 'Superadmin' };
-    el.innerHTML = '<div class="table-wrap"><table>' +
+    el.innerHTML = '<h2><span class="panel-icon">👥</span> Пользователи</h2><div class="table-wrap"><table>' +
       '<thead><tr><th>ID</th><th>Email</th><th>Роль</th><th>Баланс</th>' + (isSuper ? '<th></th>' : '') + '</tr></thead><tbody>' +
       rows.map((u) => {
         let roleCell = roleLabel[u.role] || u.role;

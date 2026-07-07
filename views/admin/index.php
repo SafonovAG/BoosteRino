@@ -4,53 +4,72 @@ $isSuper = !empty($super);
 ?>
 <section class="section">
     <div class="container">
-        <h1 class="page-title">Админ-панель</h1>
-        <div class="cabinet-grid">
-            <aside class="card cabinet-nav">
-                <button type="button" class="active" data-panel="dashboard">Дашборд</button>
-                <button type="button" data-panel="services">Услуги</button>
-                <button type="button" data-panel="orders">Заказы</button>
-                <button type="button" data-panel="users">Пользователи</button>
-                <?php if ($isSuper): ?>
-                <button type="button" data-panel="settings">Настройки</button>
-                <?php endif; ?>
+        <div class="page-header reveal">
+            <h1 class="page-title">⚙️ Админ-панель</h1>
+            <p class="muted">Управление услугами, заказами, пользователями и настройками системы</p>
+        </div>
+
+        <div class="app-shell">
+            <aside class="card app-sidebar">
+                <div class="app-sidebar-header">
+                    <h2><?= $isSuper ? '👑 Superadmin' : '🛡️ Admin' ?></h2>
+                    <p class="muted">Панель управления</p>
+                </div>
+                <nav class="cabinet-nav">
+                    <button type="button" class="active" data-panel="dashboard"><span class="nav-icon">📊</span> Дашборд</button>
+                    <button type="button" data-panel="services"><span class="nav-icon">📦</span> Услуги</button>
+                    <button type="button" data-panel="orders"><span class="nav-icon">🛒</span> Заказы</button>
+                    <button type="button" data-panel="users"><span class="nav-icon">👥</span> Пользователи</button>
+                    <?php if ($isSuper): ?>
+                    <button type="button" data-panel="settings"><span class="nav-icon">🔧</span> Настройки</button>
+                    <?php endif; ?>
+                </nav>
             </aside>
-            <div>
-                <div id="panel-dashboard" class="panel active"><div id="admin-stats">Загрузка...</div></div>
-                <div id="panel-services" class="panel"><div id="admin-services" class="card"></div></div>
-                <div id="panel-orders" class="panel"><div id="admin-orders" class="card"></div></div>
-                <div id="panel-users" class="panel"><div id="admin-users" class="card"></div></div>
+
+            <div class="app-content">
+                <div id="panel-dashboard" class="panel active">
+                    <div id="admin-stats">Загрузка...</div>
+                </div>
+                <div id="panel-services" class="panel">
+                    <div id="admin-services" class="card panel-card"></div>
+                </div>
+                <div id="panel-orders" class="panel">
+                    <div id="admin-orders" class="card panel-card"></div>
+                </div>
+                <div id="panel-users" class="panel">
+                    <div id="admin-users" class="card panel-card"></div>
+                </div>
                 <?php if ($isSuper): ?>
                 <div id="panel-settings" class="panel">
-                    <div class="card">
-                        <h2>Настройки системы</h2>
+                    <div class="card panel-card">
+                        <h2><span class="panel-icon">🔧</span> Настройки системы</h2>
                         <p class="muted">Доступно только superadmin. Секреты не отображаются - оставьте поле пустым, чтобы не менять.</p>
 
                         <div class="settings-block">
-                            <h3>ЮMoney - HTTP-уведомления</h3>
-                            <p class="muted">Укажите этот URL в настройках кошелька ЮMoney (раздел «HTTP-уведомления»). Секрет из кошелька вставьте в поле «Секрет ЮMoney» ниже - он должен совпадать.</p>
+                            <h3>💳 ЮMoney - HTTP-уведомления</h3>
+                            <p class="muted">Укажите этот URL в настройках кошелька ЮMoney. Секрет из кошелька = поле «Секрет ЮMoney» ниже.</p>
                             <div class="notify-url-row">
                                 <input type="text" id="yoomoney-notify-url" readonly value="https://boosterino.ru/api/v1/payments/yoomoney/notify">
-                                <button type="button" class="btn btn-secondary" id="copy-notify-url">Копировать</button>
+                                <button type="button" class="btn btn-secondary" id="copy-notify-url">📋 Копировать</button>
                             </div>
-                            <p class="muted"><a href="https://yoomoney.ru/docs/wallet/using-api/notification-p2p-incoming" target="_blank" rel="noopener">Документация ЮMoney</a></p>
+                            <p class="muted"><a href="https://yoomoney.ru/docs/wallet/using-api/notification-p2p-incoming" target="_blank" rel="noopener">📖 Документация ЮMoney</a></p>
                         </div>
 
                         <form id="settings-form" class="form">
                             <div class="grid-2">
-                                <label>URL сайта<input name="app_url" type="url"></label>
-                                <label>Глобальная наценка, %<input name="global_markup_percent" type="number" step="0.1"></label>
-                                <label>API-ключ Twiboost<input name="twiboost_api_key" type="password" placeholder="новый ключ"></label>
-                                <label>Кошелёк ЮMoney<input name="yoomoney_wallet"></label>
-                                <label>Секрет ЮMoney<input name="yoomoney_secret" type="password" placeholder="новый секрет"></label>
-                                <label>SMTP-сервер<input name="mail_host"></label>
-                                <label>SMTP-порт<input name="mail_port"></label>
-                                <label>SMTP-логин<input name="mail_user"></label>
-                                <label>SMTP-пароль<input name="mail_pass" type="password" placeholder="новый пароль"></label>
-                                <label>Email отправителя<input name="mail_from"></label>
-                                <label>Имя отправителя<input name="mail_from_name"></label>
+                                <label>🌐 URL сайта<input name="app_url" type="url"></label>
+                                <label>📈 Глобальная наценка, %<input name="global_markup_percent" type="number" step="0.1"></label>
+                                <label>🔑 API-ключ Twiboost<input name="twiboost_api_key" type="password" placeholder="новый ключ"></label>
+                                <label>💰 Кошелёк ЮMoney<input name="yoomoney_wallet"></label>
+                                <label>🔐 Секрет ЮMoney<input name="yoomoney_secret" type="password" placeholder="новый секрет"></label>
+                                <label>📧 SMTP-сервер<input name="mail_host"></label>
+                                <label>🔌 SMTP-порт<input name="mail_port"></label>
+                                <label>👤 SMTP-логин<input name="mail_user"></label>
+                                <label>🔑 SMTP-пароль<input name="mail_pass" type="password" placeholder="новый пароль"></label>
+                                <label>✉️ Email отправителя<input name="mail_from"></label>
+                                <label>🏷️ Имя отправителя<input name="mail_from_name"></label>
                             </div>
-                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                            <button type="submit" class="btn btn-primary">💾 Сохранить настройки</button>
                         </form>
                     </div>
                 </div>
