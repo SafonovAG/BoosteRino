@@ -1,25 +1,27 @@
 (function () {
   const { api, toast } = window.Boosterino;
-  const panels = document.querySelectorAll('.panel');
+  const panels = document.querySelectorAll('.cabinet-pro-panel, .panel');
   const navBtns = document.querySelectorAll('[data-panel]');
 
   document.querySelectorAll('[data-panel-jump]').forEach((link) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      const btn = document.querySelector('[data-panel="' + link.dataset.panelJump + '"]');
-      btn?.click();
+      const id = link.dataset.panelJump;
+      document.querySelector('[data-panel="' + id + '"]')?.click();
     });
   });
 
   navBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.panel;
+      if (!id) return;
       navBtns.forEach((b) => b.classList.toggle('active', b === btn));
       panels.forEach((p) => p.classList.toggle('active', p.id === 'panel-' + id));
     });
   });
 
   const balanceEl = document.getElementById('user-balance');
+  const emailEl = document.getElementById('user-email');
   const ordersEl = document.getElementById('orders-list');
   const txEl = document.getElementById('transactions-list');
 
@@ -37,6 +39,7 @@
 
   function fmtDate(d) {
     if (!d) return '—';
+    if (typeof d === 'string' && d.includes(' г.')) return d;
     try {
       return new Date(d).toLocaleString('ru-RU', {
         day: '2-digit', month: '2-digit', year: 'numeric',
@@ -57,6 +60,7 @@
     const data = await api('/api/v1/user/profile');
     const profile = data.user;
     if (balanceEl) balanceEl.textContent = fmt(profile.balance_rub);
+    if (emailEl) emailEl.textContent = profile.email || '—';
     const verify = document.getElementById('email-warning');
     if (verify && !profile.email_verified_at) {
       verify.classList.remove('hidden');
@@ -92,11 +96,11 @@
                 '<ul class="cabinet-order-facts">' +
                   '<li><span>Количество</span><strong>' + o.quantity + ' ' + escape(unit) + '</strong></li>' +
                   '<li><span>Сумма</span><strong>' + fmt(o.cost_rub) + '</strong></li>' +
-                  '<li><span>Дата</span><strong>' + fmtDate(o.created_at_formatted || o.created_at) + '</strong></li>' +
+                  '<li><span>Дата</span><strong>' + escape(fmtDate(o.created_at_formatted || o.created_at)) + '</strong></li>' +
                 '</ul>' +
               '</div>' +
               '<div class="cabinet-order-card-action">' +
-                '<a href="/orders/' + o.id + '" class="btn btn-secondary">Посмотреть заказ</a>' +
+                '<a href="/orders/' + o.id + '" class="btn btn-secondary">Подробнее</a>' +
               '</div>' +
             '</article>'
           );
@@ -109,21 +113,47 @@
     const data = await api('/api/v1/user/transactions');
     const rows = data.transactions || [];
     if (!rows.length) {
-      txEl.innerHTML = '<p class="muted">Нет операций</p>';
+      txEl.innerHTML = '<p class="cabinet-pro-empty">Операций пока нет</p>';
       return;
     }
-    txEl.innerHTML = '<div class="table-wrap"><table>' +
-      '<thead><tr><th>Дата</th><th>Тип</th><th>Сумма</th><th>Баланс</th></tr></thead><tbody>' +
-      rows.map((t) => '<tr>' +
-        '<td>' + escape(t.created_at_formatted || t.created_at) + '</td>' +
-        '<td>' + escape(t.type_label || t.type) + '</td>' +
-        '<td>' + fmt(t.amount_rub) + '</td>' +
-        '<td>' + fmt(t.balance_after) + '</td>' +
-        '</tr>').join('') +
-      '</tbody></table></div>';
+    txEl.innerHTML =
+      '<div class="cabinet-tx-list">' +
+        rows.map((t) => {
+          const amount = Number(t.amount_rub);
+          const isPlus = amount >= 0;
+          return (
+            '<article class="cabinet-tx-item">' +
+              '<div class="cabinet-tx-main">' +
+                '<span class="cabinet-tx-type">' + escape(t.type_label || t.type) + '</span>' +
+                '<span class="cabinet-tx-date">' + escape(t.created_at_formatted || fmtDate(t.created_at)) + '</span>' +
+              '</div>' +
+              '<div class="cabinet-tx-amount cabinet-tx-amount--' + (isPlus ? 'plus' : 'minus') + '">' +
+                (isPlus ? '+' : '') + fmt(amount) +
+              '</div>' +
+              '<div class="cabinet-tx-balance">баланс ' + fmt(t.balance_after) + '</div>' +
+            '</article>'
+          );
+        }).join('') +
+      '</div>';
   }
 
-  document.getElementById('topup-form')?.addEventListener('submit', async (e) => {
+  const topupForm = document.getElementById('topup-form');
+  const amountInput = topupForm?.querySelector('[name="amount"]');
+
+  document.querySelectorAll('.cabinet-pro-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.amount;
+      if (amountInput) amountInput.value = val;
+      document.querySelectorAll('.cabinet-pro-preset').forEach((b) => b.classList.toggle('is-active', b === btn));
+    });
+  });
+
+  if (amountInput) {
+    const preset500 = document.querySelector('.cabinet-pro-preset[data-amount="500"]');
+    preset500?.classList.add('is-active');
+  }
+
+  topupForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const amount = +new FormData(e.target).get('amount');
     try {

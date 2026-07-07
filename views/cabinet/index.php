@@ -1,75 +1,130 @@
 <?php
 ob_start();
 ?>
-<section class="shop-section shop-section-compact">
-    <div class="container">
-        <nav class="breadcrumbs">
+<section class="cabinet-pro shop-section shop-section-compact">
+    <div class="cabinet-pro-bg" aria-hidden="true"></div>
+    <div class="container cabinet-pro-container">
+        <nav class="breadcrumbs cabinet-pro-crumb">
             <a href="/">Главная</a><span>/</span><span>Личный кабинет</span>
         </nav>
 
-        <div id="email-warning" class="alert-banner hidden">
-            <span>⚠️</span>
-            <div><strong>Подтвердите email</strong> перед первым заказом. Проверьте почту.</div>
+        <div id="email-warning" class="cabinet-pro-alert hidden">
+            <span class="cabinet-pro-alert-icon" aria-hidden="true">!</span>
+            <div>
+                <strong>Подтвердите email</strong>
+                <p>Перед первым заказом проверьте почту и перейдите по ссылке из письма.</p>
+            </div>
         </div>
 
-        <div class="account-layout admin-shop-shell">
-            <aside class="admin-shop-sidebar">
-                <div class="admin-shop-sidebar-header">
-                    <h2>🛍️ Мой кабинет</h2>
-                    <p class="muted">Управление заказами</p>
+        <div class="cabinet-pro-shell">
+            <aside class="cabinet-pro-aside">
+                <div class="cabinet-pro-aside-card">
+                    <div class="cabinet-pro-profile">
+                        <span class="cabinet-pro-kicker">Личный кабинет</span>
+                        <p class="cabinet-pro-email muted" id="user-email">Загрузка...</p>
+                    </div>
+
+                    <div class="cabinet-pro-balance">
+                        <span class="cabinet-pro-balance-label">Баланс</span>
+                        <div class="cabinet-pro-balance-value" id="user-balance">...</div>
+                        <button type="button" class="btn btn-primary btn-sm cabinet-pro-balance-btn" data-panel-jump="topup">Пополнить</button>
+                    </div>
+
+                    <nav class="cabinet-pro-nav cabinet-nav" aria-label="Разделы кабинета">
+                        <button type="button" class="active" data-panel="overview">
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true">◆</span>
+                            <span>Обзор</span>
+                        </button>
+                        <button type="button" data-panel="orders">
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true">◇</span>
+                            <span>Мои заказы</span>
+                        </button>
+                        <button type="button" data-panel="topup">
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true">+</span>
+                            <span>Пополнение</span>
+                        </button>
+                        <button type="button" data-panel="history">
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true">≡</span>
+                            <span>Операции</span>
+                        </button>
+                        <button type="button" id="logout-btn" class="cabinet-pro-nav-logout">
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true">→</span>
+                            <span>Выйти</span>
+                        </button>
+                    </nav>
+
+                    <a href="/services" class="cabinet-pro-catalog-link">Перейти в каталог</a>
                 </div>
-                <nav class="admin-shop-nav cabinet-nav">
-                    <button type="button" class="active" data-panel="overview"><span class="nav-icon">📊</span> Обзор</button>
-                    <button type="button" data-panel="orders"><span class="nav-icon">📦</span> Мои заказы</button>
-                    <button type="button" data-panel="topup"><span class="nav-icon">💰</span> Пополнение</button>
-                    <button type="button" data-panel="history"><span class="nav-icon">📜</span> История</button>
-                    <button type="button" id="logout-btn" class="nav-logout"><span class="nav-icon">🚪</span> Выйти</button>
-                </nav>
             </aside>
 
-            <div class="admin-shop-content app-content">
-                <div id="panel-overview" class="panel active">
-                    <div class="balance-card shop-balance-card">
-                        <div class="muted">Баланс счёта</div>
-                        <div class="amount" id="user-balance">...</div>
-                        <a href="#" data-panel-jump="topup" class="btn btn-secondary btn-sm balance-topup-link">Пополнить</a>
+            <div class="cabinet-pro-main app-content">
+                <div id="panel-overview" class="panel cabinet-pro-panel active">
+                    <header class="cabinet-pro-panel-head">
+                        <h1>Обзор</h1>
+                        <p class="muted">Баланс, безопасность и быстрые действия</p>
+                    </header>
+                    <div class="cabinet-pro-quick">
+                        <button type="button" class="cabinet-pro-quick-card" data-panel-jump="orders">
+                            <span class="cabinet-pro-quick-title">Заказы</span>
+                            <span class="muted">История и статусы</span>
+                        </button>
+                        <button type="button" class="cabinet-pro-quick-card" data-panel-jump="topup">
+                            <span class="cabinet-pro-quick-title">Пополнение</span>
+                            <span class="muted">ЮMoney от 10 ₽</span>
+                        </button>
+                        <a href="/services" class="cabinet-pro-quick-card cabinet-pro-quick-card--link">
+                            <span class="cabinet-pro-quick-title">Каталог</span>
+                            <span class="muted">Новый заказ</span>
+                        </a>
                     </div>
-                    <div class="card panel-card" style="margin-top:1.25rem">
-                        <h2>🔐 Смена пароля</h2>
-                        <form id="password-form" class="form">
+                    <section class="cabinet-pro-card">
+                        <h2>Смена пароля</h2>
+                        <form id="password-form" class="cabinet-pro-form form">
                             <label>Текущий пароль<input type="password" name="current_password" required autocomplete="current-password"></label>
                             <label>Новый пароль<input type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
-                            <button type="submit" class="btn btn-secondary">Сохранить</button>
+                            <button type="submit" class="btn btn-secondary">Сохранить пароль</button>
                         </form>
-                    </div>
+                    </section>
                 </div>
 
-                <div id="panel-orders" class="panel">
-                    <div class="card panel-card cabinet-orders-panel">
-                        <div class="cabinet-orders-head">
-                            <h2>📦 История заказов</h2>
-                            <a href="/services" class="btn btn-primary btn-sm">Каталог</a>
+                <div id="panel-orders" class="panel cabinet-pro-panel">
+                    <header class="cabinet-pro-panel-head cabinet-pro-panel-head--row">
+                        <div>
+                            <h1>Мои заказы</h1>
+                            <p class="muted">Статус выполнения и детали</p>
                         </div>
-                        <div id="orders-list">Загрузка...</div>
-                    </div>
+                        <a href="/services" class="btn btn-primary btn-sm">Новый заказ</a>
+                    </header>
+                    <div id="orders-list" class="cabinet-pro-panel-body">Загрузка...</div>
                 </div>
 
-                <div id="panel-topup" class="panel">
-                    <div class="card panel-card">
-                        <h2>💰 Пополнение баланса</h2>
-                        <p class="muted">Минимум 10 ₽. Оплата через ЮMoney.</p>
-                        <form id="topup-form" class="form">
-                            <label>Сумма (₽)<input type="number" name="amount" min="10" step="1" required value="500"></label>
+                <div id="panel-topup" class="panel cabinet-pro-panel">
+                    <header class="cabinet-pro-panel-head">
+                        <h1>Пополнение баланса</h1>
+                        <p class="muted">Минимум 10 ₽ · оплата через ЮMoney</p>
+                    </header>
+                    <section class="cabinet-pro-card cabinet-pro-card--accent">
+                        <form id="topup-form" class="cabinet-pro-form form">
+                            <label>Сумма пополнения, ₽
+                                <input type="number" name="amount" min="10" step="1" required value="500">
+                            </label>
+                            <div class="cabinet-pro-amount-presets">
+                                <button type="button" class="cabinet-pro-preset" data-amount="100">100 ₽</button>
+                                <button type="button" class="cabinet-pro-preset" data-amount="500">500 ₽</button>
+                                <button type="button" class="cabinet-pro-preset" data-amount="1000">1 000 ₽</button>
+                                <button type="button" class="cabinet-pro-preset" data-amount="3000">3 000 ₽</button>
+                            </div>
                             <button type="submit" class="btn btn-primary btn-block">Перейти к оплате</button>
                         </form>
-                    </div>
+                    </section>
                 </div>
 
-                <div id="panel-history" class="panel">
-                    <div class="card panel-card">
-                        <h2>📜 Операции по счёту</h2>
-                        <div id="transactions-list">Загрузка...</div>
-                    </div>
+                <div id="panel-history" class="panel cabinet-pro-panel">
+                    <header class="cabinet-pro-panel-head">
+                        <h1>Операции по счёту</h1>
+                        <p class="muted">Пополнения и списания</p>
+                    </header>
+                    <div id="transactions-list" class="cabinet-pro-panel-body">Загрузка...</div>
                 </div>
             </div>
         </div>
@@ -77,6 +132,7 @@ ob_start();
 </section>
 <?php
 $content = ob_get_clean();
+$bodyClass = 'cabinet-pro-page';
 $scripts = ['/assets/js/cabinet.js'];
-$styles = ['/assets/css/cabinet-orders.css'];
+$styles = ['/assets/css/cabinet-pro.css'];
 include dirname(__DIR__) . '/layouts/main.php';
