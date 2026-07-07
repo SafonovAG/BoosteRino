@@ -32,10 +32,10 @@
       const tbLabel = s.twiboost_error
         ? escape(s.twiboost_error)
         : (tb.balance ?? '-') + (tb.currency ? ' ' + tb.currency : '');
-      el.innerHTML = '<div class="stats-grid">' +
-        '<div class="card stat-card stat-users"><span class="stat-icon">👥</span><div class="value">' + (s.users ?? 0) + '</div><div class="label">Пользователей</div></div>' +
-        '<div class="card stat-card stat-orders"><span class="stat-icon">🛒</span><div class="value">' + (s.orders_today ?? 0) + '</div><div class="label">Заказов сегодня</div></div>' +
-        '<div class="card stat-card stat-balance"><span class="stat-icon">💎</span><div class="value">' + tbLabel + '</div><div class="label">Баланс Twiboost</div></div>' +
+      el.innerHTML = '<div class="admin-shop-stats">' +
+        '<div class="card stat-card"><span class="stat-icon">👥</span><div class="value">' + (s.users ?? 0) + '</div><div class="label">Клиентов</div></div>' +
+        '<div class="card stat-card"><span class="stat-icon">🛒</span><div class="value">' + (s.orders_today ?? 0) + '</div><div class="label">Заказов сегодня</div></div>' +
+        '<div class="card stat-card"><span class="stat-icon">💎</span><div class="value">' + tbLabel + '</div><div class="label">Баланс Twiboost</div></div>' +
         '</div>';
     } catch (e) {
       el.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';

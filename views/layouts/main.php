@@ -3,62 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= \App\Core\View::e($title ?? 'Boosterino') ?></title>
+    <title><?= \App\Core\View::e($title ?? 'Boosterino - магазин SMM-услуг') ?></title>
+    <meta name="description" content="Boosterino - интернет-магазин накрутки и продвижения в соцсетях. Telegram, VK, YouTube, TikTok. Оплата в рублях.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/themes.css">
     <link rel="stylesheet" href="/assets/css/animations.css">
-    <link rel="stylesheet" href="/assets/css/layout.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/shop.css">
     <meta name="csrf-token" content="<?= \App\Core\View::e(\App\Core\Session::csrf()) ?>">
 </head>
-<body <?= $bodyAttrs ?? '' ?>>
-    <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
-    <?php
-    $authUser = null;
-    try {
-        $authUser = (new \App\Services\AuthService())->user();
-    } catch (\Throwable) {
-    }
-    ?>
-    <header class="site-header">
-        <div class="container header-inner">
-            <a href="/" class="logo">
-                <span class="logo-icon" aria-hidden="true">🚀</span>
-                Booste<span>Rino</span>
+<body class="shop-page" <?= $bodyAttrs ?? '' ?>>
+<?php
+$authUser = null;
+try {
+    $authUser = (new \App\Services\AuthService())->user();
+} catch (\Throwable) {
+}
+$platforms = \App\Services\ServiceLogo::platforms();
+?>
+    <div class="shop-topbar" id="shop-topbar">
+        <div class="shop-topbar-inner">
+            <span>🎁 Прямые цены поставщика - оплата в рублях, мгновенный запуск заказов</span>
+            <button type="button" class="shop-topbar-close" id="topbar-close" aria-label="Закрыть">×</button>
+        </div>
+    </div>
+
+    <header class="store-header">
+        <div class="container store-header-inner">
+            <a href="/" class="store-logo">
+                <img src="/assets/images/logo/default.svg" alt="" width="36" height="36">
+                <span>Booste<strong>Rino</strong></span>
             </a>
-            <nav class="nav" id="main-nav">
-                <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>">Услуги</a>
+
+            <nav class="store-nav" id="store-nav">
+                <a href="/" class="<?= ($page ?? '') === 'home' ? 'active' : '' ?>">Главная</a>
+                <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>">Каталог</a>
+                <a href="/#how">Как заказать</a>
+                <a href="/#faq">FAQ</a>
                 <?php if ($authUser): ?>
-                    <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>">Кабинет</a>
+                    <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>">Мой кабинет</a>
                     <?php if (in_array($authUser['role'], ['admin', 'superadmin'], true)): ?>
                         <a href="/admin" class="<?= ($page ?? '') === 'admin' ? 'active' : '' ?>">Админ</a>
                     <?php endif; ?>
-                <?php else: ?>
-                    <a href="/login" class="<?= ($page ?? '') === 'login' ? 'active' : '' ?>">Вход</a>
-                    <a href="/register">Регистрация</a>
                 <?php endif; ?>
             </nav>
-            <div class="header-actions">
-                <button type="button" class="btn-icon" id="theme-toggle" aria-label="Переключить тему">🌓</button>
-                <button type="button" class="btn-icon nav-toggle" id="nav-toggle" aria-label="Меню">☰</button>
+
+            <div class="store-header-actions">
+                <?php if ($authUser): ?>
+                    <a href="/cabinet" class="balance-pill">
+                        <span class="balance-pill-label">Баланс</span>
+                        <span class="balance-pill-value"><?= number_format((float) $authUser['balance_rub'], 0, '.', ' ') ?> ₽</span>
+                    </a>
+                <?php else: ?>
+                    <a href="/login" class="btn btn-ghost">Вход</a>
+                    <a href="/register" class="btn btn-primary">Регистрация</a>
+                <?php endif; ?>
+                <button type="button" class="btn-icon" id="theme-toggle" aria-label="Тема">🌓</button>
+                <button type="button" class="btn-icon store-nav-toggle" id="nav-toggle" aria-label="Меню">☰</button>
             </div>
         </div>
     </header>
 
-    <main class="main">
+    <main class="shop-main">
         <?= $content ?? '' ?>
     </main>
 
-    <footer class="site-footer">
-        <div class="container footer-inner">
-            <p class="footer-brand">🚀 <a href="https://boosterino.ru">Boosterino</a></p>
-            <p class="muted">&copy; <?= date('Y') ?> - премиальное SMM-продвижение в соцсетях</p>
-            <div class="trust-row">
-                <span class="trust-item"><span>⚡</span> Мгновенный старт</span>
-                <span class="trust-item"><span>🔒</span> Безопасная оплата</span>
-                <span class="trust-item"><span>💎</span> Премиум качество</span>
+    <footer class="store-footer">
+        <div class="container">
+            <div class="store-footer-grid">
+                <div class="store-footer-col">
+                    <a href="/" class="store-logo store-footer-logo">
+                        <img src="/assets/images/logo/default.svg" alt="" width="32" height="32">
+                        <span>Booste<strong>Rino</strong></span>
+                    </a>
+                    <p class="store-footer-desc">Интернет-магазин SMM-услуг: подписчики, лайки, просмотры и активность для популярных соцсетей.</p>
+                    <div class="platforms-row platforms-row-compact">
+                        <?php foreach (array_slice($platforms, 1) as $p): ?>
+                            <span class="platform-chip" title="<?= \App\Core\View::e($p['name']) ?>">
+                                <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="<?= \App\Core\View::e($p['name']) ?>" width="28" height="28">
+                            </span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="store-footer-col">
+                    <h4>Магазин</h4>
+                    <ul>
+                        <li><a href="/services">Каталог услуг</a></li>
+                        <li><a href="/register">Регистрация</a></li>
+                        <li><a href="/cabinet">Личный кабинет</a></li>
+                    </ul>
+                </div>
+                <div class="store-footer-col">
+                    <h4>Платформы</h4>
+                    <ul>
+                        <li><a href="/services?platform=telegram">Telegram</a></li>
+                        <li><a href="/services?platform=vk">VK</a></li>
+                        <li><a href="/services?platform=youtube">YouTube</a></li>
+                        <li><a href="/services?platform=tiktok">TikTok</a></li>
+                    </ul>
+                </div>
+                <div class="store-footer-col">
+                    <h4>Оплата</h4>
+                    <ul>
+                        <li>ЮMoney - кошелёк</li>
+                        <li>Предоплата на баланс</li>
+                        <li>Оплата при заказе</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="store-footer-bottom">
+                <p>&copy; <?= date('Y') ?> <a href="https://boosterino.ru">boosterino.ru</a> - все цены в рублях</p>
             </div>
         </div>
     </footer>
@@ -67,6 +122,14 @@
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/ui.js"></script>
+    <script>
+    document.getElementById('topbar-close')?.addEventListener('click', () => {
+        document.getElementById('shop-topbar')?.remove();
+    });
+    document.getElementById('nav-toggle')?.addEventListener('click', () => {
+        document.getElementById('store-nav')?.classList.toggle('open');
+    });
+    </script>
     <?php if (!empty($scripts)): ?>
         <?php foreach ($scripts as $script): ?>
             <script src="<?= \App\Core\View::e($script) ?>"></script>

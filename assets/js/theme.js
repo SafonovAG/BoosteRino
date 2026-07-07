@@ -3,7 +3,7 @@
   const root = document.documentElement;
   const btn = document.getElementById('theme-toggle');
   const navToggle = document.getElementById('nav-toggle');
-  const nav = document.getElementById('main-nav');
+  const nav = document.getElementById('store-nav') || document.getElementById('main-nav');
 
   const themes = ['auto', 'light', 'dark'];
   let current = localStorage.getItem(KEY) || 'auto';

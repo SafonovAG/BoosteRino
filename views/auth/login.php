@@ -1,30 +1,26 @@
 <?php
 ob_start();
 ?>
-<section class="section auth-section">
-    <div class="container auth-container">
-        <div class="auth-wrap">
-            <div class="card card-premium auth-promo reveal">
-                <span class="badge">🔐 Безопасный вход</span>
-                <h2>Добро пожаловать в Boosterino</h2>
-                <p class="muted">Войдите в личный кабинет для управления заказами, балансом и настройками аккаунта.</p>
+<section class="shop-section auth-checkout-section">
+    <div class="container">
+        <div class="auth-checkout-wrap">
+            <div class="auth-checkout-promo card reveal">
+                <h2>Вход в магазин</h2>
+                <p class="muted">Управляйте заказами, балансом и историей покупок.</p>
                 <ul class="promo-list">
-                    <li><span>📊</span> История всех заказов</li>
-                    <li><span>💰</span> Пополнение баланса онлайн</li>
-                    <li><span>⚡</span> Быстрое оформление услуг</li>
+                    <li><img src="/assets/images/logo/telegram.svg" alt="" width="20" height="20"> Telegram, VK, YouTube</li>
+                    <li>💳 Оплата ЮMoney</li>
+                    <li>📦 Статус каждого заказа</li>
                 </ul>
             </div>
-            <div class="card auth-card reveal">
-                <h1>👋 Вход</h1>
+            <div class="auth-checkout-form card reveal">
+                <h1>Вход</h1>
                 <form id="login-form" class="form">
-                    <label>📧 Email<input type="email" name="email" required autocomplete="email"></label>
-                    <label>🔑 Пароль<input type="password" name="password" required autocomplete="current-password"></label>
-                    <button type="submit" class="btn btn-primary btn-block">Войти в кабинет</button>
+                    <label>Email<input type="email" name="email" required autocomplete="email"></label>
+                    <label>Пароль<input type="password" name="password" required autocomplete="current-password"></label>
+                    <button type="submit" class="btn btn-primary btn-block">Войти</button>
                 </form>
-                <p class="auth-links">
-                    <a href="/forgot-password">Забыли пароль?</a> &middot;
-                    <a href="/register">Регистрация</a>
-                </p>
+                <p class="auth-links"><a href="/forgot-password">Забыли пароль?</a> · <a href="/register">Регистрация</a></p>
             </div>
         </div>
     </div>

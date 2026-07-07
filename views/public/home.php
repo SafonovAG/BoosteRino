@@ -1,108 +1,212 @@
 <?php
+use App\Services\ServiceLogo;
+$platforms = ServiceLogo::platforms();
 ob_start();
 ?>
-<section class="hero">
-    <div class="container hero-grid">
-        <div class="hero-content animate-in">
-            <span class="badge badge-glow">✨ Премиальный SMM-сервис</span>
-            <h1>Продвижение в соцсетях - быстро, красиво, прозрачно</h1>
-            <p class="lead">Подписчики, лайки, просмотры и активность для Instagram, Telegram, VK и других платформ. Оплата в рублях, личный кабинет, мгновенный старт заказов.</p>
-            <div class="hero-actions">
-                <a href="/register" class="btn btn-primary">🚀 Начать бесплатно</a>
-                <a href="/services" class="btn btn-secondary">📋 Каталог услуг</a>
+<section class="shop-hero shop-section">
+    <div class="container shop-hero-grid">
+        <div class="shop-hero-content reveal">
+            <span class="shop-hero-badge">⚡ Прямой поставщик SMM-услуг</span>
+            <h1 class="shop-hero-title">
+                Быстрая накрутка<br>
+                <span class="gradient-text">в социальных сетях</span>
+            </h1>
+            <p class="shop-hero-lead">Увеличьте подписчиков, просмотры и реакции по выгодным ценам. Прозрачный каталог, личный кабинет и оплата в рублях через ЮMoney.</p>
+            <div class="shop-hero-actions">
+                <a href="/services" class="btn btn-primary btn-lg">🛒 Открыть каталог</a>
+                <a href="/register" class="btn btn-secondary btn-lg">Создать аккаунт</a>
             </div>
-            <div class="hero-stats">
-                <div class="hero-stat"><strong>24/7</strong><span>работа сервиса</span></div>
-                <div class="hero-stat"><strong>₽</strong><span>оплата в рублях</span></div>
-                <div class="hero-stat"><strong>⚡</strong><span>быстрый старт</span></div>
+            <div class="shop-hero-perks">
+                <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Цены за 1000 ед.</span>
+                <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Рефилл и отмена</span>
+                <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Статус в кабинете</span>
             </div>
         </div>
-        <div class="hero-visual animate-in animate-in-delay-2">
-            <div class="card card-premium hero-card">
-                <h3>🎯 Как это работает</h3>
-                <ol class="steps">
-                    <li>Регистрация и подтверждение email</li>
-                    <li>Пополнение баланса или оплата заказа</li>
-                    <li>Выбор услуги и оформление</li>
-                    <li>Отслеживание статуса в кабинете</li>
-                </ol>
+        <div class="shop-hero-visual reveal">
+            <div class="shop-order-card">
+                <div class="shop-order-card-header">
+                    <span>Ваш заказ</span>
+                    <span class="shop-order-status">Выполняется</span>
+                </div>
+                <div class="shop-order-item">
+                    <img src="/assets/images/logo/telegram.svg" alt="Telegram" width="40" height="40">
+                    <div>
+                        <strong>Telegram Подписчики</strong>
+                        <div class="shop-order-progress"><div style="width:45%"></div></div>
+                        <small>450 из 1000</small>
+                    </div>
+                </div>
+                <div class="shop-order-price">
+                    <span class="shop-order-price-old">320 ₽</span>
+                    <span class="shop-order-price-new">199 ₽</span>
+                    <span class="shop-order-discount">-38%</span>
+                </div>
+                <div class="shop-order-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" disabled>Повторить</button>
+                    <button type="button" class="btn btn-ghost btn-sm" disabled>Отменить</button>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section">
+<section class="trust-strip shop-section-compact">
+    <div class="container trust-strip-inner">
+        <div class="trust-stat reveal"><strong>24/7</strong><span>работа сервиса</span></div>
+        <div class="trust-stat reveal"><strong>₽</strong><span>только рубли</span></div>
+        <div class="trust-stat reveal"><strong>API</strong><span>поставщик Twiboost</span></div>
+        <div class="trust-stat reveal"><strong>100+</strong><span>видов услуг</span></div>
+    </div>
+</section>
+
+<section class="shop-section shop-section-compact">
     <div class="container">
-        <div class="section-header reveal">
+        <div class="section-head reveal">
+            <h2 class="section-title">Платформы в каталоге</h2>
+            <p class="section-subtitle">Выберите соцсеть и оформите заказ как в интернет-магазине</p>
+        </div>
+        <div class="platforms-row reveal">
+            <?php foreach (array_slice($platforms, 1) as $p): ?>
+                <a href="/services?platform=<?= \App\Core\View::e($p['slug']) ?>" class="platform-chip platform-chip-lg">
+                    <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="<?= \App\Core\View::e($p['name']) ?>" width="40" height="40">
+                    <span><?= \App\Core\View::e($p['name']) ?></span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<section class="shop-section" id="featured">
+    <div class="container">
+        <div class="section-head reveal">
+            <h2 class="section-title">Популярные товары</h2>
+            <a href="/services" class="section-link">Весь каталог →</a>
+        </div>
+        <div id="featured-products" class="product-grid">
+            <div class="product-card skeleton"></div>
+            <div class="product-card skeleton"></div>
+            <div class="product-card skeleton"></div>
+            <div class="product-card skeleton"></div>
+        </div>
+    </div>
+</section>
+
+<section class="shop-section shop-section-muted" id="how">
+    <div class="container">
+        <div class="section-head reveal">
+            <h2 class="section-title">Как заказать</h2>
+            <p class="section-subtitle">Три простых шага - как в любом интернет-магазине</p>
+        </div>
+        <div class="usecase-grid">
+            <article class="usecase-card reveal">
+                <div class="usecase-icon">🛍️</div>
+                <h3>1. Выберите товар</h3>
+                <p>Откройте каталог, найдите услугу по платформе или категории. Цена указана за 1000 единиц.</p>
+            </article>
+            <article class="usecase-card reveal">
+                <div class="usecase-icon">💳</div>
+                <h3>2. Оплатите заказ</h3>
+                <p>С баланса или через ЮMoney. Пополните кошелёк заранее или оплатите каждый заказ отдельно.</p>
+            </article>
+            <article class="usecase-card reveal">
+                <div class="usecase-icon">📈</div>
+                <h3>3. Следите за статусом</h3>
+                <p>В личном кабинете видно прогресс. Доступны рефилл и отмена, если услуга это поддерживает.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="shop-section">
+    <div class="container">
+        <div class="section-head reveal">
             <h2 class="section-title">Почему Boosterino</h2>
-            <p class="muted">Премиальный сервис с прозрачными ценами и полным контролем над заказами</p>
         </div>
-        <div class="features-grid">
-            <article class="card feature-card reveal">
-                <span class="feature-icon">💰</span>
-                <h3>Честные цены в ₽</h3>
-                <p>Прозрачное ценообразование с наценкой. Видите стоимость до заказа - без сюрпризов.</p>
-            </article>
-            <article class="card feature-card reveal">
-                <span class="feature-icon">📊</span>
-                <h3>Личный кабинет</h3>
-                <p>История заказов, баланс, рефилл и отмена - всё под контролем в одном месте.</p>
-            </article>
-            <article class="card feature-card reveal">
-                <span class="feature-icon">💳</span>
-                <h3>Безопасная оплата</h3>
-                <p>Пополнение через ЮMoney или прямая оплата каждого заказа - вы выбираете.</p>
-            </article>
-            <article class="card feature-card reveal">
-                <span class="feature-icon">⚡</span>
-                <h3>Мгновенный запуск</h3>
-                <p>Заказы уходят поставщику автоматически. Статус обновляется в реальном времени.</p>
-            </article>
-            <article class="card feature-card reveal">
-                <span class="feature-icon">🔒</span>
-                <h3>Защита данных</h3>
-                <p>Шифрование, CSRF-защита и безопасное хранение настроек на сервере.</p>
-            </article>
-            <article class="card feature-card reveal">
-                <span class="feature-icon">🌙</span>
-                <h3>Премиум интерфейс</h3>
-                <p>Адаптивный дизайн, тёмная и светлая тема, удобно на любом устройстве.</p>
-            </article>
+        <div class="compare-table-wrap reveal">
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th class="compare-highlight">Boosterino</th>
+                        <th>Обычные посредники</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Цены</td><td class="compare-highlight">✅ Прямой поставщик</td><td>❌ Высокая наценка</td></tr>
+                    <tr><td>Каталог</td><td class="compare-highlight">✅ Актуальный API</td><td>❌ Устаревшие прайсы</td></tr>
+                    <tr><td>Оплата</td><td class="compare-highlight">✅ ЮMoney + баланс</td><td>❌ Сложные схемы</td></tr>
+                    <tr><td>Кабинет</td><td class="compare-highlight">✅ Заказы и история</td><td>❌ Минимум функций</td></tr>
+                    <tr><td>Мобильная версия</td><td class="compare-highlight">✅ Адаптивный магазин</td><td>❌ Неудобно с телефона</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </section>
 
-<section class="section section-muted">
+<section class="shop-section shop-section-muted">
     <div class="container">
-        <div class="section-header reveal">
+        <div class="section-head reveal">
+            <h2 class="section-title">Отзывы покупателей</h2>
+        </div>
+        <div class="reviews-grid">
+            <blockquote class="review-card reveal">
+                <div class="review-stars">★★★★★</div>
+                <p>Удобный каталог как в магазине - выбрал Telegram подписчиков, оплатил с баланса, заказ ушёл сразу.</p>
+                <footer>Алексей, владелец канала</footer>
+            </blockquote>
+            <blockquote class="review-card reveal">
+                <div class="review-stars">★★★★★</div>
+                <p>Цены в рублях, всё прозрачно до оплаты. Кабинет показывает статус - не нужно писать в поддержку.</p>
+                <footer>Марина, SMM-специалист</footer>
+            </blockquote>
+            <blockquote class="review-card reveal">
+                <div class="review-stars">★★★★☆</div>
+                <p>Заказывал VK и YouTube - логотипы платформ в каталоге сразу видно, не перепутаешь услугу.</p>
+                <footer>Дмитрий, маркетолог</footer>
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="shop-section" id="faq">
+    <div class="container container-narrow">
+        <div class="section-head reveal">
             <h2 class="section-title">Частые вопросы</h2>
         </div>
-        <div class="faq-list">
-            <details class="card faq-item reveal">
+        <div class="shop-faq reveal">
+            <details class="shop-faq-item">
+                <summary>Когда начнётся выполнение заказа?</summary>
+                <p>После оплаты заказ автоматически отправляется поставщику. Скорость зависит от типа услуги и нагрузки - статус виден в кабинете.</p>
+            </details>
+            <details class="shop-faq-item">
+                <summary>Какие способы оплаты?</summary>
+                <p>Предоплата на баланс или оплата каждого заказа через ЮMoney - выбираете при оформлении.</p>
+            </details>
+            <details class="shop-faq-item">
+                <summary>Что такое рефилл?</summary>
+                <p>Восстановление списаний со стороны соцсети. Доступен для услуг с пометкой «Рефилл» в каталоге.</p>
+            </details>
+            <details class="shop-faq-item">
                 <summary>Нужна ли верификация email?</summary>
-                <p>Да, подтверждение email обязательно перед первым заказом - это защищает ваш аккаунт.</p>
-            </details>
-            <details class="card faq-item reveal">
-                <summary>Какие способы оплаты доступны?</summary>
-                <p>Предоплаченный баланс или прямая оплата каждого заказа через ЮMoney - выбирайте при оформлении.</p>
-            </details>
-            <details class="card faq-item reveal">
-                <summary>Можно ли отменить заказ?</summary>
-                <p>Если услуга поддерживает отмену - кнопка доступна в личном кабинете в списке заказов.</p>
+                <p>Да, подтвердите почту перед первым заказом - это защищает ваш аккаунт.</p>
             </details>
         </div>
     </div>
 </section>
 
-<section class="section">
+<section class="shop-section shop-section-compact">
     <div class="container reveal">
-        <div class="cta-premium">
-            <h2 class="section-title">Готовы к росту?</h2>
-            <p class="lead">Зарегистрируйтесь на boosterino.ru и оформите первый заказ за пару минут. Премиальное продвижение - без лишних шагов.</p>
-            <a href="/register" class="btn btn-lg">✨ Создать аккаунт</a>
+        <div class="shop-cta-banner">
+            <h2>Готовы оформить первый заказ?</h2>
+            <p>Зарегистрируйтесь, пополните баланс и выберите услугу в каталоге - как в любом онлайн-магазине.</p>
+            <div class="shop-cta-actions">
+                <a href="/register" class="btn btn-lg">Регистрация</a>
+                <a href="/services" class="btn btn-secondary btn-lg">Смотреть каталог</a>
+            </div>
         </div>
     </div>
 </section>
 <?php
 $content = ob_get_clean();
+$scripts = ['/assets/js/shop-home.js'];
 include dirname(__DIR__) . '/layouts/main.php';

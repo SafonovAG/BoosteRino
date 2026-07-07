@@ -33,6 +33,19 @@ final class PricingService
             'max' => (int) $s['max_qty'],
             'refill' => (bool) $s['refill'],
             'cancel' => (bool) $s['cancel'],
+            'logo' => ServiceLogo::forService($s),
+            'platform' => self::platformSlug($s),
         ];
+    }
+
+    private static function platformSlug(array $s): string
+    {
+        $logo = ServiceLogo::forService($s);
+        foreach (ServiceLogo::platforms() as $p) {
+            if ($p['logo'] === $logo && $p['slug'] !== 'all') {
+                return $p['slug'];
+            }
+        }
+        return 'other';
     }
 }

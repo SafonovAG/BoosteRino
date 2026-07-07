@@ -3,6 +3,15 @@
   const panels = document.querySelectorAll('.panel');
   const navBtns = document.querySelectorAll('[data-panel]');
 
+  document.querySelectorAll('[data-panel-jump]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = link.dataset.panelJump;
+      const btn = document.querySelector('[data-panel="' + id + '"]');
+      btn?.click();
+    });
+  });
+
   navBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.panel;
@@ -111,9 +120,17 @@
     const data = await api('/api/v1/services');
     services = data.services || [];
     serviceSelect.innerHTML = services.map((s) =>
-      '<option value="' + s.id + '">' + escape(s.name) + ' (' + fmt(s.price_per_thousand_rub) + '/1000)</option>'
+      '<option value="' + s.id + '">' + escape(s.name) + ' - ' + fmt(s.price_per_thousand_rub) + '/1000</option>'
     ).join('');
+    updateServiceLogo();
     updatePrice();
+  }
+
+  function updateServiceLogo() {
+    const img = document.getElementById('order-service-logo');
+    if (!img || !serviceSelect) return;
+    const svc = services.find((s) => s.id === +serviceSelect.value);
+    img.src = svc?.logo || '/assets/images/logo/default.svg';
   }
 
   function updatePrice() {
@@ -131,7 +148,10 @@
   }
 
   if (serviceSelect) {
-    serviceSelect.addEventListener('change', updatePrice);
+    serviceSelect.addEventListener('change', () => {
+      updateServiceLogo();
+      updatePrice();
+    });
     document.getElementById('order-quantity')?.addEventListener('input', updatePrice);
   }
 
