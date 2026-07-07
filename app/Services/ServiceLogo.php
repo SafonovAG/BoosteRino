@@ -6,25 +6,91 @@ namespace App\Services;
 
 final class ServiceLogo
 {
+    private const DEFAULT = '/assets/images/logo/default.svg';
+
+    /** @var array<string, string> */
     private const LOGOS = [
+        'telegram-premium' => '/assets/images/logo/telegram-premium.png',
         'telegram' => '/assets/images/logo/telegram.svg',
         'tiktok' => '/assets/images/logo/tiktok.svg',
         'youtube' => '/assets/images/logo/youtube.svg',
         'vk' => '/assets/images/logo/vk.svg',
         'facebook' => '/assets/images/logo/facebook.svg',
         'twitch' => '/assets/images/logo/twitch.svg',
+        'twitter' => '/assets/images/logo/twitter.png',
+        'instagram' => '/assets/images/logo/default.svg',
+        'discord' => '/assets/images/logo/discord.png',
+        'dzen' => '/assets/images/logo/dzen.png',
+        'rutube' => '/assets/images/logo/rutube.png',
+        'odnoklassniki' => '/assets/images/logo/odnoklassniki.png',
+        'pinterest' => '/assets/images/logo/pinterest.png',
+        'linkedin' => '/assets/images/logo/linkedin.png',
+        'spotify' => '/assets/images/logo/spotify.png',
+        'steam' => '/assets/images/logo/steam.png',
+        'kick' => '/assets/images/logo/kick.png',
+        'trovo' => '/assets/images/logo/trovo.png',
+        'likee' => '/assets/images/logo/likee.png',
+        'threads' => '/assets/images/logo/threads.png',
+        'avito' => '/assets/images/logo/avito.png',
+        'vcru' => '/assets/images/logo/vcru.png',
+        'dtf' => '/assets/images/logo/dtf.png',
+        'yandexmusic' => '/assets/images/logo/yandexmusic.png',
+        'yappi' => '/assets/images/logo/yappi.jpg',
+        'wibes' => '/assets/images/logo/wibes.ico',
+        'max' => '/assets/images/logo/max.png',
+        'trafficnasayt' => '/assets/images/logo/trafficnasayt.png',
     ];
 
-    private const DEFAULT = '/assets/images/logo/default.svg';
-
-    /** @var array<string, list<string>> */
+    /** @var array<string, list<string>> Порядок важен: более специфичные платформы выше */
     private const KEYWORDS = [
-        'telegram' => ['telegram', 'телеграм', 'tg '],
+        'telegram-premium' => ['telegram premium', 'tg premium', 'премиум подпис', 'premium telegram', 'телеграм премиум'],
+        'telegram' => ['telegram', 'телеграм', 'tg ', ' tg'],
         'tiktok' => ['tiktok', 'тик ток', 'тикток'],
-        'youtube' => ['youtube', 'ютуб'],
+        'youtube' => ['youtube', 'ютуб', 'you tube'],
         'vk' => ['вконтакте', 'vkontakte', ' vk', 'vk '],
-        'facebook' => ['facebook', 'фейсбук', ' fb'],
+        'facebook' => ['facebook', 'фейсбук', ' fb', 'fb '],
         'twitch' => ['twitch', 'твич'],
+        'twitter' => ['twitter', 'твиттер', ' x.com', 'twitter / x', 'twitter/x'],
+        'instagram' => ['instagram', 'инстаграм', 'insta '],
+        'discord' => ['discord', 'дискорд'],
+        'dzen' => ['дзен', 'dzen', 'zen.yandex', 'яндекс дзен'],
+        'rutube' => ['rutube', 'рутуб'],
+        'odnoklassniki' => ['одноклассник', 'odnoklassniki', 'ok.ru', ' ok '],
+        'pinterest' => ['pinterest', 'пинтерест'],
+        'linkedin' => ['linkedin', 'линкедин'],
+        'spotify' => ['spotify', 'спотифай'],
+        'steam' => ['steam', 'стим'],
+        'kick' => ['kick.com', ' kick '],
+        'trovo' => ['trovo', 'трово'],
+        'likee' => ['likee', 'лайки '],
+        'threads' => ['threads', 'тредс'],
+        'avito' => ['avito', 'авито'],
+        'vcru' => ['vc.ru', 'vcru', 'vc ru'],
+        'dtf' => ['dtf.ru', ' dtf'],
+        'yandexmusic' => ['yandex music', 'yandexmusic', 'яндекс муз', 'яндекс.музы'],
+        'yappi' => ['yappi', 'яппи'],
+        'wibes' => ['wibes', 'вайбс'],
+        'max' => ['vk max', 'мессенджер max', ' max messenger'],
+        'trafficnasayt' => ['трафик на сайт', 'traffic website', 'веб трафик', 'website traffic', 'посещения сайт'],
+    ];
+
+    /** @var array<string, string> slug => отображаемое имя для фильтров */
+    private const PLATFORM_NAMES = [
+        'telegram' => 'Telegram',
+        'vk' => 'VK',
+        'youtube' => 'YouTube',
+        'tiktok' => 'TikTok',
+        'facebook' => 'Facebook',
+        'twitch' => 'Twitch',
+        'twitter' => 'Twitter / X',
+        'instagram' => 'Instagram',
+        'discord' => 'Discord',
+        'dzen' => 'Дзен',
+        'rutube' => 'Rutube',
+        'odnoklassniki' => 'Одноклассники',
+        'spotify' => 'Spotify',
+        'steam' => 'Steam',
+        'avito' => 'Avito',
     ];
 
     public static function forService(array $service): string
@@ -47,21 +113,33 @@ final class ServiceLogo
             return self::LOGOS['vk'];
         }
 
+        foreach (self::LOGOS as $slug => $path) {
+            if ($slug === 'instagram') {
+                continue;
+            }
+            $needle = str_replace('-', ' ', $slug);
+            if (str_contains($hay, $needle) || str_contains($hay, $slug)) {
+                return $path;
+            }
+        }
+
         return self::DEFAULT;
     }
 
     /** @return list<array{slug: string, name: string, logo: string}> */
     public static function platforms(): array
     {
-        return [
+        $list = [
             ['slug' => 'all', 'name' => 'Все платформы', 'logo' => self::DEFAULT],
-            ['slug' => 'telegram', 'name' => 'Telegram', 'logo' => self::LOGOS['telegram']],
-            ['slug' => 'vk', 'name' => 'VK', 'logo' => self::LOGOS['vk']],
-            ['slug' => 'youtube', 'name' => 'YouTube', 'logo' => self::LOGOS['youtube']],
-            ['slug' => 'tiktok', 'name' => 'TikTok', 'logo' => self::LOGOS['tiktok']],
-            ['slug' => 'facebook', 'name' => 'Facebook', 'logo' => self::LOGOS['facebook']],
-            ['slug' => 'twitch', 'name' => 'Twitch', 'logo' => self::LOGOS['twitch']],
         ];
+
+        foreach (self::PLATFORM_NAMES as $slug => $name) {
+            if (isset(self::LOGOS[$slug])) {
+                $list[] = ['slug' => $slug, 'name' => $name, 'logo' => self::LOGOS[$slug]];
+            }
+        }
+
+        return $list;
     }
 
     public static function matchesPlatform(array $service, string $slug): bool
@@ -69,7 +147,22 @@ final class ServiceLogo
         if ($slug === 'all' || $slug === '') {
             return true;
         }
+
+        if (!isset(self::LOGOS[$slug])) {
+            return self::platformSlug($service) === $slug;
+        }
+
+        return self::LOGOS[$slug] === self::forService($service);
+    }
+
+    public static function platformSlug(array $service): string
+    {
         $logo = self::forService($service);
-        return isset(self::LOGOS[$slug]) && self::LOGOS[$slug] === $logo;
+        foreach (self::LOGOS as $slug => $path) {
+            if ($path === $logo) {
+                return $slug;
+            }
+        }
+        return 'other';
     }
 }

@@ -40,12 +40,6 @@ final class PricingService
 
     private static function platformSlug(array $s): string
     {
-        $logo = ServiceLogo::forService($s);
-        foreach (ServiceLogo::platforms() as $p) {
-            if ($p['logo'] === $logo && $p['slug'] !== 'all') {
-                return $p['slug'];
-            }
-        }
-        return 'other';
+        return ServiceLogo::platformSlug($s);
     }
 }
