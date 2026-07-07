@@ -9,34 +9,24 @@ use PDOException;
 
 final class Database
 {
-    private static ?PDO $connection = null;
+    private static ?PDO $pdo = null;
 
-    public static function connection(): PDO
+    public static function pdo(): PDO
     {
-        if (self::$connection instanceof PDO) {
-            return self::$connection;
+        if (self::$pdo instanceof PDO) {
+            return self::$pdo;
         }
-
-        $config = require dirname(__DIR__, 2) . '/config/database.php';
-
-        $dsn = sprintf(
-            'mysql:host=%s;port=%d;dbname=%s;charset=%s',
-            $config['host'],
-            $config['port'],
-            $config['database'],
-            $config['charset']
-        );
-
+        $c = require BASE_PATH . '/config/database.php';
+        $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s', $c['host'], $c['port'], $c['database'], $c['charset']);
         try {
-            self::$connection = new PDO($dsn, $config['username'], $config['password'], [
+            self::$pdo = new PDO($dsn, $c['username'], $c['password'], [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
         } catch (PDOException $e) {
-            throw new \RuntimeException('Database connection failed.', 0, $e);
+            throw new \RuntimeException('Ошибка подключения к MySQL.', 0, $e);
         }
-
-        return self::$connection;
+        return self::$pdo;
     }
 }

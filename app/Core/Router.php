@@ -6,98 +6,66 @@ namespace App\Core;
 
 final class Router
 {
-    /** @var array<int, array{methods: string[], path: string, handler: callable, middleware: string[]}> */
     private array $routes = [];
 
-    public function get(string $path, callable $handler, array $middleware = []): void
-    {
-        $this->add(['GET'], $path, $handler, $middleware);
-    }
+    public function get(string $p, callable $h, array $mw = []): void { $this->add(['GET'], $p, $h, $mw); }
+    public function post(string $p, callable $h, array $mw = []): void { $this->add(['POST'], $p, $h, $mw); }
+    public function put(string $p, callable $h, array $mw = []): void { $this->add(['PUT'], $p, $h, $mw); }
+    public function delete(string $p, callable $h, array $mw = []): void { $this->add(['DELETE'], $p, $h, $mw); }
 
-    public function post(string $path, callable $handler, array $middleware = []): void
-    {
-        $this->add(['POST'], $path, $handler, $middleware);
-    }
-
-    public function put(string $path, callable $handler, array $middleware = []): void
-    {
-        $this->add(['PUT'], $path, $handler, $middleware);
-    }
-
-    public function delete(string $path, callable $handler, array $middleware = []): void
-    {
-        $this->add(['DELETE'], $path, $handler, $middleware);
-    }
-
-    public function add(array $methods, string $path, callable $handler, array $middleware = []): void
+    public function add(array $methods, string $path, callable $handler, array $mw = []): void
     {
         $this->routes[] = [
             'methods' => array_map('strtoupper', $methods),
             'path' => rtrim($path, '/') ?: '/',
             'handler' => $handler,
-            'middleware' => $middleware,
+            'mw' => $mw,
         ];
     }
 
-    public function dispatch(Request $request): void
+    public function dispatch(Request $req): void
     {
-        foreach ($this->routes as $route) {
-            if (!in_array($request->method(), $route['methods'], true)) {
+        foreach ($this->routes as $r) {
+            if (!in_array($req->method(), $r['methods'], true)) {
                 continue;
             }
-
-            $params = $this->match($route['path'], $request->path());
+            $params = $this->match($r['path'], $req->path());
             if ($params === null) {
                 continue;
             }
-
-            $handler = $this->wrapMiddleware(
-                static function (Request $req, array $p) use ($route) {
-                    return call_user_func($route['handler'], $req, $p);
-                },
-                $route['middleware']
-            );
-            $handler($request, $params);
+            $h = $this->wrap($r['handler'], $r['mw']);
+            $h($req, $params);
             return;
         }
-
-        if ($request->isApi()) {
-            Response::error('not_found', 'Endpoint not found.', 404);
-        } else {
-            Response::html(View::render('errors/404', ['title' => 'Страница не найдена']), 404);
+        if ($req->isApi()) {
+            Response::fail('not_found', 'Endpoint не найден.', 404);
         }
+        Response::html(View::render('errors/404', ['title' => '404 - Boosterino']), 404);
     }
 
-    private function wrapMiddleware(callable $handler, array $middleware): callable
+    private function wrap(callable $handler, array $mw): callable
     {
-        return array_reduce(
-            array_reverse($middleware),
-            static function (callable $next, string|object $mw) {
-                return static function (Request $request, array $params = []) use ($next, $mw) {
-                    $instance = is_object($mw) ? $mw : new $mw();
-                    return $instance->handle($request, $params, $next);
-                };
-            },
-            $handler
-        );
+        $next = static fn (Request $r, array $p) => call_user_func($handler, $r, $p);
+        foreach (array_reverse($mw) as $m) {
+            $inst = is_object($m) ? $m : new $m();
+            $prev = $next;
+            $next = static fn (Request $r, array $p) => $inst->handle($r, $p, $prev);
+        }
+        return $next;
     }
 
-    private function match(string $routePath, string $requestPath): ?array
+    private function match(string $route, string $uri): ?array
     {
-        $pattern = preg_replace('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', '(?<$1>[^/]+)', $routePath);
-        $pattern = '#^' . $pattern . '$#';
-
-        if (!preg_match($pattern, $requestPath, $matches)) {
+        $pat = '#^' . preg_replace('/\{(\w+)\}/', '(?<$1>[^/]+)', $route) . '$#';
+        if (!preg_match($pat, $uri, $m)) {
             return null;
         }
-
-        $params = [];
-        foreach ($matches as $key => $value) {
-            if (!is_int($key)) {
-                $params[$key] = $value;
+        $out = [];
+        foreach ($m as $k => $v) {
+            if (!is_int($k)) {
+                $out[$k] = $v;
             }
         }
-
-        return $params;
+        return $out;
     }
 }

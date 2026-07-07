@@ -11,7 +11,7 @@ ob_start();
             <?php else: ?>
                 <h1>Ошибка</h1>
                 <p class="muted">Ссылка недействительна или устарела.</p>
-                <a href="/register" class="btn btn-secondary btn-block">Регистрация</a>
+                <a href="https://boosterino.ru/register" class="btn btn-secondary btn-block">Регистрация</a>
             <?php endif; ?>
         </div>
     </div>

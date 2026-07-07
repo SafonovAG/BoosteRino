@@ -2,34 +2,21 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+require dirname(__DIR__) . '/bootstrap/autoload.php';
+define('BASE_PATH', dirname(__DIR__));
 
 use App\Core\Database;
-use App\Services\SettingsService;
 
 if ($argc < 3) {
-    echo "Usage: php bin/create_superadmin.php email password\n";
+    echo "php bin/create_superadmin.php email password\n";
     exit(1);
 }
 
-$email = mb_strtolower(trim($argv[1]));
-$password = $argv[2];
+$hash = password_hash($argv[2], PASSWORD_BCRYPT, ['cost' => 12]);
+Database::pdo()->prepare(
+    'INSERT INTO users (email,password_hash,role,email_verified_at) VALUES (:e,:h,\'superadmin\',NOW())
+     ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash),role=\'superadmin\',email_verified_at=NOW()'
+)->execute(['e' => mb_strtolower($argv[1]), 'h' => $hash]);
 
-if (strlen($password) < 8) {
-    echo "Password must be at least 8 characters.\n";
-    exit(1);
-}
-
-$pdo = Database::connection();
-$hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-
-$stmt = $pdo->prepare(
-    'INSERT INTO users (email, password_hash, role, email_verified_at)
-     VALUES (:email, :hash, :role, NOW())
-     ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), role = :role2, email_verified_at = NOW()'
-);
-$stmt->execute(['email' => $email, 'hash' => $hash, 'role' => 'superadmin', 'role2' => 'superadmin']);
-
-(new SettingsService())->ensureAppSecret();
-
-echo "Superadmin created: {$email}\n";
+(new App\Services\SettingsService())->ensureSecret();
+echo "OK: {$argv[1]}\n";

@@ -1,4 +1,4 @@
--- Boosterino database schema (MySQL 8)
+-- Boosterino schema (MySQL 8)
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified_at TIMESTAMP NULL DEFAULT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_users_role (role)
+    updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS email_verifications (
@@ -29,7 +28,7 @@ CREATE TABLE IF NOT EXISTS email_verifications (
     token CHAR(64) NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_email_verifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    CONSTRAINT fk_ev_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS password_resets (
@@ -38,7 +37,7 @@ CREATE TABLE IF NOT EXISTS password_resets (
     token CHAR(64) NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_password_resets_email (email)
+    INDEX idx_pr_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS services (
@@ -55,10 +54,7 @@ CREATE TABLE IF NOT EXISTS services (
     markup_override DECIMAL(5, 2) NULL DEFAULT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     synced_at TIMESTAMP NULL DEFAULT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_services_category (category(191)),
-    INDEX idx_services_active (is_active)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS orders (
@@ -80,8 +76,7 @@ CREATE TABLE IF NOT EXISTS orders (
     CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_orders_service FOREIGN KEY (service_id) REFERENCES services(id),
     INDEX idx_orders_user (user_id),
-    INDEX idx_orders_status (status),
-    INDEX idx_orders_twiboost (twiboost_order_id)
+    INDEX idx_orders_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS payments (
@@ -94,10 +89,7 @@ CREATE TABLE IF NOT EXISTS payments (
     status ENUM('pending', 'success', 'failed') NOT NULL DEFAULT 'pending',
     yoomoney_operation_id VARCHAR(64) NULL DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_payments_user FOREIGN KEY (user_id) REFERENCES users(id),
-    INDEX idx_payments_user (user_id),
-    INDEX idx_payments_status (status)
+    CONSTRAINT fk_payments_user FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS balance_transactions (
@@ -109,8 +101,7 @@ CREATE TABLE IF NOT EXISTS balance_transactions (
     reference_type VARCHAR(32) NULL DEFAULT NULL,
     reference_id INT UNSIGNED NULL DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_balance_transactions_user FOREIGN KEY (user_id) REFERENCES users(id),
-    INDEX idx_balance_transactions_user (user_id)
+    CONSTRAINT fk_bt_user FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS rate_limits (
@@ -119,7 +110,7 @@ CREATE TABLE IF NOT EXISTS rate_limits (
     action VARCHAR(32) NOT NULL,
     attempts INT UNSIGNED NOT NULL DEFAULT 1,
     window_start TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_rate_limit (ip, action)
+    UNIQUE KEY uniq_rl (ip, action)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO settings (setting_key, setting_value, is_sensitive) VALUES

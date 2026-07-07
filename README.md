@@ -7,7 +7,6 @@
 [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/)
-[![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
 [![Live](https://img.shields.io/badge/Сайт-boosterino.ru-6366f1?style=for-the-badge)](https://boosterino.ru)
 
 ### [boosterino.ru](https://boosterino.ru) - смотрите проект вживую и заказывайте услуги прямо сейчас
@@ -33,7 +32,7 @@
 
 ## О проекте
 
-**BoosteRino** - современное веб-приложение для заказа услуг продвижения и накрутки. Интеграция с API поставщика Twiboost, личный кабинет покупателя, админ-панель с наценкой и приём платежей через ЮMoney.
+**BoosteRino** - веб-приложение для заказа услуг продвижения и накрутки. Интеграция с API поставщика Twiboost, личный кабинет покупателя, админ-панель с наценкой и приём платежей через ЮMoney.
 
 Создано с помощью [Cursor](https://cursor.com).
 
@@ -50,39 +49,48 @@
 ### Стек
 
 ```
-PHP 8.3  ->  REST API + серверные шаблоны
-MySQL 8  ->  данные и настройки (без .env)
-Apache   ->  mod_rewrite, document root: public/
-JS       ->  vanilla fetch, без фреймворков
+PHP 8.3   ->  REST API + серверные шаблоны, без фреймворков
+MySQL 8   ->  данные и настройки (без .env)
+Apache    ->  mod_rewrite, document root: корень проекта
+JavaScript -> vanilla fetch, без фреймворков
 ```
+
+**Без Composer на сервере** - автозагрузка через `bootstrap/autoload.php`, SMTP через встроенный `fsockopen`.
 
 ---
 
-## Быстрый старт (для разработчиков)
+## Установка на хостинг (PHP + MySQL)
+
+1. Загрузите файлы проекта на хостинг (FTP, PhpStorm Deployment и т.п.)
+2. Импортируйте схему: `mysql -u USER -p DB < database/schema.sql`
+3. Скопируйте `config/database.example.php` в `config/database.php` и укажите доступ к MySQL
+4. Создайте superadmin:
 
 ```bash
-composer install
-cp config/database.example.php config/database.php
-mysql -u brino -p brino < database/schema.sql
 php bin/create_superadmin.php admin@example.com YourPassword123
 ```
 
-Apache: DocumentRoot -> `public/`
+5. В админке заполните: API-ключ Twiboost, кошелёк ЮMoney, SMTP, глобальную наценку
+6. Настройте cron (см. ниже)
 
-После установки заполните в админке: API-ключ Twiboost, кошелёк ЮMoney, SMTP.
+Требования: PHP 8.3+, MySQL 8, Apache с `mod_rewrite`.
 
 ---
 
 ## Структура
 
 ```
-app/          - ядро, API, сервисы, middleware
-config/       - маршруты, database.example.php
-database/     - schema.sql
-public/       - точка входа (index.php, assets)
-views/        - PHP-шаблоны
-cron/         - синхронизация услуг и статусов заказов
-bin/          - CLI-утилиты
+index.php       - точка входа (front controller)
+.htaccess       - маршрутизация, защита служебных папок
+app/            - ядро, API, сервисы, middleware
+assets/         - CSS и JavaScript
+bootstrap/      - PSR-4 autoload без Composer
+config/         - маршруты, database.example.php
+database/       - schema.sql
+views/          - PHP-шаблоны
+cron/           - синхронизация услуг и статусов заказов
+bin/            - CLI-утилиты
+storage/cache/  - кэш (не в git, кроме .gitkeep)
 ```
 
 ---
@@ -98,8 +106,9 @@ bin/          - CLI-утилиты
 
 ## Безопасность
 
-- Секреты (API-ключи, пароли) - **только** в `config/database.php` (локально) и таблице `settings` в MySQL
-- В публичный репозиторий не попадают: `.cursor/`, `.githooks/`, `config/database.php`
+- Доступ к MySQL - **только** в `config/database.php` (локально, не в git)
+- API-ключ Twiboost, ЮMoney, SMTP - в таблице `settings` в MySQL
+- В публичный репозиторий не попадают: `config/database.php`, `.cursor/`, `.githooks/`, `api/info/`, `SECURITY.md`
 
 ---
 

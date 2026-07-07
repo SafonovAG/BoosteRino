@@ -8,27 +8,16 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
 
-abstract class Middleware
-{
-    abstract public function handle(Request $request, array $params, callable $next): mixed;
-}
-
 final class CsrfMiddleware extends Middleware
 {
-    public function handle(Request $request, array $params, callable $next): mixed
+    public function handle(Request $req, array $params, callable $next): mixed
     {
-        if (in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-            $token = $request->header('X-CSRF-Token') ?? $request->input('_csrf');
-            if (!Session::validateCsrf(is_string($token) ? $token : null)) {
-                if ($request->isApi()) {
-                    Response::error('csrf_invalid', 'Invalid CSRF token.', 419);
-                    return null;
-                }
-                Response::error('csrf_invalid', 'Invalid CSRF token.', 419);
-                return null;
+        if (in_array($req->method(), ['POST', 'PUT', 'DELETE'], true)) {
+            $t = $req->header('X-CSRF-Token') ?? $req->input('_csrf');
+            if (!Session::checkCsrf(is_string($t) ? $t : null)) {
+                Response::fail('csrf', 'Неверный CSRF-токен.', 419);
             }
         }
-
-        return $next($request, $params);
+        return $next($req, $params);
     }
 }

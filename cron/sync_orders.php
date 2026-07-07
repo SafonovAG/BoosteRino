@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__) . '/vendor/autoload.php';
-
-use App\Services\OrderService;
+define('BASE_PATH', dirname(__DIR__));
+require BASE_PATH . '/bootstrap/autoload.php';
 
 try {
-    $count = (new OrderService())->syncActiveStatuses();
-    echo date('c') . " Updated {$count} orders.\n";
+    echo date('c') . ' updated: ' . (new App\Services\OrderService())->sync() . "\n";
 } catch (Throwable $e) {
-    echo date('c') . ' Error: ' . $e->getMessage() . "\n";
+    echo 'ERR: ' . $e->getMessage() . "\n";
     exit(1);
 }

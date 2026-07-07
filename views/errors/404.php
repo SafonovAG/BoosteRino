@@ -7,6 +7,7 @@ ob_start();
             <h1>404</h1>
             <p class="muted">Страница не найдена</p>
             <a href="/" class="btn btn-primary">На главную</a>
+            <p class="auth-links"><a href="https://boosterino.ru">boosterino.ru</a></p>
         </div>
     </div>
 </section>

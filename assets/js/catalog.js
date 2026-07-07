@@ -7,6 +7,12 @@
     return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(n);
   }
 
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
   async function load() {
     try {
       const data = await api('/api/v1/services');
@@ -22,27 +28,21 @@
       services.forEach((s) => {
         if (s.category !== lastCat) {
           lastCat = s.category;
-          html += `<h2 class="service-category">${escapeHtml(s.category)}</h2>`;
+          html += '<h2 class="service-category">' + escapeHtml(s.category) + '</h2>';
         }
-        html += `
-          <article class="card service-card">
-            <h3>${escapeHtml(s.name)}</h3>
-            <div class="price">${formatPrice(s.price_per_thousand_rub)} <span class="muted">/ 1000</span></div>
-            <p class="meta">мин. ${s.min} - макс. ${s.max}${s.refill ? ' · refill' : ''}${s.cancel ? ' · отмена' : ''}</p>
-            <a href="/register" class="btn btn-primary btn-sm">Заказать</a>
-          </article>`;
+        html += '<article class="card service-card">' +
+          '<h3>' + escapeHtml(s.name) + '</h3>' +
+          '<div class="price">' + formatPrice(s.price_per_thousand_rub) + ' <span class="muted">/ 1000</span></div>' +
+          '<p class="meta">мин. ' + s.min + ' - макс. ' + s.max +
+          (s.refill ? ' · refill' : '') + (s.cancel ? ' · отмена' : '') + '</p>' +
+          '<a href="https://boosterino.ru/register" class="btn btn-primary btn-sm">Заказать</a>' +
+          '</article>';
       });
 
       container.innerHTML = html;
     } catch {
       container.innerHTML = '<p class="muted">Не удалось загрузить каталог. Попробуйте позже.</p>';
     }
-  }
-
-  function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
   }
 
   load();

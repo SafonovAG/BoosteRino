@@ -13,8 +13,8 @@
     localStorage.setItem(KEY, theme);
     current = theme;
     if (btn) {
-      const labels = { auto: '◐', light: '☀', dark: '☾' };
-      btn.textContent = labels[theme] || '◐';
+      const labels = { auto: '\u25D0', light: '\u2600', dark: '\u263E' };
+      btn.textContent = labels[theme] || '\u25D0';
       btn.title = 'Тема: ' + theme;
     }
   }

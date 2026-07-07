@@ -47,6 +47,7 @@ a:hover { color: var(--accent-hover); }
   justify-content: space-between;
   min-height: 64px;
   gap: 1rem;
+  position: relative;
 }
 
 .logo {
@@ -223,6 +224,14 @@ th { color: var(--text-muted); font-weight: 600; }
   font-weight: 700;
 }
 
+.cta-card {
+  text-align: center;
+  padding: 2.5rem;
+}
+
+.cta-card .section-title { margin-bottom: 0.75rem; }
+.cta-card .lead { margin-bottom: 1.5rem; }
+
 @media (max-width: 768px) {
   .nav {
     display: none;
@@ -234,11 +243,12 @@ th { color: var(--text-muted); font-weight: 600; }
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border);
     padding: 1rem;
+    z-index: 99;
   }
 
   .nav.open { display: flex; }
 
-  .nav-toggle { display: block; }
+  .nav-toggle { display: inline-flex; }
 
   .hero-grid,
   .cabinet-grid {

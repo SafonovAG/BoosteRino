@@ -12,10 +12,7 @@ final class Request
         private readonly array $query,
         private readonly array $body,
         private readonly array $server,
-        private readonly array $cookies,
-        private readonly array $files,
-    ) {
-    }
+    ) {}
 
     public static function capture(): self
     {
@@ -25,73 +22,28 @@ final class Request
         $path = rtrim($path, '/') ?: '/';
 
         $body = [];
-        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-
-        if (str_starts_with($contentType, 'application/json')) {
+        $ct = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (str_starts_with($ct, 'application/json')) {
             $raw = file_get_contents('php://input') ?: '';
             $decoded = json_decode($raw, true);
             $body = is_array($decoded) ? $decoded : [];
-        } elseif (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+        } elseif (in_array($method, ['POST', 'PUT', 'DELETE'], true)) {
             $body = $_POST;
         }
 
-        return new self($method, $path, $_GET, $body, $_SERVER, $_COOKIE, $_FILES);
+        return new self($method, $path, $_GET, $body, $_SERVER);
     }
 
-    public function method(): string
+    public function method(): string { return $this->method; }
+    public function path(): string { return $this->path; }
+    public function query(string $k, mixed $d = null): mixed { return $this->query[$k] ?? $d; }
+    public function input(string $k, mixed $d = null): mixed { return $this->body[$k] ?? $d; }
+    public function all(): array { return $this->body; }
+    public function ip(): string { return $this->server['REMOTE_ADDR'] ?? '0.0.0.0'; }
+    public function isApi(): bool { return str_starts_with($this->path, '/api/'); }
+    public function header(string $n, mixed $d = null): mixed
     {
-        return $this->method;
-    }
-
-    public function path(): string
-    {
-        return $this->path;
-    }
-
-    public function query(string $key, mixed $default = null): mixed
-    {
-        return $this->query[$key] ?? $default;
-    }
-
-    public function input(string $key, mixed $default = null): mixed
-    {
-        return $this->body[$key] ?? $default;
-    }
-
-    public function all(): array
-    {
-        return $this->body;
-    }
-
-    public function server(string $key, mixed $default = null): mixed
-    {
-        return $this->server[$key] ?? $default;
-    }
-
-    public function ip(): string
-    {
-        return $this->server('REMOTE_ADDR', '0.0.0.0');
-    }
-
-    public function isApi(): bool
-    {
-        return str_starts_with($this->path, '/api/');
-    }
-
-    public function bearerToken(): ?string
-    {
-        $header = $this->server('HTTP_AUTHORIZATION');
-        if ($header && preg_match('/Bearer\s+(\S+)/', $header, $matches)) {
-            return $matches[1];
-        }
-
-        return null;
-    }
-
-    public function header(string $name, mixed $default = null): mixed
-    {
-        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
-
-        return $this->server[$key] ?? $default;
+        $k = 'HTTP_' . strtoupper(str_replace('-', '_', $n));
+        return $this->server[$k] ?? $d;
     }
 }

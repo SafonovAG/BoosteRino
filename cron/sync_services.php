@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__) . '/vendor/autoload.php';
-
-use App\Services\ServiceCatalog;
+define('BASE_PATH', dirname(__DIR__));
+require BASE_PATH . '/bootstrap/autoload.php';
 
 try {
-    $count = ServiceCatalog::syncFromTwiboost();
-    echo date('c') . " Synced {$count} services.\n";
+    echo date('c') . ' synced: ' . App\Services\ServiceCatalog::sync() . "\n";
 } catch (Throwable $e) {
-    echo date('c') . ' Error: ' . $e->getMessage() . "\n";
+    echo 'ERR: ' . $e->getMessage() . "\n";
     exit(1);
 }

@@ -6,22 +6,20 @@ namespace App\Core;
 
 final class View
 {
-    public static function render(string $template, array $data = []): string
+    public static function render(string $tpl, array $vars = []): string
     {
-        $path = dirname(__DIR__, 2) . '/views/' . $template . '.php';
-        if (!is_file($path)) {
-            throw new \RuntimeException("View [{$template}] not found.");
+        $file = BASE_PATH . '/views/' . $tpl . '.php';
+        if (!is_file($file)) {
+            throw new \RuntimeException("Шаблон не найден: {$tpl}");
         }
-
-        extract($data, EXTR_SKIP);
+        extract($vars, EXTR_SKIP);
         ob_start();
-        include $path;
-
+        include $file;
         return (string) ob_get_clean();
     }
 
-    public static function e(?string $value): string
+    public static function e(?string $v): string
     {
-        return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }

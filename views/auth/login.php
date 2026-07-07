@@ -11,8 +11,8 @@ ob_start();
                 <button type="submit" class="btn btn-primary btn-block">Войти</button>
             </form>
             <p class="auth-links">
-                <a href="/forgot-password">Забыли пароль?</a> ·
-                <a href="/register">Регистрация</a>
+                <a href="/forgot-password">Забыли пароль?</a> &middot;
+                <a href="https://boosterino.ru/register">Регистрация</a>
             </p>
         </div>
     </div>

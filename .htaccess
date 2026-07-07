@@ -2,6 +2,8 @@
     RewriteEngine On
     RewriteBase /
 
+    RewriteRule ^(app|config|database|cron|bin|storage|bootstrap|views)/ - [F,L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ index.php [L]

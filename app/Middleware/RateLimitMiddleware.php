@@ -11,49 +11,27 @@ use PDO;
 
 final class RateLimitMiddleware extends Middleware
 {
-    public function __construct(
-        private readonly string $action,
-        private readonly int $maxAttempts = 5,
-        private readonly int $windowMinutes = 15,
-    ) {
-    }
+    public function __construct(private readonly string $action, private readonly int $max = 5) {}
 
-    public function handle(Request $request, array $params, callable $next): mixed
+    public function handle(Request $req, array $params, callable $next): mixed
     {
-        $ip = $request->ip();
-        $pdo = Database::connection();
-
-        $stmt = $pdo->prepare(
-            'SELECT id, attempts, window_start FROM rate_limits WHERE ip = :ip AND action = :action LIMIT 1'
-        );
-        $stmt->execute(['ip' => $ip, 'action' => $this->action]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $now = new \DateTimeImmutable();
-
+        $pdo = Database::pdo();
+        $ip = $req->ip();
+        $st = $pdo->prepare('SELECT id, attempts, window_start FROM rate_limits WHERE ip=:ip AND action=:a');
+        $st->execute(['ip' => $ip, 'a' => $this->action]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
         if ($row) {
-            $windowStart = new \DateTimeImmutable($row['window_start']);
-            $diff = $now->getTimestamp() - $windowStart->getTimestamp();
-
-            if ($diff > $this->windowMinutes * 60) {
-                $update = $pdo->prepare(
-                    'UPDATE rate_limits SET attempts = 1, window_start = NOW() WHERE id = :id'
-                );
-                $update->execute(['id' => $row['id']]);
-            } elseif ((int) $row['attempts'] >= $this->maxAttempts) {
-                Response::error('rate_limit', 'Слишком много попыток. Попробуйте позже.', 429);
-                return null;
+            $age = time() - strtotime($row['window_start']);
+            if ($age > 900) {
+                $pdo->prepare('UPDATE rate_limits SET attempts=1, window_start=NOW() WHERE id=:id')->execute(['id' => $row['id']]);
+            } elseif ((int) $row['attempts'] >= $this->max) {
+                Response::fail('rate_limit', 'Слишком много попыток.', 429);
             } else {
-                $update = $pdo->prepare('UPDATE rate_limits SET attempts = attempts + 1 WHERE id = :id');
-                $update->execute(['id' => $row['id']]);
+                $pdo->prepare('UPDATE rate_limits SET attempts=attempts+1 WHERE id=:id')->execute(['id' => $row['id']]);
             }
         } else {
-            $insert = $pdo->prepare(
-                'INSERT INTO rate_limits (ip, action, attempts, window_start) VALUES (:ip, :action, 1, NOW())'
-            );
-            $insert->execute(['ip' => $ip, 'action' => $this->action]);
+            $pdo->prepare('INSERT INTO rate_limits (ip, action) VALUES (:ip,:a)')->execute(['ip' => $ip, 'a' => $this->action]);
         }
-
-        return $next($request, $params);
+        return $next($req, $params);
     }
 }

@@ -1,6 +1,4 @@
 <?php
-use App\Core\View;
-
 ob_start();
 ?>
 <section class="hero">
@@ -31,7 +29,7 @@ ob_start();
         <h2 class="section-title">Почему Boosterino</h2>
         <div class="features-grid">
             <article class="card feature-card">
-                <h3>Честные цены в ₽</h3>
+                <h3>Честные цены в &#8381;</h3>
                 <p>Прозрачное ценообразование с наценкой. Видите стоимость до заказа.</p>
             </article>
             <article class="card feature-card">
@@ -62,6 +60,16 @@ ob_start();
                 <summary>Можно ли отменить заказ?</summary>
                 <p>Если услуга поддерживает отмену - кнопка доступна в личном кабинете.</p>
             </details>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="card cta-card">
+            <h2 class="section-title">Готовы начать?</h2>
+            <p class="lead">Зарегистрируйтесь на boosterino.ru и оформите первый заказ за пару минут.</p>
+            <a href="https://boosterino.ru/register" class="btn btn-primary">Регистрация на boosterino.ru</a>
         </div>
     </div>
 </section>

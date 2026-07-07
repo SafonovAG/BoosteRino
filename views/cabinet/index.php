@@ -52,7 +52,7 @@ ob_start();
                     <div class="card">
                         <h2>Пополнение баланса</h2>
                         <form id="topup-form" class="form">
-                            <label>Сумма (₽)<input type="number" name="amount" min="10" step="1" required value="500"></label>
+                            <label>Сумма (&#8381;)<input type="number" name="amount" min="10" step="1" required value="500"></label>
                             <button type="submit" class="btn btn-primary">Перейти к оплате</button>
                         </form>
                     </div>

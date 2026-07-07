@@ -6,42 +6,35 @@ namespace App\Core;
 
 final class Response
 {
-    public static function json(array $data, int $status = 200): void
+    public static function json(array $data, int $code = 200): void
     {
-        http_response_code($status);
+        http_response_code($code);
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-    }
-
-    public static function success(mixed $data = null, int $status = 200): void
-    {
-        self::json(['success' => true, 'data' => $data], $status);
-    }
-
-    public static function error(string $code, string $message, int $status = 400): void
-    {
-        self::json([
-            'success' => false,
-            'error' => ['code' => $code, 'message' => $message],
-        ], $status);
-    }
-
-    public static function redirect(string $url, int $status = 302): void
-    {
-        http_response_code($status);
-        header('Location: ' . $url);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit;
     }
 
-    public static function html(string $content, int $status = 200): void
+    public static function ok(mixed $data = null, int $code = 200): void
     {
-        http_response_code($status);
-        header('Content-Type: text/html; charset=utf-8');
-        echo $content;
+        self::json(['success' => true, 'data' => $data], $code);
     }
 
-    public static function noContent(): void
+    public static function fail(string $code, string $msg, int $http = 400): void
     {
-        http_response_code(204);
+        self::json(['success' => false, 'error' => ['code' => $code, 'message' => $msg]], $http);
+    }
+
+    public static function html(string $html, int $code = 200): void
+    {
+        http_response_code($code);
+        header('Content-Type: text/html; charset=utf-8');
+        echo $html;
+        exit;
+    }
+
+    public static function redirect(string $url): void
+    {
+        header('Location: ' . $url);
+        exit;
     }
 }
