@@ -7,10 +7,11 @@
     <meta name="description" content="Boosterino - интернет-магазин накрутки и продвижения в соцсетях. Telegram, VK, YouTube, TikTok. Оплата в рублях.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/themes.css">
     <link rel="stylesheet" href="/assets/css/animations.css">
     <link rel="stylesheet" href="/assets/css/shop.css">
+    <link rel="stylesheet" href="/assets/css/shop-fixes.css">
     <meta name="csrf-token" content="<?= \App\Core\View::e(\App\Core\Session::csrf()) ?>">
 </head>
 <body class="shop-page" <?= $bodyAttrs ?? '' ?>>

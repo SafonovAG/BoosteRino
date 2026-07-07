@@ -41,7 +41,7 @@ final class ServiceLogo
         'trafficnasayt' => '/assets/images/logo/trafficnasayt.png',
     ];
 
-    /** @var array<string, list<string>> Порядок важен: более специфичные платформы выше */
+    /** @var array<string, list<string>> */
     private const KEYWORDS = [
         'telegram-premium' => ['telegram premium', 'tg premium', 'премиум подпис', 'premium telegram', 'телеграм премиум'],
         'telegram' => ['telegram', 'телеграм', 'tg ', ' tg'],
@@ -62,7 +62,7 @@ final class ServiceLogo
         'steam' => ['steam', 'стим'],
         'kick' => ['kick.com', ' kick '],
         'trovo' => ['trovo', 'трово'],
-        'likee' => ['likee', 'лайки '],
+        'likee' => ['likee'],
         'threads' => ['threads', 'тредс'],
         'avito' => ['avito', 'авито'],
         'vcru' => ['vc.ru', 'vcru', 'vc ru'],
@@ -74,7 +74,7 @@ final class ServiceLogo
         'trafficnasayt' => ['трафик на сайт', 'traffic website', 'веб трафик', 'website traffic', 'посещения сайт'],
     ];
 
-    /** @var array<string, string> slug => отображаемое имя для фильтров */
+    /** @var array<string, string> */
     private const PLATFORM_NAMES = [
         'telegram' => 'Telegram',
         'vk' => 'VK',
@@ -93,14 +93,38 @@ final class ServiceLogo
         'avito' => 'Avito',
     ];
 
+    /** @var array<string, string> */
+    private static array $categoryCache = [];
+
+    public static function forCategory(string $category): string
+    {
+        $key = mb_strtolower(trim($category));
+        if ($key === '') {
+            return self::DEFAULT;
+        }
+        if (!isset(self::$categoryCache[$key])) {
+            self::$categoryCache[$key] = self::matchText($key);
+        }
+        return self::$categoryCache[$key];
+    }
+
     public static function forService(array $service): string
     {
+        $category = trim($service['category'] ?? '');
+        if ($category !== '') {
+            return self::forCategory($category);
+        }
+
         $hay = mb_strtolower(implode(' ', [
-            $service['category'] ?? '',
             $service['name'] ?? '',
             $service['type'] ?? '',
         ]));
 
+        return self::matchText($hay);
+    }
+
+    private static function matchText(string $hay): string
+    {
         foreach (self::KEYWORDS as $platform => $words) {
             foreach ($words as $w) {
                 if (str_contains($hay, $w)) {
@@ -148,11 +172,7 @@ final class ServiceLogo
             return true;
         }
 
-        if (!isset(self::LOGOS[$slug])) {
-            return self::platformSlug($service) === $slug;
-        }
-
-        return self::LOGOS[$slug] === self::forService($service);
+        return self::platformSlug($service) === $slug;
     }
 
     public static function platformSlug(array $service): string

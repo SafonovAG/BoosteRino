@@ -79,14 +79,22 @@
       return;
     }
 
-    let html = '';
-    let lastCat = '';
+    const byCategory = {};
     filtered.forEach((s) => {
-      if (s.category !== lastCat) {
-        lastCat = s.category;
-        html += '<h2 class="catalog-category-title">' + escapeHtml(s.category) + '</h2>';
-      }
-      html += renderCard(s);
+      const cat = s.category || 'Прочее';
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(s);
+    });
+
+    let html = '';
+    Object.keys(byCategory).sort((a, b) => a.localeCompare(b, 'ru')).forEach((cat) => {
+      const items = byCategory[cat];
+      const catLogo = items[0].logo || '/assets/images/logo/default.svg';
+      html += '<div class="catalog-category-head">' +
+        '<img src="' + escapeHtml(catLogo) + '" alt="" width="32" height="32">' +
+        '<h2 class="catalog-category-title">' + escapeHtml(cat) + '</h2>' +
+        '</div>';
+      items.forEach((s) => { html += renderCard(s); });
     });
     container.innerHTML = html;
   }
@@ -119,10 +127,10 @@
   searchEl?.addEventListener('input', () => render());
 
   document.getElementById('filter-open')?.addEventListener('click', () => {
-    document.getElementById('filter-sidebar')?.classList.add('open');
+    document.getElementById('filter-sidebar')?.classList.add('open', 'is-open');
   });
   document.getElementById('filter-close')?.addEventListener('click', () => {
-    document.getElementById('filter-sidebar')?.classList.remove('open');
+    document.getElementById('filter-sidebar')?.classList.remove('open', 'is-open');
   });
 
   setActiveFilter(platform);

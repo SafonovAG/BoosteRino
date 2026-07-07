@@ -51,7 +51,7 @@ ob_start();
 </section>
 
 <section class="trust-strip shop-section-compact">
-    <div class="container trust-strip-inner">
+    <div class="container trust-strip-grid">
         <div class="trust-stat reveal"><strong>24/7</strong><span>работа сервиса</span></div>
         <div class="trust-stat reveal"><strong>₽</strong><span>только рубли</span></div>
         <div class="trust-stat reveal"><strong>API</strong><span>поставщик Twiboost</span></div>
@@ -199,7 +199,7 @@ ob_start();
         <div class="shop-cta-banner">
             <h2>Готовы оформить первый заказ?</h2>
             <p>Зарегистрируйтесь, пополните баланс и выберите услугу в каталоге - как в любом онлайн-магазине.</p>
-            <div class="shop-cta-actions">
+            <div class="shop-cta-banner-actions">
                 <a href="/register" class="btn btn-lg">Регистрация</a>
                 <a href="/services" class="btn btn-secondary btn-lg">Смотреть каталог</a>
             </div>
