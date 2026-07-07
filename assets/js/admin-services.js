@@ -11,6 +11,36 @@
   let categoriesCache = [];
   let svcFilter = { category: 'all', q: '' };
   let expandedServiceId = null;
+  const collapsedCategories = new Set();
+  let sidebarCatsOpen = true;
+
+  function groupServicesByCategory(list) {
+    const groups = new Map();
+    list.forEach((s) => {
+      const cat = s.category || 'Прочее';
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat).push(s);
+    });
+    return [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ru'));
+  }
+
+  function categorySection(cat, items) {
+    const collapsed = collapsedCategories.has(cat);
+    const activeCnt = items.filter((s) => s.is_active).length;
+    const encoded = encodeURIComponent(cat);
+    return (
+      '<section class="admin-svc-group' + (collapsed ? ' is-collapsed' : '') + '" data-cat-group="' + encoded + '">' +
+        '<button type="button" class="admin-svc-group-head" data-cat-toggle="' + encoded + '">' +
+          '<span class="admin-svc-group-chevron" aria-hidden="true"></span>' +
+          '<span class="admin-svc-group-title">' + escape(cat) + '</span>' +
+          '<span class="admin-svc-group-count">' + items.length + ' · ' + activeCnt + ' акт.</span>' +
+        '</button>' +
+        '<div class="admin-svc-group-body">' +
+          items.map(serviceCard).join('') +
+        '</div>' +
+      '</section>'
+    );
+  }
 
   function filteredServices() {
     return servicesCache.filter((s) => {
@@ -90,18 +120,28 @@
     if (!el) return;
     const list = filteredServices();
     const catBlock = document.getElementById('admin-svc-cats');
+    const sidebarWrap = document.querySelector('.admin-svc-cats-wrap');
+    const sidebarToggle = document.getElementById('admin-svc-cats-toggle');
+    if (sidebarToggle) sidebarToggle.classList.toggle('is-open', sidebarCatsOpen);
+    if (sidebarWrap) sidebarWrap.classList.toggle('is-collapsed', !sidebarCatsOpen);
     if (catBlock) {
       catBlock.innerHTML =
         '<button type="button" class="admin-svc-cat' + (svcFilter.category === 'all' ? ' is-active' : '') + '" data-cat="all">Все <span>' + servicesCache.length + '</span></button>' +
         categoriesCache.map((c) =>
-          '<button type="button" class="admin-svc-cat' + (svcFilter.category === c.category ? ' is-active' : '') + '" data-cat="' + encodeURIComponent(c.category) + '">' +
-            escape(c.category) + ' <span>' + c.cnt + '</span>' +
+          '<button type="button" class="admin-svc-cat' + (svcFilter.category === c.category ? ' is-active' : '') + '" data-cat="' + encodeURIComponent(c.category) + '" title="' + escape(c.category) + '">' +
+            '<span class="admin-svc-cat-name">' + escape(c.category) + '</span>' +
+            '<span class="admin-svc-cat-badges">' +
+              '<span>' + c.cnt + '</span>' +
+              (c.active_cnt != null ? '<span class="admin-svc-cat-active">' + c.active_cnt + ' акт.</span>' : '') +
+            '</span>' +
           '</button>'
         ).join('');
       catBlock.querySelectorAll('[data-cat]').forEach((btn) => {
         btn.addEventListener('click', () => {
           const raw = btn.dataset.cat;
           svcFilter.category = raw === 'all' ? 'all' : decodeURIComponent(raw);
+          const cat = svcFilter.category;
+          if (cat !== 'all') collapsedCategories.delete(cat);
           renderServicesPanel();
         });
       });
@@ -109,9 +149,19 @@
 
     const listEl = document.getElementById('admin-svc-list');
     if (listEl) {
-      listEl.innerHTML = list.length
-        ? list.map(serviceCard).join('')
+      const groups = groupServicesByCategory(list);
+      listEl.innerHTML = groups.length
+        ? groups.map(([cat, items]) => categorySection(cat, items)).join('')
         : '<p class="muted admin-svc-empty">Нет товаров по фильтру</p>';
+
+      listEl.querySelectorAll('[data-cat-toggle]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const cat = decodeURIComponent(btn.dataset.catToggle);
+          if (collapsedCategories.has(cat)) collapsedCategories.delete(cat);
+          else collapsedCategories.add(cat);
+          renderServicesPanel();
+        });
+      });
 
       listEl.querySelectorAll('[data-svc-toggle]').forEach((head) => {
         head.addEventListener('click', () => {
@@ -157,18 +207,44 @@
           '<p class="muted admin-svc-sync-hint">Новые товары импортируются полностью. У уже добавленных обновляется только цена (rate) от поставщика - название, видимость и остальные настройки сохраняются.</p>' +
           '<div class="admin-svc-layout">' +
             '<aside class="admin-svc-sidebar">' +
-              '<h3>Категории</h3>' +
-              '<div class="admin-svc-cats" id="admin-svc-cats"></div>' +
-              '<div class="admin-svc-cat-edit" id="admin-svc-cat-edit">' +
+              '<button type="button" class="admin-svc-sidebar-head" id="admin-svc-cats-toggle">' +
+                '<span>Категории</span>' +
+                '<span class="admin-svc-sidebar-chevron" aria-hidden="true"></span>' +
+              '</button>' +
+              '<div class="admin-svc-cats-wrap">' +
+                '<div class="admin-svc-cats admin-svc-cats--compact" id="admin-svc-cats"></div>' +
+                '<div class="admin-svc-cat-edit" id="admin-svc-cat-edit">' +
                 '<label class="shop-field-label">Переименовать категорию</label>' +
                 '<input type="text" id="admin-svc-cat-old" placeholder="Текущее имя" readonly>' +
                 '<input type="text" id="admin-svc-cat-new" placeholder="Новое имя">' +
                 '<button type="button" class="btn btn-secondary btn-sm" id="admin-svc-cat-save">Сохранить категорию</button>' +
+                '</div>' +
               '</div>' +
             '</aside>' +
-            '<div class="admin-svc-main"><div class="admin-svc-list" id="admin-svc-list"></div></div>' +
+            '<div class="admin-svc-main">' +
+              '<div class="admin-svc-list-toolbar">' +
+                '<button type="button" class="btn btn-ghost btn-sm" id="admin-svc-expand-all">Развернуть все</button>' +
+                '<button type="button" class="btn btn-ghost btn-sm" id="admin-svc-collapse-all">Свернуть все</button>' +
+              '</div>' +
+              '<div class="admin-svc-list" id="admin-svc-list"></div>' +
+            '</div>' +
           '</div>' +
         '</div>';
+
+      el.querySelector('#admin-svc-cats-toggle')?.addEventListener('click', () => {
+        sidebarCatsOpen = !sidebarCatsOpen;
+        renderServicesPanel();
+      });
+
+      el.querySelector('#admin-svc-expand-all')?.addEventListener('click', () => {
+        collapsedCategories.clear();
+        renderServicesPanel();
+      });
+
+      el.querySelector('#admin-svc-collapse-all')?.addEventListener('click', () => {
+        groupServicesByCategory(filteredServices()).forEach(([cat]) => collapsedCategories.add(cat));
+        renderServicesPanel();
+      });
 
       el.querySelector('#sync-services')?.addEventListener('click', async () => {
         try {
@@ -241,6 +317,8 @@
       svcFilter.category = 'all';
       svcFilter.q = String(id);
       expandedServiceId = id;
+      const svc = servicesCache.find((s) => s.id === id);
+      if (svc?.category) collapsedCategories.delete(svc.category);
       renderServicesPanel();
       document.querySelector('.admin-svc-card[data-svc-id="' + id + '"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 80);
