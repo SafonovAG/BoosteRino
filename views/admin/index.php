@@ -19,6 +19,7 @@ $isSuper = !empty($super);
                     <button type="button" data-panel="services"><span class="nav-icon">📦</span> Товары</button>
                     <button type="button" data-panel="orders"><span class="nav-icon">🛒</span> Заказы</button>
                     <button type="button" data-panel="users"><span class="nav-icon">👥</span> Клиенты</button>
+                    <button type="button" data-panel="diagnostics"><span class="nav-icon">🔬</span> Диагностика</button>
                     <?php if ($isSuper): ?>
                     <button type="button" data-panel="settings"><span class="nav-icon">⚙️</span> Настройки</button>
                     <?php endif; ?>
@@ -28,8 +29,9 @@ $isSuper = !empty($super);
             <div class="admin-shop-content app-content">
                 <div id="panel-dashboard" class="panel active"><div id="admin-stats">Загрузка...</div></div>
                 <div id="panel-services" class="panel"><div id="admin-services" class="card panel-card"></div></div>
-                <div id="panel-orders" class="panel"><div id="admin-orders" class="card panel-card"></div></div>
+                <div id="panel-orders" class="panel"><div id="admin-orders"></div></div>
                 <div id="panel-users" class="panel"><div id="admin-users" class="card panel-card"></div></div>
+                <div id="panel-diagnostics" class="panel"><div id="admin-diagnostics"></div></div>
                 <?php if ($isSuper): ?>
                 <div id="panel-settings" class="panel">
                     <div class="card panel-card">

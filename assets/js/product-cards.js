@@ -9,6 +9,34 @@
     return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(n);
   }
 
+  function formatQty(n) {
+    return new Intl.NumberFormat('ru-RU').format(n);
+  }
+
+  function parseDeliveryUnit(name) {
+    const n = String(name || '').toLowerCase();
+    const rules = [
+      [/подписчик|followers?|subscriber/i, 'подписчиков'],
+      [/лайк|like/i, 'лайков'],
+      [/просмотр|view/i, 'просмотров'],
+      [/коммент/i, 'комментариев'],
+      [/репост|repost|share/i, 'репостов'],
+      [/сохранен|save/i, 'сохранений'],
+      [/охват|reach/i, 'охвата'],
+      [/показ/i, 'показов'],
+      [/голос|vote/i, 'голосов'],
+      [/участник|member/i, 'участников'],
+      [/друг|friend/i, 'друзей'],
+      [/прослуш|play/i, 'прослушиваний'],
+      [/реакц/i, 'реакций'],
+      [/отзыв|review/i, 'отзывов'],
+    ];
+    for (let i = 0; i < rules.length; i++) {
+      if (rules[i][0].test(n)) return rules[i][1];
+    }
+    return 'единиц';
+  }
+
   function renderProductCard(s, options) {
     options = options || {};
     const badges = [];
@@ -35,8 +63,8 @@
           '<span class="product-card-price-unit">/ 1000</span>' +
         '</div>' +
         '<div class="product-card-stats">' +
-          '<span>мин. ' + s.min + '</span>' +
-          '<span>макс. ' + s.max + '</span>' +
+          '<span>мин. ' + formatQty(s.min) + '</span>' +
+          '<span>макс. ' + formatQty(s.max) + '</span>' +
         '</div>' +
         '<div class="product-card-actions">' +
           '<a href="' + href + '" class="btn btn-secondary btn-sm">Подробнее</a>' +
@@ -49,7 +77,7 @@
   function bindQuickAdd(container, servicesById) {
     if (!container) return;
     container.addEventListener('click', (e) => {
-      const btn = e.target.closest('.btn-add-cart, .catalog-row-add');
+      const btn = e.target.closest('.btn-add-cart, .catalog-tile-add');
       if (!btn) return;
       e.preventDefault();
       e.stopPropagation();
@@ -70,7 +98,12 @@
         cancel: s.cancel,
       });
       btn.classList.add('is-added');
-      setTimeout(() => btn.classList.remove('is-added'), 600);
+      const old = btn.textContent;
+      btn.textContent = 'Добавлено';
+      setTimeout(() => {
+        btn.classList.remove('is-added');
+        btn.textContent = old;
+      }, 1200);
       const { toast } = window.Boosterino || {};
       if (toast) toast('В корзине');
     });
@@ -79,29 +112,47 @@
   function renderCatalogRow(s) {
     const label = s.category_label || s.platform_name || s.category || '';
     const href = '/services/' + s.id;
+    const unit = parseDeliveryUnit(s.name);
     const badges = [];
-    if (s.refill) badges.push('<span class="catalog-row-badge catalog-row-badge--refill">Рефилл</span>');
-    if (s.cancel) badges.push('<span class="catalog-row-badge catalog-row-badge--cancel">Отмена</span>');
+    if (s.refill) badges.push('<span class="catalog-tile-badge catalog-tile-badge--refill">Рефилл</span>');
+    if (s.cancel) badges.push('<span class="catalog-tile-badge catalog-tile-badge--cancel">Отмена</span>');
 
-    return '<article class="catalog-row" data-platform="' + escapeHtml(s.platform) + '">' +
-      '<a href="' + href + '" class="catalog-row-main">' +
-        '<div class="catalog-row-logo"><img src="' + escapeHtml(s.logo) + '" alt="" width="22" height="22"></div>' +
-        '<div class="catalog-row-info">' +
-          '<span class="catalog-row-platform">' + escapeHtml(label) + '</span>' +
-          '<h3 class="catalog-row-title">' + escapeHtml(s.name) + '</h3>' +
-          (badges.length ? '<div class="catalog-row-meta">' + badges.join('') + '</div>' : '') +
+    return '<article class="catalog-tile" data-platform="' + escapeHtml(s.platform) + '">' +
+      '<div class="catalog-tile-glow" aria-hidden="true"></div>' +
+      '<a href="' + href + '" class="catalog-tile-top">' +
+        '<div class="catalog-tile-logo">' +
+          '<img src="' + escapeHtml(s.logo) + '" alt="" width="32" height="32">' +
         '</div>' +
-        '<div class="catalog-row-price">' +
-          '<strong>' + formatPrice(s.price_per_thousand_rub) + '</strong>' +
-          '<span>/1000</span>' +
+        '<div class="catalog-tile-head">' +
+          '<span class="catalog-tile-platform">' + escapeHtml(label) + '</span>' +
+          '<h3 class="catalog-tile-title">' + escapeHtml(s.name) + '</h3>' +
         '</div>' +
       '</a>' +
-      '<div class="catalog-row-actions">' +
-        '<button type="button" class="catalog-row-add" data-service-id="' + s.id + '" title="В корзину">+</button>' +
-        '<a href="' + href + '" class="catalog-row-go" title="Подробнее">→</a>' +
+      (badges.length ? '<div class="catalog-tile-badges">' + badges.join('') + '</div>' : '') +
+      '<div class="catalog-tile-meta">' +
+        '<span class="catalog-tile-limit">от ' + formatQty(s.min) + '</span>' +
+        '<span class="catalog-tile-limit">до ' + formatQty(s.max) + ' ' + escapeHtml(unit) + '</span>' +
+      '</div>' +
+      '<div class="catalog-tile-foot">' +
+        '<div class="catalog-tile-price">' +
+          '<strong>' + formatPrice(s.price_per_thousand_rub) + '</strong>' +
+          '<span>за 1000</span>' +
+        '</div>' +
+        '<div class="catalog-tile-actions">' +
+          '<a href="' + href + '" class="btn btn-ghost btn-sm catalog-tile-more">Подробнее</a>' +
+          '<button type="button" class="btn btn-primary btn-sm catalog-tile-add" data-service-id="' + s.id + '">В корзину</button>' +
+        '</div>' +
       '</div>' +
     '</article>';
   }
 
-  window.BoosterinoProductCard = { render: renderProductCard, renderCatalogRow, bindQuickAdd, formatPrice, escapeHtml };
+  window.BoosterinoProductCard = {
+    render: renderProductCard,
+    renderCatalogRow,
+    bindQuickAdd,
+    formatPrice,
+    formatQty,
+    parseDeliveryUnit,
+    escapeHtml,
+  };
 })();

@@ -7,6 +7,8 @@ namespace App\Controllers\Api;
 use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
+use App\Services\AdminDiagnosticsService;
+use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\ServiceCatalog;
 use App\Services\SettingsService;
@@ -102,7 +104,79 @@ final class AdminApi
 
     public static function orders(Request $r): void
     {
-        $sql = 'SELECT o.*,u.email,s.name service_name FROM orders o JOIN users u ON u.id=o.user_id JOIN services s ON s.id=o.service_id ORDER BY o.id DESC LIMIT 200';
-        Response::ok(['orders' => Database::pdo()->query($sql)->fetchAll()]);
+        $status = $r->query('status');
+        $search = $r->query('q');
+        Response::ok(['orders' => (new OrderService())->adminList($status ?: null, $search ?: null)]);
+    }
+
+    public static function orderShow(Request $r, array $par): void
+    {
+        $o = (new OrderService())->adminGet((int) $par['id']);
+        if (!$o) {
+            Response::fail('not_found', 'Заказ не найден.', 404);
+        }
+        Response::ok(['order' => $o]);
+    }
+
+    public static function orderUpdate(Request $r, array $par): void
+    {
+        try {
+            (new OrderService())->adminUpdateStatus((int) $par['id'], (string) $r->input('status', ''));
+            Response::ok(['order' => (new OrderService())->adminGet((int) $par['id'])]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        }
+    }
+
+    public static function orderSync(Request $r, array $par): void
+    {
+        try {
+            Response::ok(['order' => (new OrderService())->adminSyncOne((int) $par['id'])]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        } catch (\Throwable $e) {
+            Response::fail('sync', $e->getMessage(), 500);
+        }
+    }
+
+    public static function ordersSyncAll(Request $r): void
+    {
+        try {
+            Response::ok(['updated' => (new OrderService())->sync()]);
+        } catch (\Throwable $e) {
+            Response::fail('sync', $e->getMessage(), 500);
+        }
+    }
+
+    public static function orderRefill(Request $r, array $par): void
+    {
+        try {
+            Response::ok(['result' => (new OrderService())->adminRefill((int) $par['id'])]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        } catch (\Throwable $e) {
+            Response::fail('refill', $e->getMessage(), 500);
+        }
+    }
+
+    public static function orderCancel(Request $r, array $par): void
+    {
+        try {
+            Response::ok(['result' => (new OrderService())->adminCancel((int) $par['id'])]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        } catch (\Throwable $e) {
+            Response::fail('cancel', $e->getMessage(), 500);
+        }
+    }
+
+    public static function diagnosticsRun(Request $r): void
+    {
+        Response::ok(['results' => (new AdminDiagnosticsService())->runAll()]);
+    }
+
+    public static function diagnosticsApiProbe(Request $r): void
+    {
+        Response::ok(['message' => 'Admin API доступен', 'time' => date('c')]);
     }
 }

@@ -178,4 +178,100 @@ final class OrderService
         }
         return $o;
     }
+
+    public function adminList(?string $status = null, ?string $search = null): array
+    {
+        $sql = 'SELECT o.*, u.email, s.name AS service_name, s.external_id
+                FROM orders o
+                JOIN users u ON u.id = o.user_id
+                JOIN services s ON s.id = o.service_id
+                WHERE 1=1';
+        $params = [];
+        if ($status !== null && $status !== '' && $status !== 'all') {
+            $sql .= ' AND o.status = :status';
+            $params['status'] = $status;
+        }
+        if ($search !== null && $search !== '') {
+            $sql .= ' AND (o.id = :id OR u.email LIKE :q OR s.name LIKE :q OR o.link LIKE :q)';
+            $params['q'] = '%' . $search . '%';
+            $params['id'] = is_numeric($search) ? (int) $search : 0;
+        }
+        $sql .= ' ORDER BY o.id DESC LIMIT 300';
+        $st = Database::pdo()->prepare($sql);
+        $st->execute($params);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function adminGet(int $id): ?array
+    {
+        $st = Database::pdo()->prepare(
+            'SELECT o.*, u.email, s.name AS service_name, s.external_id, s.category
+             FROM orders o
+             JOIN users u ON u.id = o.user_id
+             JOIN services s ON s.id = o.service_id
+             WHERE o.id = :id'
+        );
+        $st->execute(['id' => $id]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    public function adminUpdateStatus(int $id, string $status): void
+    {
+        $allowed = [
+            'pending', 'pending_payment', 'Awaiting', 'In progress', 'Partial',
+            'Completed', 'Canceled', 'Cancelled', 'Fail', 'Failed', 'Error',
+        ];
+        if (!in_array($status, $allowed, true)) {
+            throw new \InvalidArgumentException('Недопустимый статус.');
+        }
+        $st = Database::pdo()->prepare('UPDATE orders SET status=:s, updated_at=NOW() WHERE id=:id');
+        $st->execute(['s' => $status, 'id' => $id]);
+        if ($st->rowCount() === 0) {
+            throw new \InvalidArgumentException('Заказ не найден.');
+        }
+    }
+
+    public function adminSyncOne(int $id): array
+    {
+        $o = $this->adminGet($id);
+        if (!$o) {
+            throw new \InvalidArgumentException('Заказ не найден.');
+        }
+        if (!$o['twiboost_order_id']) {
+            throw new \InvalidArgumentException('Нет ID у поставщика.');
+        }
+        $stat = $this->tb->status((int) $o['twiboost_order_id']);
+        $pdo = Database::pdo();
+        $pdo->prepare(
+            'UPDATE orders SET status=:s, charge=:c, remains=:r, start_count=:sc, updated_at=NOW() WHERE id=:id'
+        )->execute([
+            's' => $stat['status'] ?? $o['status'],
+            'c' => $stat['charge'] ?? null,
+            'r' => $stat['remains'] ?? null,
+            'sc' => $stat['start_count'] ?? null,
+            'id' => $id,
+        ]);
+        return $this->adminGet($id) ?? [];
+    }
+
+    public function adminRefill(int $id): array
+    {
+        $o = $this->adminGet($id);
+        if (!$o || !$o['twiboost_order_id']) {
+            throw new \InvalidArgumentException('Рефилл недоступен.');
+        }
+        return $this->tb->refill((int) $o['twiboost_order_id']);
+    }
+
+    public function adminCancel(int $id): array
+    {
+        $o = $this->adminGet($id);
+        if (!$o || !$o['twiboost_order_id']) {
+            throw new \InvalidArgumentException('Отмена недоступна.');
+        }
+        $r = $this->tb->cancel((int) $o['twiboost_order_id']);
+        Database::pdo()->prepare('UPDATE orders SET status=\'Canceled\', updated_at=NOW() WHERE id=:id')->execute(['id' => $id]);
+        return $r;
+    }
 }

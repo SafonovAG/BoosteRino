@@ -3,6 +3,10 @@
   const isSuper = document.body.dataset.superadmin === '1';
 
   const panels = document.querySelectorAll('.panel');
+  let ordersFilter = { status: 'all', q: '' };
+  let selectedOrderId = null;
+  let sampleServiceId = null;
+
   document.querySelectorAll('[data-panel]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.panel;
@@ -12,6 +16,7 @@
       if (id === 'services') loadAdminServices();
       if (id === 'orders') loadAdminOrders();
       if (id === 'users') loadUsers();
+      if (id === 'diagnostics') initDiagnostics();
       if (id === 'settings' && isSuper) loadSettings();
     });
   });
@@ -20,6 +25,24 @@
     const d = document.createElement('div');
     d.textContent = s ?? '';
     return d.innerHTML;
+  }
+
+  function statusClass(status) {
+    const s = String(status || '').toLowerCase();
+    if (s.includes('complet')) return 'status-ok';
+    if (s.includes('progress') || s.includes('await')) return 'status-warn';
+    if (s.includes('cancel') || s.includes('fail') || s.includes('error')) return 'status-bad';
+    if (s.includes('pending')) return 'status-pending';
+    return '';
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    try {
+      return new Date(d).toLocaleString('ru-RU');
+    } catch {
+      return d;
+    }
   }
 
   async function loadDashboard() {
@@ -47,6 +70,7 @@
     if (!el) return;
     const data = await api('/api/v1/admin/services');
     const list = data.services || [];
+    if (list.length && !sampleServiceId) sampleServiceId = list[0].id;
     el.innerHTML = '<h2><span class="panel-icon">📦</span> Услуги</h2><div class="table-wrap"><table>' +
       '<thead><tr><th>ID</th><th>Название</th><th>Цена</th><th>Наценка %</th><th>Активна</th><th></th></tr></thead><tbody>' +
       list.map((s) => '<tr>' +
@@ -80,17 +104,193 @@
     });
   }
 
-  async function loadAdminOrders() {
+  const ORDER_STATUSES = [
+    'pending', 'pending_payment', 'Awaiting', 'In progress', 'Partial',
+    'Completed', 'Canceled', 'Cancelled', 'Fail', 'Failed', 'Error',
+  ];
+
+  async function loadOrderDetail(id) {
+    const panel = document.getElementById('admin-order-detail');
+    if (!panel) return;
+    panel.innerHTML = '<p class="muted">Загрузка...</p>';
+    try {
+      const data = await api('/api/v1/admin/orders/' + id);
+      const o = data.order;
+      if (!o) throw new Error('Не найден');
+
+      panel.innerHTML =
+        '<div class="admin-order-detail-head">' +
+          '<h3>Заказ #' + o.id + '</h3>' +
+          '<button type="button" class="btn btn-sm btn-ghost" id="close-order-detail">×</button>' +
+        '</div>' +
+        '<div class="admin-order-detail-grid">' +
+          '<div><span>Клиент</span><strong>' + escape(o.email) + '</strong></div>' +
+          '<div><span>Услуга</span><strong>' + escape(o.service_name) + '</strong></div>' +
+          '<div><span>Ссылка</span><a href="' + escape(o.link) + '" target="_blank" rel="noopener">' + escape(o.link) + '</a></div>' +
+          '<div><span>Количество</span><strong>' + o.quantity + '</strong></div>' +
+          '<div><span>Сумма</span><strong>' + o.cost_rub + ' ₽</strong></div>' +
+          '<div><span>Оплата</span><strong>' + escape(o.payment_method) + '</strong></div>' +
+          '<div><span>ID поставщика</span><strong>' + (o.twiboost_order_id || '—') + '</strong></div>' +
+          '<div><span>Осталось</span><strong>' + (o.remains ?? '—') + '</strong></div>' +
+          '<div><span>Старт</span><strong>' + (o.start_count ?? '—') + '</strong></div>' +
+          '<div><span>Списание</span><strong>' + (o.charge ?? '—') + '</strong></div>' +
+          '<div><span>Создан</span><strong>' + fmtDate(o.created_at) + '</strong></div>' +
+          '<div><span>Обновлён</span><strong>' + fmtDate(o.updated_at) + '</strong></div>' +
+        '</div>' +
+        '<div class="admin-order-status-row">' +
+          '<label>Статус' +
+            '<select id="admin-order-status">' +
+              ORDER_STATUSES.map((st) =>
+                '<option value="' + st + '"' + (o.status === st ? ' selected' : '') + '>' + st + '</option>'
+              ).join('') +
+            '</select>' +
+          '</label>' +
+          '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-save-status">Сохранить статус</button>' +
+        '</div>' +
+        '<div class="admin-order-actions">' +
+          '<button type="button" class="btn btn-primary btn-sm" id="admin-order-sync">Синхронизировать</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-refill">Рефилл</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-cancel">Отменить у поставщика</button>' +
+        '</div>';
+
+      panel.querySelector('#close-order-detail')?.addEventListener('click', () => {
+        selectedOrderId = null;
+        panel.innerHTML = '<p class="muted admin-order-placeholder">Выберите заказ из списка</p>';
+        document.querySelectorAll('.admin-order-row.is-selected').forEach((r) => r.classList.remove('is-selected'));
+      });
+
+      panel.querySelector('#admin-order-save-status')?.addEventListener('click', async () => {
+        const status = panel.querySelector('#admin-order-status')?.value;
+        await api('/api/v1/admin/orders/' + id, { method: 'PUT', body: JSON.stringify({ status }) });
+        toast('Статус обновлён');
+        loadOrderDetail(id);
+        loadAdminOrders(false);
+      });
+
+      panel.querySelector('#admin-order-sync')?.addEventListener('click', async () => {
+        try {
+          await api('/api/v1/admin/orders/' + id + '/sync', { method: 'POST', body: '{}' });
+          toast('Синхронизировано');
+          loadOrderDetail(id);
+          loadAdminOrders(false);
+        } catch (e) {
+          toast(e.message, 'error');
+        }
+      });
+
+      panel.querySelector('#admin-order-refill')?.addEventListener('click', async () => {
+        try {
+          await api('/api/v1/admin/orders/' + id + '/refill', { method: 'POST', body: '{}' });
+          toast('Рефилл отправлен');
+        } catch (e) {
+          toast(e.message, 'error');
+        }
+      });
+
+      panel.querySelector('#admin-order-cancel')?.addEventListener('click', async () => {
+        if (!confirm('Отменить заказ у поставщика?')) return;
+        try {
+          await api('/api/v1/admin/orders/' + id + '/cancel', { method: 'POST', body: '{}' });
+          toast('Заказ отменён');
+          loadOrderDetail(id);
+          loadAdminOrders(false);
+        } catch (e) {
+          toast(e.message, 'error');
+        }
+      });
+    } catch (e) {
+      panel.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
+    }
+  }
+
+  async function loadAdminOrders(resetDetail) {
+    if (resetDetail !== false) selectedOrderId = null;
     const el = document.getElementById('admin-orders');
     if (!el) return;
-    const data = await api('/api/v1/admin/orders');
+
+    const qs = new URLSearchParams();
+    if (ordersFilter.status && ordersFilter.status !== 'all') qs.set('status', ordersFilter.status);
+    if (ordersFilter.q) qs.set('q', ordersFilter.q);
+
+    const data = await api('/api/v1/admin/orders' + (qs.toString() ? '?' + qs : ''));
     const rows = data.orders || [];
-    el.innerHTML = rows.length
-      ? '<h2><span class="panel-icon">🛒</span> Заказы</h2><div class="table-wrap"><table>' +
-        '<thead><tr><th>#</th><th>Email</th><th>Услуга</th><th>Сумма</th><th>Статус</th></tr></thead><tbody>' +
-        rows.map((o) => '<tr><td>' + o.id + '</td><td>' + escape(o.email) + '</td><td>' + escape(o.service_name) + '</td><td>' + o.cost_rub + '</td><td>' + escape(o.status) + '</td></tr>').join('') +
-        '</tbody></table></div>'
-      : '<p class="muted">📭 Нет заказов</p>';
+
+    el.innerHTML =
+      '<div class="admin-orders-layout">' +
+        '<div class="admin-orders-list card panel-card">' +
+          '<div class="admin-orders-toolbar">' +
+            '<h2><span class="panel-icon">🛒</span> Заказы</h2>' +
+            '<div class="admin-orders-filters">' +
+              '<select id="admin-orders-status-filter">' +
+                '<option value="all">Все статусы</option>' +
+                ORDER_STATUSES.map((st) =>
+                  '<option value="' + st + '"' + (ordersFilter.status === st ? ' selected' : '') + '>' + st + '</option>'
+                ).join('') +
+              '</select>' +
+              '<input type="search" id="admin-orders-search" placeholder="ID, email, ссылка..." value="' + escape(ordersFilter.q) + '">' +
+              '<button type="button" class="btn btn-secondary btn-sm" id="admin-orders-refresh">Обновить</button>' +
+              '<button type="button" class="btn btn-primary btn-sm" id="admin-orders-sync-all">Синхр. все</button>' +
+            '</div>' +
+          '</div>' +
+          (rows.length
+            ? '<div class="table-wrap admin-orders-table-wrap"><table><thead><tr>' +
+              '<th>#</th><th>Дата</th><th>Email</th><th>Услуга</th><th>Кол-во</th><th>Сумма</th><th>Статус</th>' +
+              '</tr></thead><tbody>' +
+              rows.map((o) =>
+                '<tr class="admin-order-row' + (selectedOrderId === o.id ? ' is-selected' : '') + '" data-order-id="' + o.id + '">' +
+                  '<td>' + o.id + '</td>' +
+                  '<td>' + fmtDate(o.created_at) + '</td>' +
+                  '<td>' + escape(o.email) + '</td>' +
+                  '<td class="admin-order-service">' + escape(o.service_name) + '</td>' +
+                  '<td>' + o.quantity + '</td>' +
+                  '<td>' + o.cost_rub + ' ₽</td>' +
+                  '<td><span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
+                '</tr>'
+              ).join('') +
+              '</tbody></table></div>'
+            : '<p class="muted">📭 Нет заказов</p>') +
+        '</div>' +
+        '<div id="admin-order-detail" class="card panel-card admin-order-detail">' +
+          (selectedOrderId
+            ? '<p class="muted">Загрузка...</p>'
+            : '<p class="muted admin-order-placeholder">Выберите заказ из списка для проверки и управления</p>') +
+        '</div>' +
+      '</div>';
+
+    el.querySelector('#admin-orders-status-filter')?.addEventListener('change', (e) => {
+      ordersFilter.status = e.target.value;
+      loadAdminOrders();
+    });
+
+    let searchTimer;
+    el.querySelector('#admin-orders-search')?.addEventListener('input', (e) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        ordersFilter.q = e.target.value.trim();
+        loadAdminOrders();
+      }, 300);
+    });
+
+    el.querySelector('#admin-orders-refresh')?.addEventListener('click', () => loadAdminOrders(false));
+    el.querySelector('#admin-orders-sync-all')?.addEventListener('click', async () => {
+      try {
+        const r = await api('/api/v1/admin/orders/sync-all', { method: 'POST', body: '{}' });
+        toast('Обновлено заказов: ' + (r.updated ?? 0));
+        loadAdminOrders(false);
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    });
+
+    el.querySelectorAll('.admin-order-row').forEach((row) => {
+      row.addEventListener('click', () => {
+        selectedOrderId = +row.dataset.orderId;
+        el.querySelectorAll('.admin-order-row').forEach((r) => r.classList.toggle('is-selected', r === row));
+        loadOrderDetail(selectedOrderId);
+      });
+    });
+
+    if (selectedOrderId) loadOrderDetail(selectedOrderId);
   }
 
   async function loadUsers() {
@@ -167,6 +367,177 @@
         if (base) setNotifyUrl(base + '/api/v1/payments/yoomoney/notify');
       });
     }
+  }
+
+  let diagnosticsBound = false;
+
+  function buildApiProbes() {
+    const sid = sampleServiceId || 1;
+    const oid = selectedOrderId || 1;
+    const uid = 1;
+    const probes = [
+      { group: 'Публичное API', name: 'GET /api/v1/services', method: 'GET', url: '/api/v1/services' },
+      { group: 'Публичное API', name: 'GET /api/v1/services/{id}', method: 'GET', url: '/api/v1/services/' + sid },
+      { group: 'Публичное API', name: 'GET /api/v1/auth/verify-email', method: 'GET', url: '/api/v1/auth/verify-email?token=test', expect: [400, 422] },
+      { group: 'Пользователь', name: 'GET /api/v1/user/profile', method: 'GET', url: '/api/v1/user/profile' },
+      { group: 'Пользователь', name: 'GET /api/v1/user/orders', method: 'GET', url: '/api/v1/user/orders' },
+      { group: 'Пользователь', name: 'GET /api/v1/user/transactions', method: 'GET', url: '/api/v1/user/transactions' },
+      { group: 'Админ', name: 'GET /api/v1/admin/dashboard', method: 'GET', url: '/api/v1/admin/dashboard' },
+      { group: 'Админ', name: 'GET /api/v1/admin/services', method: 'GET', url: '/api/v1/admin/services' },
+      { group: 'Админ', name: 'GET /api/v1/admin/orders', method: 'GET', url: '/api/v1/admin/orders' },
+      { group: 'Админ', name: 'GET /api/v1/admin/orders/{id}', method: 'GET', url: '/api/v1/admin/orders/' + oid, expect: [200, 404] },
+      { group: 'Админ', name: 'GET /api/v1/admin/users', method: 'GET', url: '/api/v1/admin/users' },
+      { group: 'Админ', name: 'GET /api/v1/admin/diagnostics/probe', method: 'GET', url: '/api/v1/admin/diagnostics/probe' },
+    ];
+    if (isSuper) {
+      probes.push({ group: 'Админ', name: 'GET /api/v1/admin/settings', method: 'GET', url: '/api/v1/admin/settings' });
+    }
+    probes.push(
+      { group: 'Админ POST', name: 'POST /api/v1/admin/services/sync', method: 'POST', url: '/api/v1/admin/services/sync', body: '{}', dry: true },
+      { group: 'Админ POST', name: 'POST /api/v1/admin/orders/sync-all', method: 'POST', url: '/api/v1/admin/orders/sync-all', body: '{}', dry: true },
+      { group: 'Админ POST', name: 'POST /api/v1/admin/diagnostics/run', method: 'POST', url: '/api/v1/admin/diagnostics/run', body: '{}', dry: true },
+      { group: 'Auth POST', name: 'POST /api/v1/auth/logout', method: 'POST', url: '/api/v1/auth/logout', body: '{}', expect: [200, 401] },
+      { group: 'Auth POST', name: 'POST /api/v1/auth/login', method: 'POST', url: '/api/v1/auth/login', body: JSON.stringify({ email: 'test@test.com', password: 'x' }), expect: [401, 422] },
+      { group: 'Пользователь POST', name: 'POST /api/v1/user/orders', method: 'POST', url: '/api/v1/user/orders', body: JSON.stringify({ service_id: sid, link: 'https://example.com', quantity: 1 }), expect: [401, 422] },
+      { group: 'Пользователь POST', name: 'PUT /api/v1/admin/users/{id}', method: 'PUT', url: '/api/v1/admin/users/' + uid, body: JSON.stringify({ role: 'user' }), expect: [200, 403, 404], dry: true }
+    );
+    return probes;
+  }
+
+  async function probeEndpoint(probe, dryRun) {
+    const start = performance.now();
+    if (dryRun && probe.dry) {
+      return { status: 'skip', message: 'Пропущен (изменяет данные)', ms: 0 };
+    }
+    try {
+      const opts = { method: probe.method };
+      if (probe.body !== undefined) {
+        opts.body = probe.body;
+      }
+      const res = await fetch(probe.url, {
+        ...opts,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+        },
+        credentials: 'same-origin',
+      });
+      const ms = Math.round(performance.now() - start);
+      const expected = probe.expect || [200];
+      const ok = expected.includes(res.status);
+      let message = 'HTTP ' + res.status;
+      try {
+        const j = await res.json();
+        if (j.error?.message) message += ': ' + j.error.message;
+        else if (j.message) message += ': ' + j.message;
+      } catch { /* ignore */ }
+      return { status: ok ? 'ok' : 'error', message, ms };
+    } catch (e) {
+      return { status: 'error', message: e.message, ms: Math.round(performance.now() - start) };
+    }
+  }
+
+  function renderDiagResults(serverResults, apiResults) {
+    const el = document.getElementById('diagnostics-results');
+    if (!el) return;
+
+    const all = [];
+    (serverResults || []).forEach((r) => all.push({ ...r, type: 'server' }));
+    (apiResults || []).forEach((r) => all.push({ ...r, type: 'api' }));
+
+    const groups = {};
+    all.forEach((r) => {
+      const g = r.group || 'Прочее';
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(r);
+    });
+
+    let html = '';
+    Object.keys(groups).forEach((g) => {
+      html += '<div class="diag-group"><h3>' + escape(g) + '</h3><div class="diag-list">';
+      groups[g].forEach((r) => {
+        const icon = r.status === 'ok' ? '✓' : (r.status === 'warn' ? '!' : (r.status === 'skip' ? '○' : '✕'));
+        html += '<div class="diag-item diag-item--' + r.status + '">' +
+          '<span class="diag-icon">' + icon + '</span>' +
+          '<div class="diag-body">' +
+            '<strong>' + escape(r.name) + '</strong>' +
+            '<span class="diag-msg">' + escape(r.message) + '</span>' +
+          '</div>' +
+          (r.ms ? '<span class="diag-ms">' + r.ms + ' мс</span>' : '') +
+        '</div>';
+      });
+      html += '</div></div>';
+    });
+
+    const ok = all.filter((r) => r.status === 'ok').length;
+    const total = all.filter((r) => r.status !== 'skip').length;
+    el.innerHTML = '<div class="diag-summary">' + ok + ' / ' + total + ' проверок успешно</div>' + html;
+  }
+
+  async function runDiagnostics(dryRun) {
+    const btn = document.getElementById('run-diagnostics');
+    const resultsEl = document.getElementById('diagnostics-results');
+    if (btn) btn.disabled = true;
+    if (resultsEl) resultsEl.innerHTML = '<p class="muted">Выполняется проверка...</p>';
+
+    try {
+      if (!sampleServiceId) {
+        try {
+          const svc = await api('/api/v1/admin/services');
+          if (svc.services?.length) sampleServiceId = svc.services[0].id;
+        } catch { /* ignore */ }
+      }
+
+      const serverData = await api('/api/v1/admin/diagnostics/run', { method: 'POST', body: '{}' });
+      const serverResults = (serverData.results || []).map((r) => ({
+        group: 'Сервер: ' + r.group,
+        name: r.name,
+        status: r.status === 'ok' ? 'ok' : (r.status === 'warn' ? 'warn' : 'error'),
+        message: r.message,
+        ms: r.ms,
+      }));
+
+      const probes = buildApiProbes();
+      const apiResults = [];
+      for (const probe of probes) {
+        const r = await probeEndpoint(probe, dryRun);
+        apiResults.push({
+          group: 'API: ' + probe.group,
+          name: probe.name,
+          ...r,
+        });
+      }
+
+      renderDiagResults(serverResults, apiResults);
+      toast('Диагностика завершена');
+    } catch (e) {
+      if (resultsEl) resultsEl.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
+      toast(e.message, 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function initDiagnostics() {
+    const el = document.getElementById('admin-diagnostics');
+    if (!el || el.dataset.ready === '1') return;
+    el.dataset.ready = '1';
+    el.innerHTML =
+      '<div class="card panel-card">' +
+        '<h2><span class="panel-icon">🔬</span> Диагностика системы</h2>' +
+        '<p class="muted">Проверка БД, настроек, поставщика и всех API-эндпоинтов. Безопасный режим пропускает запросы, которые меняют данные.</p>' +
+        '<div class="diag-toolbar">' +
+          '<button type="button" class="btn btn-primary" id="run-diagnostics">Запустить полную проверку</button>' +
+          '<label class="diag-dry-label"><input type="checkbox" id="diag-dry-run" checked> Безопасный режим</label>' +
+        '</div>' +
+        '<div id="diagnostics-results" class="diag-results"><p class="muted">Нажмите кнопку для запуска проверки</p></div>' +
+      '</div>';
+
+    el.querySelector('#run-diagnostics')?.addEventListener('click', () => {
+      const dry = el.querySelector('#diag-dry-run')?.checked;
+      runDiagnostics(dry);
+    });
   }
 
   document.getElementById('copy-notify-url')?.addEventListener('click', () => {

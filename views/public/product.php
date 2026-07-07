@@ -24,5 +24,7 @@ ob_start();
 </section>
 <?php
 $content = ob_get_clean();
+$bodyClass = 'product-pro-page';
+$styles = ['/assets/css/product-pro.css'];
 $scripts = ['/assets/js/product.js'];
 include dirname(__DIR__) . '/layouts/main.php';

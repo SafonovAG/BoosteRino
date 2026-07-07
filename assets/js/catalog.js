@@ -266,7 +266,7 @@
           '<span>' + escapeHtml(catLabel) + '</span>' +
           '<span class="catalog-group-count">' + items.length + '</span>' +
         '</header>' +
-        '<div class="catalog-group-rows">';
+        '<div class="catalog-group-rows catalog-group-tiles">';
 
       items.forEach((s) => {
         html += renderRow ? renderRow(s) : '';

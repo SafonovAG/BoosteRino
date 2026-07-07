@@ -60,6 +60,14 @@ return static function (Router $r): void {
     $r->get('/api/v1/admin/users', [AdminApi::class, 'users'], [$auth, new AdminMiddleware()]);
     $r->put('/api/v1/admin/users/{id}', [AdminApi::class, 'setUserRole'], [$csrf, $auth, new AdminMiddleware(true)]);
     $r->get('/api/v1/admin/orders', [AdminApi::class, 'orders'], [$auth, new AdminMiddleware()]);
+    $r->get('/api/v1/admin/orders/{id}', [AdminApi::class, 'orderShow'], [$auth, new AdminMiddleware()]);
+    $r->put('/api/v1/admin/orders/{id}', [AdminApi::class, 'orderUpdate'], [$csrf, $auth, new AdminMiddleware()]);
+    $r->post('/api/v1/admin/orders/{id}/sync', [AdminApi::class, 'orderSync'], [$csrf, $auth, new AdminMiddleware()]);
+    $r->post('/api/v1/admin/orders/{id}/refill', [AdminApi::class, 'orderRefill'], [$csrf, $auth, new AdminMiddleware()]);
+    $r->post('/api/v1/admin/orders/{id}/cancel', [AdminApi::class, 'orderCancel'], [$csrf, $auth, new AdminMiddleware()]);
+    $r->post('/api/v1/admin/orders/sync-all', [AdminApi::class, 'ordersSyncAll'], [$csrf, $auth, new AdminMiddleware()]);
+    $r->post('/api/v1/admin/diagnostics/run', [AdminApi::class, 'diagnosticsRun'], [$csrf, $auth, new AdminMiddleware()]);
+    $r->get('/api/v1/admin/diagnostics/probe', [AdminApi::class, 'diagnosticsApiProbe'], [$auth, new AdminMiddleware()]);
 
     $r->post('/api/v1/payments/yoomoney/notify', [NotifyApi::class, 'yoomoney']);
 };
