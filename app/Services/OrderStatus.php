@@ -35,4 +35,13 @@ final class OrderStatus
             || $status === 'pending'
             || $status === 'pending_payment';
     }
+
+    public static function isFinal(string $status): bool
+    {
+        $s = strtolower($status);
+        return str_contains($s, 'complet')
+            || str_contains($s, 'cancel')
+            || str_contains($s, 'fail')
+            || str_contains($s, 'error');
+    }
 }

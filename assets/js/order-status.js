@@ -10,6 +10,7 @@
 
   let refreshTimer = null;
   let lastSynced = null;
+  let currentOrder = null;
 
   function escape(s) {
     const d = document.createElement('div');
@@ -43,7 +44,11 @@
     return 'order-status--pending';
   }
 
-  function statusHint(o) {
+  function isFinalStatus(o) {
+    if (o?.status_final) return true;
+    const s = String(o?.status || '').toLowerCase();
+    return s.includes('complet') || s.includes('cancel') || s.includes('fail') || s.includes('error');
+  }
     const s = String(o.status || '').toLowerCase();
     if (s.includes('complet')) return 'Заказ полностью выполнен.';
     if (s.includes('progress')) return 'Услуга выполняется. Статус обновляется автоматически.';
@@ -93,6 +98,8 @@
   }
 
   function render(o) {
+    currentOrder = o;
+    const final = isFinalStatus(o);
     const prog = o.progress;
     const label = statusLabel(o);
     const d = o.delivery || {};
@@ -154,7 +161,7 @@
 
         '<footer class="order-v2-footer">' +
           '<div class="order-v2-actions">' +
-            '<button type="button" class="btn btn-primary btn-sm" id="order-refresh">Обновить сейчас</button>' +
+            (!final ? '<button type="button" class="btn btn-primary btn-sm" id="order-refresh">Обновить сейчас</button>' : '') +
             (o.service_refill ? '<button type="button" class="btn btn-secondary btn-sm" id="order-refill">Рефилл</button>' : '') +
           '</div>' +
           '<div class="order-v2-nav">' +
@@ -180,12 +187,13 @@
 
   function scheduleRefresh(o) {
     if (refreshTimer) clearInterval(refreshTimer);
-    if (!o.status_active) return;
-    if (String(o.status || '').toLowerCase().includes('complet')) return;
+    refreshTimer = null;
+    if (isFinalStatus(o) || !o.status_active) return;
     refreshTimer = setInterval(() => load(false), POLL_MS);
   }
 
   async function load(manual) {
+    if (manual && currentOrder && isFinalStatus(currentOrder)) return;
     if (manual) root.classList.add('is-refreshing');
     try {
       const url = manual

@@ -68,7 +68,8 @@ final class OrderService
             return null;
         }
 
-        if ($syncSupplier && !empty($o['twiboost_order_id'])) {
+        $status = (string) ($o['status'] ?? '');
+        if ($syncSupplier && !OrderStatus::isFinal($status) && !empty($o['twiboost_order_id'])) {
             $o = $this->applySupplierStatus($oid, (int) $o['twiboost_order_id'], $o);
         }
 
@@ -147,9 +148,13 @@ final class OrderService
         ];
 
         $o['progress'] = $this->buildProgress($o);
-        $o['synced_at'] = date('c');
-        $o['created_at_formatted'] = RuDate::format((string) ($o['created_at'] ?? ''));
-        $o['updated_at_formatted'] = RuDate::format((string) ($o['updated_at'] ?? ''));
+        $status = (string) ($o['status'] ?? '');
+        $o['synced_at'] = OrderStatus::isFinal($status)
+            ? (string) ($o['updated_at'] ?? '')
+            : date('c');
+        $o['status_final'] = OrderStatus::isFinal($status);
+        $o['created_at_formatted'] = RuDate::formatDateTime((string) ($o['created_at'] ?? ''));
+        $o['updated_at_formatted'] = RuDate::formatDateTime((string) ($o['updated_at'] ?? ''));
         return $this->sanitizeForClient($o);
     }
 

@@ -35,7 +35,8 @@ final class ServiceLogo
         'vcru' => '/assets/images/logo/vcru.png',
         'dtf' => '/assets/images/logo/dtf.png',
         'yandexmusic' => '/assets/images/logo/yandexmusic.png',
-        'yappi' => '/assets/images/logo/yappi.jpg',
+        'medium' => '/assets/images/logo/medium.svg',
+        'yappi' => '/assets/images/logo/yappi.svg',
         'wibes' => '/assets/images/logo/wibes.ico',
         'max' => '/assets/images/logo/max.png',
         'trafficnasayt' => '/assets/images/logo/trafficnasayt.png',
@@ -68,6 +69,7 @@ final class ServiceLogo
         'vcru' => ['vc.ru', 'vcru', 'vc ru'],
         'dtf' => ['dtf.ru', ' dtf'],
         'yandexmusic' => ['yandex music', 'yandexmusic', 'яндекс муз', 'яндекс.музы'],
+        'medium' => ['medium', 'медиум', 'medium.com'],
         'yappi' => ['yappi', 'яппи'],
         'wibes' => ['wibes', 'вайбс'],
         'max' => ['vk max', 'мессенджер max', ' max messenger'],
@@ -91,6 +93,21 @@ final class ServiceLogo
         'spotify' => 'Spotify',
         'steam' => 'Steam',
         'avito' => 'Avito',
+        'medium' => 'Medium',
+        'yappi' => 'Yappi',
+        'pinterest' => 'Pinterest',
+        'linkedin' => 'LinkedIn',
+        'kick' => 'Kick',
+        'trovo' => 'Trovo',
+        'likee' => 'Likee',
+        'threads' => 'Threads',
+        'vcru' => 'VC.ru',
+        'dtf' => 'DTF',
+        'yandexmusic' => 'Яндекс Музыка',
+        'wibes' => 'Wibes',
+        'max' => 'MAX',
+        'trafficnasayt' => 'Трафик на сайт',
+        'telegram-premium' => 'Telegram Premium',
     ];
 
     /** @var list<string> */
@@ -195,10 +212,9 @@ final class ServiceLogo
             ['slug' => 'all', 'name' => 'Все платформы', 'logo' => self::DEFAULT],
         ];
 
-        foreach (self::PLATFORM_NAMES as $slug => $name) {
-            if (isset(self::LOGOS[$slug])) {
-                $list[] = ['slug' => $slug, 'name' => $name, 'logo' => self::LOGOS[$slug]];
-            }
+        foreach (self::LOGOS as $slug => $path) {
+            $name = self::PLATFORM_NAMES[$slug] ?? ucfirst(str_replace('-', ' ', $slug));
+            $list[] = ['slug' => $slug, 'name' => $name, 'logo' => $path];
         }
 
         return $list;

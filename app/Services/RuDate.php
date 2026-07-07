@@ -30,4 +30,17 @@ final class RuDate
             (int) date('Y', $ts)
         );
     }
+
+    public static function formatDateTime(?string $datetime): string
+    {
+        $date = self::format($datetime);
+        if ($date === '—') {
+            return $date;
+        }
+        $ts = strtotime($datetime);
+        if ($ts === false) {
+            return $datetime;
+        }
+        return $date . ', ' . date('H:i', $ts);
+    }
 }
