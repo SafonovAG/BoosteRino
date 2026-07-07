@@ -187,4 +187,73 @@ final class UserService
 
         return $this->adminGet($id) ?? [];
     }
+
+    /** @return array{orders_total: int, orders_active: int, orders_completed: int, spent_rub: float, topup_rub: float, member_since: string, email_verified: bool} */
+    public function accountStats(int $uid): array
+    {
+        $pdo = Database::pdo();
+
+        $orders = $pdo->prepare(
+            "SELECT
+                COUNT(*) AS orders_total,
+                COALESCE(SUM(CASE WHEN status IN ('In progress','Awaiting','Partial','pending','pending_payment') THEN 1 ELSE 0 END), 0) AS orders_active,
+                COALESCE(SUM(CASE WHEN LOWER(status) LIKE '%complet%' THEN 1 ELSE 0 END), 0) AS orders_completed,
+                COALESCE(SUM(CASE WHEN status NOT IN ('Canceled','Cancelled','Fail','Failed','Error') THEN cost_rub ELSE 0 END), 0) AS spent_rub
+             FROM orders WHERE user_id = :u"
+        );
+        $orders->execute(['u' => $uid]);
+        $orderStats = $orders->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $topup = $pdo->prepare(
+            "SELECT COALESCE(SUM(amount_rub), 0) FROM balance_transactions WHERE user_id = :u AND type = 'topup' AND amount_rub > 0"
+        );
+        $topup->execute(['u' => $uid]);
+
+        $userSt = $pdo->prepare('SELECT created_at, email_verified_at FROM users WHERE id = :u');
+        $userSt->execute(['u' => $uid]);
+        $userRow = $userSt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        return [
+            'orders_total' => (int) ($orderStats['orders_total'] ?? 0),
+            'orders_active' => (int) ($orderStats['orders_active'] ?? 0),
+            'orders_completed' => (int) ($orderStats['orders_completed'] ?? 0),
+            'spent_rub' => round((float) ($orderStats['spent_rub'] ?? 0), 2),
+            'topup_rub' => round((float) $topup->fetchColumn(), 2),
+            'member_since' => RuDate::format((string) ($userRow['created_at'] ?? '')),
+            'email_verified' => !empty($userRow['email_verified_at']),
+        ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function listTransactions(int $uid, int $limit = 50): array
+    {
+        $limit = max(1, min(100, $limit));
+        $st = Database::pdo()->prepare(
+            'SELECT bt.*, o.twiboost_order_id
+             FROM balance_transactions bt
+             LEFT JOIN orders o ON bt.reference_type = \'order\' AND bt.reference_id = o.id AND o.user_id = bt.user_id
+             WHERE bt.user_id = :u
+             ORDER BY bt.id DESC
+             LIMIT ' . $limit
+        );
+        $st->execute(['u' => $uid]);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn (array $row): array => $this->formatTransaction($row), $rows);
+    }
+
+    /** @param array<string, mixed> $row */
+    private function formatTransaction(array $row): array
+    {
+        $row['type_label'] = BalanceTransactionType::label((string) $row['type']);
+        $row['created_at_formatted'] = RuDate::formatDateTime((string) ($row['created_at'] ?? ''));
+        if (($row['reference_type'] ?? '') === 'order' && !empty($row['reference_id'])) {
+            $orderId = (int) $row['reference_id'];
+            $row['order_id'] = $orderId;
+            $supplierId = !empty($row['twiboost_order_id']) ? (int) $row['twiboost_order_id'] : null;
+            $row['order_number'] = $supplierId ?? $orderId;
+        }
+        unset($row['twiboost_order_id']);
+        return $row;
+    }
 }

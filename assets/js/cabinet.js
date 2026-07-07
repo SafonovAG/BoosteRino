@@ -24,6 +24,7 @@
   const emailEl = document.getElementById('user-email');
   const ordersEl = document.getElementById('orders-list');
   const txEl = document.getElementById('transactions-list');
+  const statsEl = document.getElementById('account-stats');
 
   function statusClass(s) {
     const v = (s || '').toLowerCase();
@@ -59,12 +60,49 @@
   async function loadProfile() {
     const data = await api('/api/v1/user/profile');
     const profile = data.user;
+    const stats = data.stats || {};
     if (balanceEl) balanceEl.textContent = fmt(profile.balance_rub);
     if (emailEl) emailEl.textContent = profile.email || '—';
     const verify = document.getElementById('email-warning');
     if (verify && !profile.email_verified_at) {
       verify.classList.remove('hidden');
     }
+    renderStats(stats, profile);
+  }
+
+  function renderStats(stats, profile) {
+    if (!statsEl) return;
+    const verified = stats.email_verified ?? !!profile.email_verified_at;
+    statsEl.innerHTML =
+      '<div class="cabinet-pro-stats-grid">' +
+        '<div class="cabinet-pro-stat">' +
+          '<span class="cabinet-pro-stat-value">' + (stats.orders_total ?? 0) + '</span>' +
+          '<span class="cabinet-pro-stat-label">Всего заказов</span>' +
+        '</div>' +
+        '<div class="cabinet-pro-stat">' +
+          '<span class="cabinet-pro-stat-value">' + (stats.orders_active ?? 0) + '</span>' +
+          '<span class="cabinet-pro-stat-label">В работе</span>' +
+        '</div>' +
+        '<div class="cabinet-pro-stat">' +
+          '<span class="cabinet-pro-stat-value">' + (stats.orders_completed ?? 0) + '</span>' +
+          '<span class="cabinet-pro-stat-label">Выполнено</span>' +
+        '</div>' +
+        '<div class="cabinet-pro-stat">' +
+          '<span class="cabinet-pro-stat-value">' + fmt(stats.spent_rub ?? 0) + '</span>' +
+          '<span class="cabinet-pro-stat-label">Потрачено</span>' +
+        '</div>' +
+        '<div class="cabinet-pro-stat">' +
+          '<span class="cabinet-pro-stat-value">' + fmt(stats.topup_rub ?? 0) + '</span>' +
+          '<span class="cabinet-pro-stat-label">Пополнено</span>' +
+        '</div>' +
+        '<div class="cabinet-pro-stat">' +
+          '<span class="cabinet-pro-stat-value cabinet-pro-stat-value--sm">' + escape(stats.member_since || '—') + '</span>' +
+          '<span class="cabinet-pro-stat-label">С нами с</span>' +
+        '</div>' +
+      '</div>' +
+      '<p class="cabinet-pro-stats-note muted">' +
+        (verified ? 'Email подтверждён' : 'Email не подтверждён') +
+      '</p>';
   }
 
   async function loadOrders() {
@@ -121,10 +159,16 @@
         rows.map((t) => {
           const amount = Number(t.amount_rub);
           const isPlus = amount >= 0;
+          let typeLine = '<span class="cabinet-tx-type">' + escape(t.type_label || t.type);
+          if (t.type === 'order' && t.order_id) {
+            typeLine += ' · <a href="/orders/' + t.order_id + '" class="cabinet-tx-order-link">Заказ №' +
+              escape(String(t.order_number || t.order_id)) + '</a>';
+          }
+          typeLine += '</span>';
           return (
             '<article class="cabinet-tx-item">' +
               '<div class="cabinet-tx-main">' +
-                '<span class="cabinet-tx-type">' + escape(t.type_label || t.type) + '</span>' +
+                typeLine +
                 '<span class="cabinet-tx-date">' + escape(t.created_at_formatted || fmtDate(t.created_at)) + '</span>' +
               '</div>' +
               '<div class="cabinet-tx-amount cabinet-tx-amount--' + (isPlus ? 'plus' : 'minus') + '">' +
@@ -162,24 +206,6 @@
         body: JSON.stringify({ amount }),
       });
       if (data.payment_url) location.href = data.payment_url;
-    } catch (err) {
-      toast(err.message, 'error');
-    }
-  });
-
-  document.getElementById('password-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    try {
-      await api('/api/v1/user/change-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          current_password: fd.get('current_password'),
-          new_password: fd.get('new_password'),
-        }),
-      });
-      toast('Пароль изменён');
-      e.target.reset();
     } catch (err) {
       toast(err.message, 'error');
     }

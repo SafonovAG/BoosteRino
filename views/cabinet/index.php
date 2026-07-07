@@ -61,7 +61,7 @@ ob_start();
                 <div id="panel-overview" class="panel cabinet-pro-panel active">
                     <header class="cabinet-pro-panel-head">
                         <h1>Обзор</h1>
-                        <p class="muted">Баланс, безопасность и быстрые действия</p>
+                        <p class="muted">Статистика аккаунта и быстрые действия</p>
                     </header>
                     <div class="cabinet-pro-quick">
                         <button type="button" class="cabinet-pro-quick-card" data-panel-jump="orders">
@@ -77,13 +77,11 @@ ob_start();
                             <span class="muted">Новый заказ</span>
                         </a>
                     </div>
-                    <section class="cabinet-pro-card">
-                        <h2>Смена пароля</h2>
-                        <form id="password-form" class="cabinet-pro-form form">
-                            <label>Текущий пароль<input type="password" name="current_password" required autocomplete="current-password"></label>
-                            <label>Новый пароль<input type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
-                            <button type="submit" class="btn btn-secondary">Сохранить пароль</button>
-                        </form>
+                    <section class="cabinet-pro-card" id="account-stats-section">
+                        <h2>Статистика аккаунта</h2>
+                        <div id="account-stats" class="cabinet-pro-stats">
+                            <p class="muted">Загрузка...</p>
+                        </div>
                     </section>
                 </div>
 

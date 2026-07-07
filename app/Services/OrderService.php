@@ -47,7 +47,7 @@ final class OrderService
         foreach ($rows as &$row) {
             $row['status_label'] = OrderStatus::label((string) $row['status']);
             $row['quantity_unit'] = DeliveryUnit::fromName((string) ($row['service_name'] ?? ''));
-            $row['created_at_formatted'] = RuDate::format((string) ($row['created_at'] ?? ''));
+            $row['created_at_formatted'] = RuDate::formatDateTime((string) ($row['created_at'] ?? ''));
             $row = $this->sanitizeForClient($row);
         }
         return $rows;

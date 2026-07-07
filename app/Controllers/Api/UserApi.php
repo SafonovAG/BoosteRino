@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace App\Controllers\Api;
 
-use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Services\AuthService;
-use App\Services\BalanceTransactionType;
 use App\Services\OrderService;
 use App\Services\PaymentService;
-use App\Services\RuDate;
+use App\Services\UserService;
 
 final class UserApi
 {
     public static function profile(Request $r): void
     {
-        Response::ok(['user' => (new AuthService())->user()]);
+        $u = (new AuthService())->user();
+        Response::ok([
+            'user' => $u,
+            'stats' => (new UserService())->accountStats((int) $u['id']),
+        ]);
     }
 
     public static function changePassword(Request $r): void
@@ -122,15 +124,6 @@ final class UserApi
     public static function tx(Request $r): void
     {
         $u = (new AuthService())->user();
-        $st = Database::pdo()->prepare('SELECT * FROM balance_transactions WHERE user_id=:u ORDER BY id DESC LIMIT 50');
-        $st->execute(['u' => $u['id']]);
-        $rows = $st->fetchAll();
-        $out = [];
-        foreach ($rows as $row) {
-            $row['type_label'] = BalanceTransactionType::label((string) $row['type']);
-            $row['created_at_formatted'] = RuDate::format((string) ($row['created_at'] ?? ''));
-            $out[] = $row;
-        }
-        Response::ok(['transactions' => $out]);
+        Response::ok(['transactions' => (new UserService())->listTransactions((int) $u['id'])]);
     }
 }
