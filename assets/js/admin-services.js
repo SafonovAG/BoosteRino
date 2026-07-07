@@ -8,45 +8,64 @@
   }
 
   let servicesCache = [];
-  let categoriesCache = [];
-  let svcFilter = { category: 'all', q: '' };
+  let svcFilter = { platform: null, subcategory: null, q: '' };
   let expandedServiceId = null;
-  const collapsedCategories = new Set();
   let sidebarCatsOpen = true;
 
-  function groupServicesByCategory(list) {
-    const groups = new Map();
-    list.forEach((s) => {
-      const cat = s.category || 'Прочее';
-      if (!groups.has(cat)) groups.set(cat, []);
-      groups.get(cat).push(s);
+  function buildPlatforms() {
+    const map = new Map();
+    servicesCache.forEach((s) => {
+      const slug = s.platform || 'other';
+      if (!map.has(slug)) {
+        map.set(slug, {
+          slug,
+          name: s.platform_name || (slug === 'other' ? 'Прочее' : slug),
+          logo: s.logo || '/assets/images/logo/default.svg',
+          count: 0,
+        });
+      }
+      map.get(slug).count++;
     });
-    return [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'ru'));
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
   }
 
-  function categorySection(cat, items) {
-    const collapsed = collapsedCategories.has(cat);
-    const activeCnt = items.filter((s) => s.is_active).length;
-    const encoded = encodeURIComponent(cat);
-    return (
-      '<section class="admin-svc-group' + (collapsed ? ' is-collapsed' : '') + '" data-cat-group="' + encoded + '">' +
-        '<button type="button" class="admin-svc-group-head" data-cat-toggle="' + encoded + '">' +
-          '<span class="admin-svc-group-chevron" aria-hidden="true"></span>' +
-          '<span class="admin-svc-group-title">' + escape(cat) + '</span>' +
-          '<span class="admin-svc-group-count">' + items.length + ' · ' + activeCnt + ' акт.</span>' +
-        '</button>' +
-        '<div class="admin-svc-group-body">' +
-          items.map(serviceCard).join('') +
-        '</div>' +
-      '</section>'
-    );
+  function buildSubcategories(platformSlug) {
+    const map = new Map();
+    servicesCache.forEach((s) => {
+      if ((s.platform || 'other') !== platformSlug) return;
+      const cat = s.category || 'Прочее';
+      if (!map.has(cat)) {
+        map.set(cat, { category: cat, count: 0, active: 0 });
+      }
+      const row = map.get(cat);
+      row.count++;
+      if (s.is_active) row.active++;
+    });
+    return [...map.values()].sort((a, b) => a.category.localeCompare(b.category, 'ru'));
+  }
+
+  function ensureFilterDefaults() {
+    const platforms = buildPlatforms();
+    if (!platforms.length) {
+      svcFilter.platform = null;
+      svcFilter.subcategory = null;
+      return;
+    }
+    if (!svcFilter.platform || !platforms.some((p) => p.slug === svcFilter.platform)) {
+      svcFilter.platform = platforms[0].slug;
+    }
+    const subs = buildSubcategories(svcFilter.platform);
+    if (!svcFilter.subcategory || !subs.some((s) => s.category === svcFilter.subcategory)) {
+      svcFilter.subcategory = subs[0]?.category || null;
+    }
   }
 
   function filteredServices() {
+    const q = svcFilter.q;
     return servicesCache.filter((s) => {
-      if (svcFilter.category !== 'all' && s.category !== svcFilter.category) return false;
-      if (svcFilter.q) {
-        const q = svcFilter.q.toLowerCase();
+      if (svcFilter.platform && (s.platform || 'other') !== svcFilter.platform) return false;
+      if (!q && svcFilter.subcategory && (s.category || 'Прочее') !== svcFilter.subcategory) return false;
+      if (q) {
         const hay = [s.id, s.name, s.category, s.type, s.external_id, s.platform_name].join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
@@ -115,77 +134,118 @@
     renderServicesPanel();
   }
 
+  function bindServiceListEvents(listEl) {
+    listEl.querySelectorAll('[data-svc-toggle]').forEach((head) => {
+      head.addEventListener('click', () => {
+        const id = +head.dataset.svcToggle;
+        expandedServiceId = expandedServiceId === id ? null : id;
+        renderServicesPanel();
+      });
+    });
+
+    listEl.querySelectorAll('[data-svc-save]').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const card = btn.closest('.admin-svc-card');
+        try {
+          await saveService(+btn.dataset.svcSave, card);
+        } catch (err) {
+          toast(err.message, 'error');
+        }
+      });
+    });
+  }
+
   function renderServicesPanel() {
     const el = document.getElementById('admin-services');
     if (!el) return;
+
+    ensureFilterDefaults();
+    const platforms = buildPlatforms();
+    const subs = svcFilter.platform ? buildSubcategories(svcFilter.platform) : [];
+    const currentPlatform = platforms.find((p) => p.slug === svcFilter.platform);
     const list = filteredServices();
-    const catBlock = document.getElementById('admin-svc-cats');
-    const sidebarWrap = document.querySelector('.admin-svc-cats-wrap');
+
     const sidebarToggle = document.getElementById('admin-svc-cats-toggle');
+    const sidebarWrap = document.querySelector('.admin-svc-cats-wrap');
     if (sidebarToggle) sidebarToggle.classList.toggle('is-open', sidebarCatsOpen);
     if (sidebarWrap) sidebarWrap.classList.toggle('is-collapsed', !sidebarCatsOpen);
-    if (catBlock) {
-      catBlock.innerHTML =
-        '<button type="button" class="admin-svc-cat' + (svcFilter.category === 'all' ? ' is-active' : '') + '" data-cat="all">Все <span>' + servicesCache.length + '</span></button>' +
-        categoriesCache.map((c) =>
-          '<button type="button" class="admin-svc-cat' + (svcFilter.category === c.category ? ' is-active' : '') + '" data-cat="' + encodeURIComponent(c.category) + '" title="' + escape(c.category) + '">' +
-            '<span class="admin-svc-cat-name">' + escape(c.category) + '</span>' +
-            '<span class="admin-svc-cat-badges">' +
-              '<span>' + c.cnt + '</span>' +
-              (c.active_cnt != null ? '<span class="admin-svc-cat-active">' + c.active_cnt + ' акт.</span>' : '') +
-            '</span>' +
-          '</button>'
-        ).join('');
-      catBlock.querySelectorAll('[data-cat]').forEach((btn) => {
+
+    const platformBlock = document.getElementById('admin-svc-platforms');
+    if (platformBlock) {
+      platformBlock.innerHTML = platforms.map((p) =>
+        '<button type="button" class="admin-svc-platform' + (svcFilter.platform === p.slug ? ' is-active' : '') + '" data-platform="' + escape(p.slug) + '">' +
+          '<img src="' + escape(p.logo) + '" alt="" width="20" height="20" class="admin-svc-platform-logo">' +
+          '<span class="admin-svc-platform-name">' + escape(p.name) + '</span>' +
+          '<span class="admin-svc-platform-count">' + p.count + '</span>' +
+        '</button>'
+      ).join('');
+      platformBlock.querySelectorAll('[data-platform]').forEach((btn) => {
         btn.addEventListener('click', () => {
-          const raw = btn.dataset.cat;
-          svcFilter.category = raw === 'all' ? 'all' : decodeURIComponent(raw);
-          const cat = svcFilter.category;
-          if (cat !== 'all') collapsedCategories.delete(cat);
+          svcFilter.platform = btn.dataset.platform;
+          const nextSubs = buildSubcategories(svcFilter.platform);
+          svcFilter.subcategory = nextSubs[0]?.category || null;
+          svcFilter.q = '';
+          const search = document.getElementById('admin-svc-search');
+          if (search) search.value = '';
           renderServicesPanel();
         });
       });
+    }
+
+    const subWrap = document.getElementById('admin-svc-subcats-wrap');
+    const subBlock = document.getElementById('admin-svc-subcats');
+    const platformLabel = document.getElementById('admin-svc-platform-label');
+    if (platformLabel) {
+      platformLabel.textContent = currentPlatform ? currentPlatform.name : 'Платформа';
+    }
+    if (subWrap && subBlock) {
+      const showSubs = subs.length > 0 && !svcFilter.q;
+      subWrap.classList.toggle('hidden', !showSubs);
+      if (showSubs) {
+        subBlock.innerHTML = subs.map((sub) =>
+          '<button type="button" class="admin-svc-subcat' + (svcFilter.subcategory === sub.category ? ' is-active' : '') + '" data-subcat="' + encodeURIComponent(sub.category) + '" title="' + escape(sub.category) + '">' +
+            '<span class="admin-svc-subcat-name">' + escape(sub.category) + '</span>' +
+            '<span class="admin-svc-subcat-count">' + sub.count + '</span>' +
+          '</button>'
+        ).join('');
+        subBlock.querySelectorAll('[data-subcat]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            svcFilter.subcategory = decodeURIComponent(btn.dataset.subcat);
+            renderServicesPanel();
+          });
+        });
+      }
     }
 
     const listEl = document.getElementById('admin-svc-list');
     if (listEl) {
-      const groups = groupServicesByCategory(list);
-      listEl.innerHTML = groups.length
-        ? groups.map(([cat, items]) => categorySection(cat, items)).join('')
-        : '<p class="muted admin-svc-empty">Нет товаров по фильтру</p>';
-
-      listEl.querySelectorAll('[data-cat-toggle]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const cat = decodeURIComponent(btn.dataset.catToggle);
-          if (collapsedCategories.has(cat)) collapsedCategories.delete(cat);
-          else collapsedCategories.add(cat);
-          renderServicesPanel();
-        });
-      });
-
-      listEl.querySelectorAll('[data-svc-toggle]').forEach((head) => {
-        head.addEventListener('click', () => {
-          const id = +head.dataset.svcToggle;
-          expandedServiceId = expandedServiceId === id ? null : id;
-          renderServicesPanel();
-        });
-      });
-
-      listEl.querySelectorAll('[data-svc-save]').forEach((btn) => {
-        btn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const card = btn.closest('.admin-svc-card');
-          try {
-            await saveService(+btn.dataset.svcSave, card);
-          } catch (err) {
-            toast(err.message, 'error');
-          }
-        });
-      });
+      if (!list.length) {
+        listEl.innerHTML = '<p class="muted admin-svc-empty">' +
+          (svcFilter.q ? 'Ничего не найдено по запросу' : 'Нет товаров в этой подкатегории') +
+          '</p>';
+      } else {
+        listEl.innerHTML = list.map(serviceCard).join('');
+        bindServiceListEvents(listEl);
+      }
     }
 
     const countEl = document.getElementById('admin-svc-count');
-    if (countEl) countEl.textContent = list.length + ' из ' + servicesCache.length;
+    if (countEl) {
+      const subLabel = svcFilter.q
+        ? 'поиск'
+        : (svcFilter.subcategory || 'подкатегория');
+      countEl.textContent = list.length + ' товаров · ' + subLabel;
+    }
+
+    const oldInp = document.getElementById('admin-svc-cat-old');
+    const newInp = document.getElementById('admin-svc-cat-new');
+    if (oldInp) {
+      oldInp.value = svcFilter.subcategory || '';
+      if (newInp && !newInp.value && svcFilter.subcategory) {
+        newInp.value = svcFilter.subcategory;
+      }
+    }
   }
 
   async function loadAdminServices(resetExpand) {
@@ -200,7 +260,7 @@
           '<div class="admin-svc-toolbar">' +
             '<div><h2><span class="panel-icon">📦</span> Товары</h2><p class="muted" id="admin-svc-count">Загрузка...</p></div>' +
             '<div class="admin-svc-toolbar-actions">' +
-              '<input type="search" id="admin-svc-search" placeholder="Поиск по названию, ID, категории...">' +
+              '<input type="search" id="admin-svc-search" placeholder="Поиск в выбранной платформе...">' +
               '<button type="button" class="btn btn-primary btn-sm" id="sync-services">🔄 Синхронизировать</button>' +
             '</div>' +
           '</div>' +
@@ -208,23 +268,26 @@
           '<div class="admin-svc-layout">' +
             '<aside class="admin-svc-sidebar">' +
               '<button type="button" class="admin-svc-sidebar-head" id="admin-svc-cats-toggle">' +
-                '<span>Категории</span>' +
+                '<span>Платформы</span>' +
                 '<span class="admin-svc-sidebar-chevron" aria-hidden="true"></span>' +
               '</button>' +
               '<div class="admin-svc-cats-wrap">' +
-                '<div class="admin-svc-cats admin-svc-cats--compact" id="admin-svc-cats"></div>' +
+                '<div class="admin-svc-platforms" id="admin-svc-platforms"></div>' +
                 '<div class="admin-svc-cat-edit" id="admin-svc-cat-edit">' +
-                '<label class="shop-field-label">Переименовать категорию</label>' +
-                '<input type="text" id="admin-svc-cat-old" placeholder="Текущее имя" readonly>' +
-                '<input type="text" id="admin-svc-cat-new" placeholder="Новое имя">' +
-                '<button type="button" class="btn btn-secondary btn-sm" id="admin-svc-cat-save">Сохранить категорию</button>' +
+                  '<label class="shop-field-label">Переименовать подкатегорию</label>' +
+                  '<input type="text" id="admin-svc-cat-old" placeholder="Текущее имя" readonly>' +
+                  '<input type="text" id="admin-svc-cat-new" placeholder="Новое имя">' +
+                  '<button type="button" class="btn btn-secondary btn-sm" id="admin-svc-cat-save">Сохранить</button>' +
                 '</div>' +
               '</div>' +
             '</aside>' +
             '<div class="admin-svc-main">' +
-              '<div class="admin-svc-list-toolbar">' +
-                '<button type="button" class="btn btn-ghost btn-sm" id="admin-svc-expand-all">Развернуть все</button>' +
-                '<button type="button" class="btn btn-ghost btn-sm" id="admin-svc-collapse-all">Свернуть все</button>' +
+              '<div class="admin-svc-subcats-wrap" id="admin-svc-subcats-wrap">' +
+                '<div class="admin-svc-subcats-head">' +
+                  '<span class="admin-svc-subcats-kicker">Подкатегории</span>' +
+                  '<strong id="admin-svc-platform-label">—</strong>' +
+                '</div>' +
+                '<div class="admin-svc-subcats" id="admin-svc-subcats"></div>' +
               '</div>' +
               '<div class="admin-svc-list" id="admin-svc-list"></div>' +
             '</div>' +
@@ -233,16 +296,6 @@
 
       el.querySelector('#admin-svc-cats-toggle')?.addEventListener('click', () => {
         sidebarCatsOpen = !sidebarCatsOpen;
-        renderServicesPanel();
-      });
-
-      el.querySelector('#admin-svc-expand-all')?.addEventListener('click', () => {
-        collapsedCategories.clear();
-        renderServicesPanel();
-      });
-
-      el.querySelector('#admin-svc-collapse-all')?.addEventListener('click', () => {
-        groupServicesByCategory(filteredServices()).forEach(([cat]) => collapsedCategories.add(cat));
         renderServicesPanel();
       });
 
@@ -269,7 +322,7 @@
         const oldName = el.querySelector('#admin-svc-cat-old')?.value;
         const newName = el.querySelector('#admin-svc-cat-new')?.value?.trim();
         if (!oldName || !newName) {
-          toast('Укажите новое имя категории', 'error');
+          toast('Укажите новое имя подкатегории', 'error');
           return;
         }
         try {
@@ -277,8 +330,8 @@
             method: 'PUT',
             body: JSON.stringify({ old_name: oldName, new_name: newName }),
           });
-          toast('Категория переименована');
-          svcFilter.category = newName;
+          toast('Подкатегория переименована');
+          svcFilter.subcategory = newName;
           await loadAdminServices(false);
         } catch (e) {
           toast(e.message, 'error');
@@ -289,21 +342,11 @@
     try {
       const data = await api('/api/v1/admin/services');
       servicesCache = data.services || [];
-      categoriesCache = data.categories || [];
       if (servicesCache.length && !window.AdminNav?.sampleServiceId) {
         window.AdminNav = window.AdminNav || {};
         window.AdminNav.sampleServiceId = servicesCache[0].id;
       }
       renderServicesPanel();
-
-      const oldInp = document.getElementById('admin-svc-cat-old');
-      const newInp = document.getElementById('admin-svc-cat-new');
-      if (svcFilter.category !== 'all' && oldInp) {
-        oldInp.value = svcFilter.category;
-        if (newInp && !newInp.value) newInp.value = svcFilter.category;
-      } else if (oldInp) {
-        oldInp.value = '';
-      }
     } catch (e) {
       el.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
     }
@@ -314,11 +357,13 @@
   window.AdminNav.openService = function (id) {
     document.querySelector('[data-panel="services"]')?.click();
     setTimeout(() => {
-      svcFilter.category = 'all';
-      svcFilter.q = String(id);
-      expandedServiceId = id;
       const svc = servicesCache.find((s) => s.id === id);
-      if (svc?.category) collapsedCategories.delete(svc.category);
+      if (svc) {
+        svcFilter.platform = svc.platform || 'other';
+        svcFilter.subcategory = svc.category || null;
+      }
+      svcFilter.q = '';
+      expandedServiceId = id;
       renderServicesPanel();
       document.querySelector('.admin-svc-card[data-svc-id="' + id + '"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 80);
