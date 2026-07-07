@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/assets/css/animations.css">
     <link rel="stylesheet" href="/assets/css/shop.css">
     <link rel="stylesheet" href="/assets/css/shop-fixes.css">
+    <link rel="stylesheet" href="/assets/css/select-pro.css">
     <?php if (!empty($styles)): ?>
         <?php foreach ($styles as $style): ?>
             <link rel="stylesheet" href="<?= \App\Core\View::e($style) ?>">

@@ -52,7 +52,7 @@ ob_start();
                             <label class="order-service-label">Товар (услуга)
                                 <div class="order-service-row">
                                     <img id="order-service-logo" src="/assets/images/logo/default.svg" alt="" width="36" height="36" class="order-service-logo">
-                                    <select name="service_id" id="order-service" required></select>
+                                    <select name="service_id" id="order-service" class="shop-select" required></select>
                                 </div>
                             </label>
                             <label>🔗 Ссылка на профиль/пост<input type="url" name="link" required placeholder="https://..."></label>
@@ -65,7 +65,7 @@ ob_start();
                                 <strong id="order-price">-</strong>
                             </div>
                             <label>Способ оплаты
-                                <select name="payment_method">
+                                <select name="payment_method" class="shop-select">
                                     <option value="balance">💰 С баланса</option>
                                     <option value="yoomoney">💳 ЮMoney</option>
                                 </select>

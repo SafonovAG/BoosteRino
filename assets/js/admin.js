@@ -207,7 +207,7 @@
         '<div class="admin-order-drawer-footer">' +
           '<div class="admin-order-status-row">' +
             '<label>Статус вручную' +
-              '<select id="admin-order-status">' +
+              '<select id="admin-order-status" class="shop-select">' +
                 ORDER_STATUSES.map((st) =>
                   '<option value="' + st + '"' + (o.status === st ? ' selected' : '') + '>' + st + '</option>'
                 ).join('') +
@@ -289,7 +289,7 @@
         '<div class="admin-orders-toolbar">' +
           '<h2><span class="panel-icon">🛒</span> Заказы</h2>' +
           '<div class="admin-orders-filters">' +
-            '<select id="admin-orders-status-filter">' +
+            '<select id="admin-orders-status-filter" class="shop-select">' +
               '<option value="all">Все статусы</option>' +
               ORDER_STATUSES.map((st) =>
                 '<option value="' + st + '"' + (ordersFilter.status === st ? ' selected' : '') + '>' + st + '</option>'
@@ -364,7 +364,7 @@
       rows.map((u) => {
         let roleCell = roleLabel[u.role] || u.role;
         if (isSuper) {
-          roleCell = '<select data-role-user="' + u.id + '">' +
+          roleCell = '<select class="shop-select" data-role-user="' + u.id + '">' +
             ['user', 'admin', 'superadmin'].map((r) =>
               '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' + (roleLabel[r] || r) + '</option>'
             ).join('') +

@@ -36,16 +36,34 @@
     root.innerHTML =
       '<div class="cart-pro">' +
         '<div class="cart-pro-items" id="cart-pro-items"></div>' +
-        '<aside class="cart-pro-summary" id="cart-pro-summary">' +
-          '<h2>Ваш заказ</h2>' +
-          '<div class="cart-pro-summary-rows">' +
-            '<div class="cart-pro-summary-row"><span>Позиций</span><strong id="cart-pos-count">0</strong></div>' +
-            '<div class="cart-pro-summary-row"><span>Единиц</span><strong id="cart-units-count">0</strong></div>' +
+        '<aside class="cart-pro-checkout" id="cart-pro-summary">' +
+          '<div class="cart-pro-checkout-glow" aria-hidden="true"></div>' +
+          '<header class="cart-pro-checkout-head">' +
+            '<span class="cart-pro-checkout-icon" aria-hidden="true">🧾</span>' +
+            '<div>' +
+              '<h2 class="cart-pro-checkout-title">Ваш заказ</h2>' +
+              '<p class="cart-pro-checkout-sub muted">Проверьте сумму и оформите покупку</p>' +
+            '</div>' +
+          '</header>' +
+          '<div class="cart-pro-checkout-stats">' +
+            '<div class="cart-pro-checkout-stat">' +
+              '<span class="cart-pro-checkout-stat-label">Позиций</span>' +
+              '<strong class="cart-pro-checkout-stat-value" id="cart-pos-count">0</strong>' +
+            '</div>' +
+            '<div class="cart-pro-checkout-stat">' +
+              '<span class="cart-pro-checkout-stat-label">Единиц</span>' +
+              '<strong class="cart-pro-checkout-stat-value" id="cart-units-count">0</strong>' +
+            '</div>' +
           '</div>' +
-          '<div class="cart-pro-summary-total"><span>Итого</span><strong id="cart-grand-total">0 ₽</strong></div>' +
-          '<div id="cart-checkout-block"></div>' +
-          '<a href="/services" class="btn btn-ghost btn-block">Продолжить покупки</a>' +
-          '<div class="cart-pro-progress" id="cart-progress" hidden><div class="cart-pro-progress-bar" id="cart-progress-bar"></div></div>' +
+          '<div class="cart-pro-checkout-total">' +
+            '<span>Итого к оплате</span>' +
+            '<strong id="cart-grand-total">0 ₽</strong>' +
+          '</div>' +
+          '<div class="cart-pro-checkout-body" id="cart-checkout-block"></div>' +
+          '<a href="/services" class="cart-pro-checkout-continue">← Продолжить покупки</a>' +
+          '<div class="cart-pro-progress" id="cart-progress" hidden>' +
+            '<div class="cart-pro-progress-bar" id="cart-progress-bar"></div>' +
+          '</div>' +
         '</aside>' +
       '</div>';
     shellReady = true;
@@ -57,11 +75,25 @@
     const block = document.getElementById('cart-checkout-block');
     if (!block) return;
     block.innerHTML = isLoggedIn
-      ? '<label>Способ оплаты<select id="cart-payment"><option value="balance">С баланса</option><option value="yoomoney">ЮMoney</option></select></label>' +
-        '<button type="button" class="btn btn-primary btn-block btn-lg" id="cart-checkout">Оформить заказ</button>'
-      : '<p class="muted">Войдите, чтобы оформить заказ</p>' +
-        '<a href="/login?next=/cart" class="btn btn-primary btn-block">Войти</a>' +
-        '<a href="/register" class="btn btn-secondary btn-block">Регистрация</a>';
+      ? '<div class="cart-pro-payment">' +
+          '<label class="shop-field-label" for="cart-payment">Способ оплаты</label>' +
+          '<div class="shop-select-wrap">' +
+            '<select id="cart-payment" class="shop-select">' +
+              '<option value="balance">💰 С баланса</option>' +
+              '<option value="yoomoney">💳 ЮMoney</option>' +
+            '</select>' +
+          '</div>' +
+        '</div>' +
+        '<div class="cart-pro-checkout-btns">' +
+          '<button type="button" class="btn btn-primary btn-lg cart-pro-checkout-submit" id="cart-checkout">Оформить заказ</button>' +
+        '</div>'
+      : '<div class="cart-pro-checkout-guest">' +
+          '<p class="cart-pro-checkout-guest-text">Войдите в аккаунт, чтобы оформить заказ и оплатить с баланса или через ЮMoney.</p>' +
+          '<div class="cart-pro-checkout-btns">' +
+            '<a href="/login?next=/cart" class="btn btn-primary btn-lg cart-pro-checkout-submit">Войти</a>' +
+            '<a href="/register" class="btn btn-secondary btn-block">Создать аккаунт</a>' +
+          '</div>' +
+        '</div>';
     document.getElementById('cart-checkout')?.addEventListener('click', checkout);
   }
 

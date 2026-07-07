@@ -1,0 +1,124 @@
+/* Unified select / dropdown styling (shop + admin) */
+
+.shop-page select,
+.shop-select {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.8rem 2.75rem 0.8rem 1rem;
+  border: 1px solid var(--select-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--select-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1rem;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-shadow: var(--select-shadow);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+[data-theme="dark"] .shop-page select,
+[data-theme="dark"] .shop-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .shop-page select,
+  :root:not([data-theme="light"]) .shop-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+}
+
+.shop-page select:hover,
+.shop-select:hover {
+  border-color: var(--select-border-hover);
+}
+
+.shop-page select:focus,
+.shop-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft), var(--select-shadow);
+}
+
+.shop-page select:disabled,
+.shop-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.shop-page select option,
+.shop-select option {
+  background-color: var(--select-option-bg);
+  color: var(--select-option-color);
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+}
+
+.shop-page select option:checked,
+.shop-select option:checked {
+  background-color: color-mix(in srgb, var(--accent-soft) 70%, var(--select-option-bg));
+  color: var(--accent);
+  font-weight: 700;
+}
+
+[data-theme="light"] .shop-page select,
+[data-theme="light"] .shop-select {
+  color-scheme: light;
+}
+
+[data-theme="dark"] .shop-page select,
+[data-theme="dark"] .shop-select {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .shop-page select,
+  :root:not([data-theme="dark"]) .shop-select {
+    color-scheme: light;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .shop-page select,
+  :root:not([data-theme="light"]) .shop-select {
+    color-scheme: dark;
+  }
+}
+
+.shop-field-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.shop-select-wrap {
+  position: relative;
+}
+
+.shop-select-wrap select {
+  width: 100%;
+}
+
+.shop-page .form label:has(select) {
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.shop-page .form label select {
+  margin-top: 0.45rem;
+}

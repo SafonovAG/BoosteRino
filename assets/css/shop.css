@@ -1219,19 +1219,11 @@
 }
 
 .catalog-sort select {
-  padding: 0.55rem 2rem 0.55rem 0.85rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--shop-white);
-  color: var(--text);
-  font: inherit;
+  width: auto;
+  min-width: 10rem;
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
   font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-[data-theme="dark"] .catalog-sort select {
-  background: var(--bg-elevated);
 }
 
 .filter-mobile-toggle {
