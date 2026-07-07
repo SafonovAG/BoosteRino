@@ -96,7 +96,7 @@
         '<header class="admin-svc-card-head" data-svc-toggle="' + s.id + '">' +
           '<div class="admin-svc-card-meta">' +
             '<span class="admin-svc-id">#' + s.id + '</span>' +
-            '<span class="admin-svc-ext">ext ' + s.external_id + '</span>' +
+            '<span class="admin-svc-ext">ID у поставщика: ' + s.external_id + '</span>' +
             (s.is_active ? '<span class="admin-svc-pill admin-svc-pill--ok">Активен</span>' : '<span class="admin-svc-pill">Скрыт</span>') +
           '</div>' +
           '<h3 class="admin-svc-card-title">' + escape(s.name) + '</h3>' +
@@ -107,7 +107,7 @@
           '</div>' +
           '<div class="admin-svc-card-price">' +
             '<strong>' + (s.price_per_thousand_rub ?? s.rate) + ' ₽</strong>' +
-            '<span>за 1000 · rate ' + s.rate + '</span>' +
+            '<span>за 1000 · тариф поставщика: ' + s.rate + '</span>' +
           '</div>' +
         '</header>' +
         (open
