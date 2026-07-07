@@ -168,6 +168,20 @@
     });
   }
 
+  function buildPageList(current, total) {
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const list = [1];
+    if (current > 3) list.push('…');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      list.push(i);
+    }
+    if (current < total - 2) list.push('…');
+    list.push(total);
+    return list;
+  }
+
   function renderPagination(total, totalPages) {
     if (!paginationEl) return;
     if (totalPages <= 1) {
@@ -179,9 +193,7 @@
     html += '<button type="button" class="catalog-page-btn" data-page="' + (page - 1) + '"' +
       (page <= 1 ? ' disabled' : '') + '>←</button>';
 
-    const pages = totalPages <= 7
-      ? Array.from({ length: totalPages }, (_, i) => i + 1)
-      : [1, page > 3 ? '…' : 2, page, page < totalPages - 2 ? '…' : totalPages - 1, totalPages].filter((v, i, a) => v !== '…' || a[i - 1] !== '…');
+    const pages = buildPageList(page, totalPages);
 
     pages.forEach((n) => {
       if (n === '…') {
