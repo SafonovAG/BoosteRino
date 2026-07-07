@@ -22,6 +22,7 @@ final class PricingService
     public function format(array $s): array
     {
         $ov = $s['markup_override'] !== null ? (float) $s['markup_override'] : null;
+        $linkHint = (new LinkValidator())->hint($s);
         return [
             'id' => (int) $s['id'],
             'external_id' => (int) $s['external_id'],
@@ -37,6 +38,10 @@ final class PricingService
             'platform' => ServiceLogo::platformSlug($s),
             'platform_name' => ServiceLogo::platformName($s),
             'category_label' => ServiceLogo::categoryLabel($s),
+            'link_label' => $linkHint['label'],
+            'link_placeholder' => $linkHint['placeholder'],
+            'link_example' => $linkHint['example'],
+            'link_kind' => $linkHint['kind'],
         ];
     }
 

@@ -27,6 +27,7 @@ final class OrderService
         if ($qty < $svc['min_qty'] || $qty > $svc['max_qty']) {
             throw new \InvalidArgumentException('Неверное количество.');
         }
+        $link = (new LinkValidator())->validate($svc, $link);
         if (!in_array($pay, ['balance', 'yoomoney'], true)) {
             throw new \InvalidArgumentException('Неверный способ оплаты.');
         }

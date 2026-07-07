@@ -67,6 +67,7 @@ return static function (Router $r): void {
     $r->post('/api/v1/admin/orders/{id}/cancel', [AdminApi::class, 'orderCancel'], [$csrf, $auth, new AdminMiddleware()]);
     $r->post('/api/v1/admin/orders/sync-all', [AdminApi::class, 'ordersSyncAll'], [$csrf, $auth, new AdminMiddleware()]);
     $r->post('/api/v1/admin/diagnostics/run', [AdminApi::class, 'diagnosticsRun'], [$csrf, $auth, new AdminMiddleware()]);
+    $r->post('/api/v1/admin/diagnostics/supplier', [AdminApi::class, 'diagnosticsSupplier'], [$csrf, $auth, new AdminMiddleware()]);
     $r->get('/api/v1/admin/diagnostics/probe', [AdminApi::class, 'diagnosticsApiProbe'], [$auth, new AdminMiddleware()]);
 
     $r->post('/api/v1/payments/yoomoney/notify', [NotifyApi::class, 'yoomoney']);

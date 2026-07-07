@@ -175,6 +175,11 @@ final class AdminApi
         Response::ok(['results' => (new AdminDiagnosticsService())->runAll()]);
     }
 
+    public static function diagnosticsSupplier(Request $r): void
+    {
+        Response::ok(['results' => (new AdminDiagnosticsService())->runSupplier()]);
+    }
+
     public static function diagnosticsApiProbe(Request $r): void
     {
         Response::ok(['message' => 'Admin API доступен', 'time' => date('c')]);

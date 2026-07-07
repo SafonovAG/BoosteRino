@@ -57,8 +57,24 @@
     document.getElementById('cart-checkout')?.addEventListener('click', checkout);
   }
 
+  function validateItemLink(item, raw, inputEl) {
+    const v = window.BoosterinoLinkValidator;
+    if (!v) return raw.trim();
+    const r = v.validate(raw, item.platform, item.service_type, item.platform_name, item.name, item.category_label);
+    if (!r.ok) {
+      inputEl?.classList.add('is-invalid');
+      return null;
+    }
+    inputEl?.classList.remove('is-invalid');
+    return r.normalized || raw.trim();
+  }
+
   function itemHtml(item, isNew) {
     const total = cart.lineTotal(item);
+    const linkLabel = item.link_label || window.BoosterinoLinkValidator?.hint(
+      item.platform, item.service_type, item.platform_name, item.name, item.category_label
+    )?.label || 'Ссылка';
+    const linkPh = item.link_placeholder || 'https://...';
     return '<article class="cart-pro-item' + (isNew ? ' is-entering' : '') + '" data-service-id="' + item.service_id + '">' +
       '<a href="/services/' + item.service_id + '" class="cart-pro-item-logo">' +
         '<img src="' + escape(item.logo) + '" alt="" width="32" height="32">' +
@@ -69,8 +85,8 @@
           '<span class="cart-pro-item-cat">' + escape(item.category_label || item.platform_name) + '</span>' +
         '</div>' +
         '<label class="cart-pro-item-link">' +
-          '<span>Ссылка на профиль или пост</span>' +
-          '<input type="url" class="cart-pro-item-link-input" value="' + escape(item.link) + '" placeholder="https://...">' +
+          '<span>' + escape(linkLabel) + '</span>' +
+          '<input type="url" class="cart-pro-item-link-input" value="' + escape(item.link) + '" placeholder="' + escape(linkPh) + '">' +
         '</label>' +
         '<div class="cart-pro-item-controls">' +
           '<div class="cart-pro-stepper">' +
@@ -211,8 +227,12 @@
 
       if (e.target.classList.contains('cart-pro-item-link-input')) {
         const val = e.target.value.trim();
+        const item = cart.getItems().find((i) => i.service_id === sid);
+        if (!item) return;
+        const normalized = validateItemLink(item, val, e.target);
+        if (normalized === null) return;
         e.target.classList.toggle('is-invalid', !val);
-        cart.update(sid, { link: val });
+        cart.update(sid, { link: normalized || val });
       }
 
       if (e.target.classList.contains('cart-pro-item-qty')) {
@@ -241,6 +261,16 @@
         row?.classList.add('is-invalid');
         row?.focus();
         return;
+      }
+      const row = root.querySelector('[data-service-id="' + item.service_id + '"] .cart-pro-item-link-input');
+      const normalized = validateItemLink(item, item.link, row);
+      if (normalized === null) {
+        toast('Неверная ссылка для: ' + item.name, 'error');
+        row?.focus();
+        return;
+      }
+      if (normalized !== item.link) {
+        cart.update(item.service_id, { link: normalized });
       }
     }
 

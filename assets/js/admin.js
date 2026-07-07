@@ -456,6 +456,7 @@
       { group: 'Админ POST', name: 'POST /api/v1/admin/services/sync', method: 'POST', url: '/api/v1/admin/services/sync', body: '{}', dry: true },
       { group: 'Админ POST', name: 'POST /api/v1/admin/orders/sync-all', method: 'POST', url: '/api/v1/admin/orders/sync-all', body: '{}', dry: true },
       { group: 'Админ POST', name: 'POST /api/v1/admin/diagnostics/run', method: 'POST', url: '/api/v1/admin/diagnostics/run', body: '{}', dry: true },
+      { group: 'Админ POST', name: 'POST /api/v1/admin/diagnostics/supplier', method: 'POST', url: '/api/v1/admin/diagnostics/supplier', body: '{}', dry: true },
       { group: 'Auth POST', name: 'POST /api/v1/auth/logout', method: 'POST', url: '/api/v1/auth/logout', body: '{}', expect: [200, 401] },
       { group: 'Auth POST', name: 'POST /api/v1/auth/login', method: 'POST', url: '/api/v1/auth/login', body: JSON.stringify({ email: 'test@test.com', password: 'x' }), expect: [401, 422] },
       { group: 'Пользователь POST', name: 'POST /api/v1/user/orders', method: 'POST', url: '/api/v1/user/orders', body: JSON.stringify({ service_id: sid, link: 'https://example.com', quantity: 1 }), expect: [401, 422] },
@@ -498,8 +499,11 @@
     }
   }
 
-  function renderDiagResults(serverResults, apiResults) {
-    const el = document.getElementById('diagnostics-results');
+  let diagnosticsBound = false;
+  let activeDiagTab = 'system';
+
+  function renderDiagResults(serverResults, apiResults, targetId) {
+    const el = document.getElementById(targetId || 'diagnostics-results');
     if (!el) return;
 
     const all = [];
@@ -535,42 +539,60 @@
     el.innerHTML = '<div class="diag-summary">' + ok + ' / ' + total + ' проверок успешно</div>' + html;
   }
 
-  async function runDiagnostics(dryRun) {
+  async function runDiagnosticsTab(tab, dryRun) {
     const btn = document.getElementById('run-diagnostics');
     const resultsEl = document.getElementById('diagnostics-results');
     if (btn) btn.disabled = true;
     if (resultsEl) resultsEl.innerHTML = '<p class="muted">Выполняется проверка...</p>';
 
     try {
-      if (!sampleServiceId) {
+      if (!sampleServiceId && tab !== 'supplier') {
         try {
           const svc = await api('/api/v1/admin/services');
           if (svc.services?.length) sampleServiceId = svc.services[0].id;
         } catch { /* ignore */ }
       }
 
+      if (tab === 'supplier') {
+        const data = await api('/api/v1/admin/diagnostics/supplier', { method: 'POST', body: '{}' });
+        const results = (data.results || []).map((r) => ({
+          group: r.group,
+          name: r.name,
+          status: r.status === 'ok' ? 'ok' : (r.status === 'warn' ? 'warn' : 'error'),
+          message: r.message,
+          ms: r.ms,
+        }));
+        renderDiagResults(results, [], 'diagnostics-results');
+        toast('Проверка API поставщика завершена');
+        return;
+      }
+
+      if (tab === 'shop-api') {
+        const probes = buildApiProbes();
+        const apiResults = [];
+        for (const probe of probes) {
+          const r = await probeEndpoint(probe, dryRun);
+          apiResults.push({
+            group: probe.group,
+            name: probe.name,
+            ...r,
+          });
+        }
+        renderDiagResults([], apiResults, 'diagnostics-results');
+        toast('Проверка API магазина завершена');
+        return;
+      }
+
       const serverData = await api('/api/v1/admin/diagnostics/run', { method: 'POST', body: '{}' });
       const serverResults = (serverData.results || []).map((r) => ({
-        group: 'Сервер: ' + r.group,
+        group: r.group,
         name: r.name,
         status: r.status === 'ok' ? 'ok' : (r.status === 'warn' ? 'warn' : 'error'),
         message: r.message,
         ms: r.ms,
       }));
-
-      const probes = buildApiProbes();
-      const apiResults = [];
-      for (const probe of probes) {
-        const r = await probeEndpoint(probe, dryRun);
-        apiResults.push({
-          group: 'API: ' + probe.group,
-          name: probe.name,
-          ...r,
-        });
-      }
-
-      renderDiagResults(serverResults, apiResults);
-      toast('Диагностика завершена');
+      renderDiagResults(serverResults, [], 'diagnostics-results');
+      toast('Системная диагностика завершена');
     } catch (e) {
       if (resultsEl) resultsEl.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
       toast(e.message, 'error');
@@ -579,20 +601,52 @@
     }
   }
 
+  async function runDiagnostics(dryRun) {
+    return runDiagnosticsTab(activeDiagTab, dryRun);
+  }
+
+  function setDiagTab(tab) {
+    activeDiagTab = tab;
+    const wrap = document.getElementById('admin-diagnostics');
+    wrap?.querySelectorAll('.diag-tab').forEach((b) => b.classList.toggle('is-active', b.dataset.diagTab === tab));
+    const dryLabel = wrap?.querySelector('.diag-dry-label');
+    if (dryLabel) dryLabel.style.display = tab === 'shop-api' ? 'flex' : 'none';
+    const desc = document.getElementById('diag-tab-desc');
+    if (desc) {
+      const texts = {
+        system: 'База данных, настройки магазина, ЮMoney, SMTP и каталог.',
+        'shop-api': 'Проверка всех эндпоинтов Boosterino API.',
+        supplier: 'Проверка Twiboost API v2 по документации api/info: balance, services, status, refill, cancel и сверка каталога.',
+      };
+      desc.textContent = texts[tab] || '';
+    }
+    const results = document.getElementById('diagnostics-results');
+    if (results) results.innerHTML = '<p class="muted">Нажмите кнопку для запуска проверки</p>';
+  }
+
   function initDiagnostics() {
     const el = document.getElementById('admin-diagnostics');
     if (!el || el.dataset.ready === '1') return;
     el.dataset.ready = '1';
     el.innerHTML =
       '<div class="card panel-card">' +
-        '<h2><span class="panel-icon">🔬</span> Диагностика системы</h2>' +
-        '<p class="muted">Проверка БД, настроек, поставщика и всех API-эндпоинтов. Безопасный режим пропускает запросы, которые меняют данные.</p>' +
+        '<h2><span class="panel-icon">🔬</span> Диагностика</h2>' +
+        '<div class="diag-tabs">' +
+          '<button type="button" class="diag-tab is-active" data-diag-tab="system">Система</button>' +
+          '<button type="button" class="diag-tab" data-diag-tab="shop-api">API магазина</button>' +
+          '<button type="button" class="diag-tab" data-diag-tab="supplier">API поставщика</button>' +
+        '</div>' +
+        '<p class="muted" id="diag-tab-desc">База данных, настройки магазина, ЮMoney, SMTP и каталог.</p>' +
         '<div class="diag-toolbar">' +
-          '<button type="button" class="btn btn-primary" id="run-diagnostics">Запустить полную проверку</button>' +
-          '<label class="diag-dry-label"><input type="checkbox" id="diag-dry-run" checked> Безопасный режим</label>' +
+          '<button type="button" class="btn btn-primary" id="run-diagnostics">Запустить проверку</button>' +
+          '<label class="diag-dry-label" style="display:none"><input type="checkbox" id="diag-dry-run" checked> Безопасный режим (только API магазина)</label>' +
         '</div>' +
         '<div id="diagnostics-results" class="diag-results"><p class="muted">Нажмите кнопку для запуска проверки</p></div>' +
       '</div>';
+
+    el.querySelectorAll('.diag-tab').forEach((btn) => {
+      btn.addEventListener('click', () => setDiagTab(btn.dataset.diagTab));
+    });
 
     el.querySelector('#run-diagnostics')?.addEventListener('click', () => {
       const dry = el.querySelector('#diag-dry-run')?.checked;

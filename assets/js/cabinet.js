@@ -124,6 +124,7 @@
     ).join('');
     updateServiceLogo();
     updatePrice();
+    updateLinkHint();
   }
 
   function updateServiceLogo() {
@@ -147,10 +148,32 @@
     preview.textContent = fmt(perUnit * qty);
   }
 
+  function updateLinkHint() {
+    const linkLabel = orderForm?.querySelector('label:has([name="link"])');
+    const linkInput = orderForm?.querySelector('[name="link"]');
+    const svc = services.find((s) => s.id === +serviceSelect?.value);
+    if (!svc || !linkInput) return;
+    const h = window.BoosterinoLinkValidator?.hint(
+      svc.platform, svc.type, svc.platform_name, svc.name, svc.category
+    );
+    if (h && linkLabel) {
+      const text = linkLabel.childNodes[0];
+      if (text?.nodeType === 3) text.textContent = h.label;
+    }
+    if (h) linkInput.placeholder = h.placeholder;
+    const qty = document.getElementById('order-quantity');
+    if (qty && svc.min) {
+      qty.min = svc.min;
+      qty.max = svc.max;
+      if (+qty.value < svc.min) qty.value = svc.min;
+    }
+  }
+
   if (serviceSelect) {
     serviceSelect.addEventListener('change', () => {
       updateServiceLogo();
       updatePrice();
+      updateLinkHint();
     });
     document.getElementById('order-quantity')?.addEventListener('input', updatePrice);
   }
@@ -159,12 +182,27 @@
     orderForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(orderForm);
+      const svc = services.find((s) => s.id === +fd.get('service_id'));
+      let link = String(fd.get('link') || '').trim();
+      const linkInput = orderForm.querySelector('[name="link"]');
+      if (svc && window.BoosterinoLinkValidator) {
+        const r = BoosterinoLinkValidator.validate(
+          link, svc.platform, svc.type, svc.platform_name, svc.name, svc.category
+        );
+        if (!r.ok) {
+          toast(r.message, 'error');
+          linkInput?.classList.add('is-invalid');
+          return;
+        }
+        link = r.normalized || link;
+        linkInput?.classList.remove('is-invalid');
+      }
       try {
         const result = await api('/api/v1/user/orders', {
           method: 'POST',
           body: JSON.stringify({
             service_id: +fd.get('service_id'),
-            link: fd.get('link'),
+            link,
             quantity: +fd.get('quantity'),
             payment_method: fd.get('payment_method'),
           }),

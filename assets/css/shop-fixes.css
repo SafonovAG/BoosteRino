@@ -1341,6 +1341,49 @@ body.admin-order-open { overflow: hidden; }
   margin: 1rem 0;
 }
 
+.diag-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 1rem 0 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.diag-tab {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.diag-tab:hover { border-color: var(--border-glow); color: var(--text); }
+.diag-tab.is-active {
+  background: var(--gradient);
+  border-color: transparent;
+  color: #fff;
+}
+
+.product-pro-field .product-link-hint,
+.product-pro-field input.is-invalid + .product-link-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+}
+
+.product-pro-field input.is-invalid {
+  border-color: var(--danger);
+}
+
+.product-pro-field input.is-invalid + .product-link-hint {
+  color: var(--danger);
+}
+
 .diag-dry-label {
   display: flex;
   align-items: center;

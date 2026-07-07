@@ -65,6 +65,8 @@
     if (s.cancel) badges.push('<span class="badge badge-cancel">Отмена</span>');
     const unit = parseUnit(s.name);
     const label = s.category_label || s.platform_name || s.category || '';
+    const linkLabel = s.link_label || 'Ссылка на профиль или пост';
+    const linkPlaceholder = s.link_placeholder || s.link_example || 'https://...';
 
     root.innerHTML =
       '<div class="product-pro">' +
@@ -88,8 +90,9 @@
           '</div>' +
           '<form id="product-add-form" class="product-pro-form">' +
             '<div class="product-pro-field">' +
-              '<label for="product-link">Ссылка на профиль или пост</label>' +
-              '<input type="url" name="link" id="product-link" required placeholder="https://...">' +
+              '<label for="product-link">' + escape(linkLabel) + '</label>' +
+              '<input type="url" name="link" id="product-link" required placeholder="' + escape(linkPlaceholder) + '">' +
+        '<p class="product-link-hint muted" id="product-link-hint">Пример: ' + escape(linkPlaceholder) + '</p>' +
             '</div>' +
             '<div class="product-pro-qty-row">' +
               '<div class="product-pro-field">' +
@@ -124,21 +127,48 @@
     document.getElementById('product-quantity')?.addEventListener('input', updateUI);
     document.getElementById('product-quantity')?.addEventListener('change', () => setQty(getQty()));
 
+    const linkInput = document.getElementById('product-link');
+    linkInput?.addEventListener('blur', () => validateLinkField(false));
+    linkInput?.addEventListener('input', () => {
+      linkInput.classList.remove('is-invalid');
+      const hint = document.getElementById('product-link-hint');
+      if (hint) hint.textContent = 'Пример: ' + linkPlaceholder;
+    });
+
+    function validateLinkField(showToast) {
+      const val = linkInput?.value?.trim() || '';
+      const v = window.BoosterinoLinkValidator;
+      if (!v) return val;
+      const r = v.validate(val, s.platform, s.type, s.platform_name, s.name, s.category);
+      if (!r.ok) {
+        linkInput?.classList.add('is-invalid');
+        const hint = document.getElementById('product-link-hint');
+        if (hint) hint.textContent = r.message;
+        if (showToast) toast(r.message, 'error');
+        return null;
+      }
+      linkInput?.classList.remove('is-invalid');
+      if (r.normalized && linkInput && linkInput.value !== r.normalized) {
+        linkInput.value = r.normalized;
+      }
+      return r.normalized || val;
+    }
+
     document.getElementById('product-add-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const fd = new FormData(e.target);
       const quantity = getQty();
-      const link = String(fd.get('link') || '').trim();
-      if (!link) {
-        toast('Укажите ссылку', 'error');
-        return;
-      }
+      const link = validateLinkField(true);
+      if (!link) return;
       window.BoosterinoCart.add({
         service_id: s.id,
         name: s.name,
         logo: s.logo,
         category_label: s.category_label,
         platform_name: s.platform_name,
+        platform: s.platform,
+        service_type: s.type,
+        link_label: s.link_label,
+        link_placeholder: s.link_placeholder,
         price_per_thousand_rub: s.price_per_thousand_rub,
         min: s.min,
         max: s.max,

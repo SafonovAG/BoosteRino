@@ -134,6 +134,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
     <script src="/assets/js/ui.js"></script>
     <script src="/assets/js/cart.js"></script>
     <script src="/assets/js/cart-fly.js"></script>
+    <script src="/assets/js/link-validator.js"></script>
     <script src="/assets/js/product-cards.js"></script>
     <script>
     document.getElementById('topbar-close')?.addEventListener('click', () => {
