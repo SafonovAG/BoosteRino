@@ -1,0 +1,6 @@
+/vendor/
+/config/database.php
+.idea/
+*.log
+/storage/cache/*
+!/storage/cache/.gitkeep

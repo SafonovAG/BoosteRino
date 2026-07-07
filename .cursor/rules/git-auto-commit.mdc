@@ -1,0 +1,31 @@
+---
+description: Автоматические git commit и push после этапов реализации
+alwaysApply: true
+---
+
+# Git — авто-коммиты и версии
+
+После завершения каждого логического этапа или фичи:
+
+1. Проверь `git status` и `git diff`
+2. Сделай commit на русском языке с сообщением в формате Conventional Commits (`feat:`, `fix:`, `chore:`)
+3. Сделай `git push` в GitHub (ветка `main`)
+4. По завершении крупного этапа — тег версии (`v0.1.0`, `v0.2.0` …) и `git push origin <tag>`
+
+## Не коммитить
+
+- `config/database.php` (только `database.example.php`)
+- `/vendor/`
+- Секреты: API-ключи, пароли БД, SMTP-пароли
+- `.idea/workspace.xml`
+
+## Запрещено
+
+- `git push --force` в `main`/`master`
+- Менять `git config`
+- Пустые коммиты без изменений
+
+## Репозиторий
+
+- GitHub: https://github.com/SafonovAG/BoosteRino
+- Remote: `origin`
