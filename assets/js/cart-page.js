@@ -9,7 +9,19 @@
   const escape = window.BoosterinoProductCard?.escapeHtml || ((s) => s);
   const isLoggedIn = !!document.querySelector('.balance-pill');
 
-  const Q = () => window.BoosterinoQty || { PACK: 1000, snap: (q, min, max) => q, step: (q, d, min, max) => q + d, calcPrice: (p, q) => (p / 1000) * q, canDecrease: (q, min) => q > min, canIncrease: (q, max) => q < max };
+  const Q = () => window.BoosterinoQty || {
+    PACK: 1000,
+    minPacks: () => 1,
+    maxPacks: () => 999999,
+    snapPacks: (p) => p,
+    stepPacks: (p, d) => p + d,
+    fromPacks: (p) => p * 1000,
+    toPacks: (a) => Math.round(a / 1000),
+    calcPriceActual: (price, a) => (price / 1000) * a,
+    canDecreasePacks: (p) => p > 1,
+    canIncreasePacks: () => true,
+    hintText: () => '',
+  };
 
   let shellReady = false;
   let checkoutBusy = false;
@@ -73,6 +85,7 @@
 
   function itemHtml(item, isNew) {
     const total = cart.lineTotal(item);
+    const packs = Q().toPacks(item.quantity, item.min, item.max);
     const linkLabel = item.link_label || window.BoosterinoLinkValidator?.hint(
       item.platform, item.service_type, item.platform_name, item.name, item.category_label
     )?.label || 'Ссылка';
@@ -92,9 +105,9 @@
         '</label>' +
         '<div class="cart-pro-item-controls">' +
           '<div class="cart-pro-stepper">' +
-            '<button type="button" class="cart-qty-minus" aria-label="Меньше на 1000">−</button>' +
-            '<input type="number" class="cart-pro-item-qty" min="' + item.min + '" max="' + item.max + '" step="' + Q().PACK + '" value="' + item.quantity + '">' +
-            '<button type="button" class="cart-qty-plus" aria-label="Больше на 1000">+</button>' +
+            '<button type="button" class="cart-qty-minus" aria-label="Меньше на 1 пак">−</button>' +
+            '<input type="number" class="cart-pro-item-qty" min="' + Q().minPacks(item.min) + '" max="' + Q().maxPacks(item.max) + '" step="1" value="' + packs + '">' +
+            '<button type="button" class="cart-qty-plus" aria-label="Больше на 1 пак">+</button>' +
           '</div>' +
           '<div class="cart-pro-item-side">' +
             '<div class="cart-pro-item-rate">' + fmt(item.price_per_thousand_rub) + ' / 1000</div>' +
@@ -123,9 +136,10 @@
   }
 
   function updateItemRow(row, item, animatePrice) {
+    const packs = Q().toPacks(item.quantity, item.min, item.max);
     const qtyInput = row.querySelector('.cart-pro-item-qty');
     if (qtyInput && document.activeElement !== qtyInput) {
-      qtyInput.value = item.quantity;
+      qtyInput.value = packs;
     }
     const linkInput = row.querySelector('.cart-pro-item-link-input');
     if (linkInput && document.activeElement !== linkInput) {
@@ -143,8 +157,8 @@
     if (noteEl) noteEl.textContent = fmtQty(item.quantity) + ' ед.';
     const minus = row.querySelector('.cart-qty-minus');
     const plus = row.querySelector('.cart-qty-plus');
-    if (minus) minus.disabled = !Q().canDecrease(item.quantity, item.min);
-    if (plus) plus.disabled = !Q().canIncrease(item.quantity, item.max);
+    if (minus) minus.disabled = !Q().canDecreasePacks(packs, item.min);
+    if (plus) plus.disabled = !Q().canIncreasePacks(packs, item.max);
   }
 
   function syncItems(animate) {
@@ -206,12 +220,14 @@
       }
 
       if (e.target.closest('.cart-qty-minus')) {
-        cart.update(sid, { quantity: Q().step(item.quantity, -1, item.min, item.max) });
+        const packs = Q().toPacks(item.quantity, item.min, item.max);
+        cart.update(sid, { quantity: Q().fromPacks(Q().stepPacks(packs, -1, item.min, item.max), item.min, item.max) });
         return;
       }
 
       if (e.target.closest('.cart-qty-plus')) {
-        cart.update(sid, { quantity: Q().step(item.quantity, 1, item.min, item.max) });
+        const packs = Q().toPacks(item.quantity, item.min, item.max);
+        cart.update(sid, { quantity: Q().fromPacks(Q().stepPacks(packs, 1, item.min, item.max), item.min, item.max) });
       }
     });
 
@@ -219,9 +235,11 @@
       const row = e.target.closest('.cart-pro-item');
       if (!row) return;
       const sid = +row.dataset.serviceId;
+      const item = cart.getItems().find((i) => i.service_id === sid);
+      if (!item) return;
 
       if (e.target.classList.contains('cart-pro-item-qty')) {
-        cart.update(sid, { quantity: Q().snap(+e.target.value, item.min, item.max) });
+        cart.update(sid, { quantity: Q().fromPacks(+e.target.value, item.min, item.max) });
       }
     });
 
@@ -229,11 +247,11 @@
       const row = e.target.closest('.cart-pro-item');
       if (!row) return;
       const sid = +row.dataset.serviceId;
+      const item = cart.getItems().find((i) => i.service_id === sid);
+      if (!item) return;
 
       if (e.target.classList.contains('cart-pro-item-link-input')) {
         const val = e.target.value.trim();
-        const item = cart.getItems().find((i) => i.service_id === sid);
-        if (!item) return;
         const normalized = validateItemLink(item, val, e.target);
         if (normalized === null) return;
         e.target.classList.toggle('is-invalid', !val);
@@ -241,7 +259,7 @@
       }
 
       if (e.target.classList.contains('cart-pro-item-qty')) {
-        cart.update(sid, { quantity: Q().snap(+e.target.value, item.min, item.max) });
+        cart.update(sid, { quantity: Q().fromPacks(+e.target.value, item.min, item.max) });
       }
     });
   }

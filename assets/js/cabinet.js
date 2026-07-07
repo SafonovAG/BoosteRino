@@ -135,19 +135,28 @@
     img.src = svc?.logo || '/assets/images/logo/default.svg';
   }
 
-  const Q = () => window.BoosterinoQty || { PACK: 1000, snap: (q, min, max) => q, step: (q, d, min, max) => q + d, calcPrice: (p, q) => (p / 1000) * q };
+  const Q = () => window.BoosterinoQty || {
+    PACK: 1000,
+    minPacks: () => 1,
+    maxPacks: () => 999999,
+    snapPacks: (p) => p,
+    stepPacks: (p, d) => p + d,
+    fromPacks: (p) => p * 1000,
+    calcPrice: (price, p) => price * p,
+    hintText: () => '',
+  };
 
   function updatePrice() {
     const preview = document.getElementById('order-price');
     if (!preview || !serviceSelect) return;
     const sid = +serviceSelect.value;
-    const qty = +(document.getElementById('order-quantity')?.value || 0);
+    const packs = +(document.getElementById('order-quantity')?.value || 0);
     const svc = services.find((s) => s.id === sid);
-    if (!svc || !qty) {
+    if (!svc || !packs) {
       preview.textContent = '-';
       return;
     }
-    preview.textContent = fmt(Q().calcPrice(svc.price_per_thousand_rub, qty));
+    preview.textContent = fmt(Q().calcPrice(svc.price_per_thousand_rub, packs));
   }
 
   function updateLinkHint() {
@@ -165,11 +174,10 @@
     if (h) linkInput.placeholder = h.placeholder;
     const qty = document.getElementById('order-quantity');
     if (qty && svc.min) {
-      qty.min = svc.min;
-      qty.max = svc.max;
-      qty.step = Q().PACK;
-      if (+qty.value < svc.min) qty.value = svc.min;
-      if (+qty.value > svc.max) qty.value = svc.max;
+      qty.min = Q().minPacks(svc.min);
+      qty.max = Q().maxPacks(svc.max);
+      qty.step = 1;
+      qty.value = Q().snapPacks(+qty.value || Q().minPacks(svc.min), svc.min, svc.max);
     }
   }
 
@@ -183,33 +191,33 @@
       const row = document.createElement('div');
       row.className = 'order-qty-stepper';
       row.innerHTML =
-        '<button type="button" id="order-qty-minus" aria-label="Меньше на 1000">−</button>' +
+        '<button type="button" id="order-qty-minus" aria-label="Меньше на 1 пак">−</button>' +
         '<span class="order-qty-input-wrap"></span>' +
-        '<button type="button" id="order-qty-plus" aria-label="Больше на 1000">+</button>';
+        '<button type="button" id="order-qty-plus" aria-label="Больше на 1 пак">+</button>';
       const holder = row.querySelector('.order-qty-input-wrap');
       holder?.appendChild(qtyInput);
       wrap.appendChild(row);
       const note = document.createElement('p');
       note.className = 'muted';
-      note.textContent = 'Шаг ± 1000 · цена указана за 1000 ед.';
+      note.textContent = Q().hintText();
       wrap.appendChild(note);
     }
     document.getElementById('order-qty-minus')?.addEventListener('click', () => {
       const svc = services.find((s) => s.id === +serviceSelect?.value);
       if (!svc || !qtyInput) return;
-      qtyInput.value = Q().step(+qtyInput.value, -1, svc.min, svc.max);
+      qtyInput.value = Q().stepPacks(+qtyInput.value, -1, svc.min, svc.max);
       updatePrice();
     });
     document.getElementById('order-qty-plus')?.addEventListener('click', () => {
       const svc = services.find((s) => s.id === +serviceSelect?.value);
       if (!svc || !qtyInput) return;
-      qtyInput.value = Q().step(+qtyInput.value, 1, svc.min, svc.max);
+      qtyInput.value = Q().stepPacks(+qtyInput.value, 1, svc.min, svc.max);
       updatePrice();
     });
     qtyInput?.addEventListener('change', () => {
       const svc = services.find((s) => s.id === +serviceSelect?.value);
       if (!svc || !qtyInput) return;
-      qtyInput.value = Q().snap(+qtyInput.value, svc.min, svc.max);
+      qtyInput.value = Q().snapPacks(+qtyInput.value, svc.min, svc.max);
       updatePrice();
     });
   }
@@ -228,9 +236,10 @@
     orderForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(orderForm);
-      let quantity = +fd.get('quantity');
+      let packs = +fd.get('quantity');
       const svc = services.find((s) => s.id === +fd.get('service_id'));
-      if (svc) quantity = Q().snap(quantity, svc.min, svc.max);
+      if (svc) packs = Q().snapPacks(packs, svc.min, svc.max);
+      const quantity = svc ? Q().fromPacks(packs, svc.min, svc.max) : packs;
       let link = String(fd.get('link') || '').trim();
       const linkInput = orderForm.querySelector('[name="link"]');
       if (svc && window.BoosterinoLinkValidator) {

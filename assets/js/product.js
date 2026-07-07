@@ -15,32 +15,37 @@
   }
 
   let service = null;
-  const Q = () => window.BoosterinoQty || { PACK: 1000, snap: (q, min, max) => q, step: (q, d, min, max) => q + d, calcPrice: (p, q) => (p / 1000) * q, canDecrease: (q, min) => q > min, canIncrease: (q, max) => q < max, labelSuffix: () => '' };
+  const Q = () => window.BoosterinoQty || {
+    PACK: 1000,
+    minPacks: () => 1,
+    maxPacks: () => 999999,
+    snapPacks: (p) => p,
+    stepPacks: (p, d) => p + d,
+    fromPacks: (p) => p * 1000,
+    actualUnits: (p) => p * 1000,
+    calcPrice: (price, p) => price * p,
+    canDecreasePacks: (p) => p > 1,
+    canIncreasePacks: () => true,
+    labelSuffix: () => ' (шаг 1)',
+    hintText: () => '',
+  };
 
-  function clampQty(raw) {
-    if (!service) return 0;
-    return Q().snap(raw, service.min, service.max);
-  }
-
-  function calcPrice(qty) {
-    if (!service) return 0;
-    return Q().calcPrice(service.price_per_thousand_rub, qty);
-  }
-
-  function getQty() {
+  function getPacks() {
     const el = document.getElementById('product-quantity');
-    return clampQty(parseInt(el?.value || service.min, 10) || service.min);
+    if (!service || !el) return Q().minPacks(service?.min || 1);
+    return Q().snapPacks(parseInt(el.value, 10) || Q().minPacks(service.min), service.min, service.max);
   }
 
-  function setQty(qty) {
+  function setPacks(packs) {
     const el = document.getElementById('product-quantity');
-    const v = clampQty(qty);
+    const v = Q().snapPacks(packs, service.min, service.max);
     if (el) el.value = v;
     updateUI();
   }
 
   function updateUI() {
-    const qty = getQty();
+    const packs = getPacks();
+    const units = Q().actualUnits(packs, service.min, service.max);
     const unit = parseUnit(service.name);
     const deliveryEl = document.getElementById('product-delivery-value');
     const priceEl = document.getElementById('product-total-price');
@@ -48,11 +53,11 @@
     const plusBtn = document.getElementById('product-qty-plus');
 
     if (deliveryEl) {
-      deliveryEl.innerHTML = 'Вы получите: <em>' + fmtQty(qty) + '</em> ' + escape(unit);
+      deliveryEl.innerHTML = 'Вы получите: <em>' + fmtQty(units) + '</em> ' + escape(unit);
     }
-    if (priceEl) priceEl.textContent = fmt(calcPrice(qty));
-    if (minusBtn) minusBtn.disabled = !Q().canDecrease(qty, service.min);
-    if (plusBtn) plusBtn.disabled = !Q().canIncrease(qty, service.max);
+    if (priceEl) priceEl.textContent = fmt(Q().calcPrice(service.price_per_thousand_rub, packs));
+    if (minusBtn) minusBtn.disabled = !Q().canDecreasePacks(packs, service.min);
+    if (plusBtn) plusBtn.disabled = !Q().canIncreasePacks(packs, service.max);
   }
 
   function renderPage() {
@@ -68,6 +73,8 @@
     const label = s.category_label || s.platform_name || s.category || '';
     const linkLabel = s.link_label || 'Ссылка на профиль или пост';
     const linkPlaceholder = s.link_placeholder || s.link_example || 'https://...';
+    const startPacks = Q().minPacks(s.min);
+    const startUnits = Q().actualUnits(startPacks, s.min, s.max);
 
     root.innerHTML =
       '<div class="product-pro">' +
@@ -99,22 +106,22 @@
               '<div class="product-pro-field">' +
                 '<label for="product-quantity">Количество' + escape(Q().labelSuffix()) + '</label>' +
                 '<div class="product-pro-stepper">' +
-                  '<button type="button" id="product-qty-minus" aria-label="Уменьшить на 1000">−</button>' +
-                  '<input type="number" name="quantity" id="product-quantity" min="' + s.min + '" max="' + s.max + '" step="' + Q().PACK + '" value="' + s.min + '" required>' +
-                  '<button type="button" id="product-qty-plus" aria-label="Увеличить на 1000">+</button>' +
+                  '<button type="button" id="product-qty-minus" aria-label="Уменьшить на 1 пак">−</button>' +
+                  '<input type="number" name="quantity" id="product-quantity" min="' + Q().minPacks(s.min) + '" max="' + Q().maxPacks(s.max) + '" step="1" value="' + startPacks + '" required>' +
+                  '<button type="button" id="product-qty-plus" aria-label="Увеличить на 1 пак">+</button>' +
                 '</div>' +
-                '<p class="muted product-qty-note">1 нажатие ± = 1000 ед. · цена указана за 1000</p>' +
+                '<p class="muted product-qty-note">' + escape(Q().hintText()) + '</p>' +
               '</div>' +
               '<div class="product-pro-delivery">' +
                 '<div class="product-pro-delivery-label">Результат заказа</div>' +
                 '<div class="product-pro-delivery-value" id="product-delivery-value">' +
-                  'Вы получите: <em>' + fmtQty(s.min) + '</em> ' + escape(unit) +
+                  'Вы получите: <em>' + fmtQty(startUnits) + '</em> ' + escape(unit) +
                 '</div>' +
               '</div>' +
             '</div>' +
             '<div class="product-pro-summary">' +
               '<span>Итого к оплате</span>' +
-              '<strong id="product-total-price">' + fmt(calcPrice(s.min)) + '</strong>' +
+              '<strong id="product-total-price">' + fmt(Q().calcPrice(s.price_per_thousand_rub, startPacks)) + '</strong>' +
             '</div>' +
             '<div class="product-pro-actions">' +
               '<button type="submit" class="btn btn-primary btn-lg">В корзину</button>' +
@@ -124,10 +131,14 @@
         '</div>' +
       '</div>';
 
-    document.getElementById('product-qty-minus')?.addEventListener('click', () => setQty(Q().step(getQty(), -1, service.min, service.max)));
-    document.getElementById('product-qty-plus')?.addEventListener('click', () => setQty(Q().step(getQty(), 1, service.min, service.max)));
+    document.getElementById('product-qty-minus')?.addEventListener('click', () => {
+      setPacks(Q().stepPacks(getPacks(), -1, service.min, service.max));
+    });
+    document.getElementById('product-qty-plus')?.addEventListener('click', () => {
+      setPacks(Q().stepPacks(getPacks(), 1, service.min, service.max));
+    });
     document.getElementById('product-quantity')?.addEventListener('input', updateUI);
-    document.getElementById('product-quantity')?.addEventListener('change', () => setQty(getQty()));
+    document.getElementById('product-quantity')?.addEventListener('change', () => setPacks(getPacks()));
 
     const linkInput = document.getElementById('product-link');
     linkInput?.addEventListener('blur', () => validateLinkField(false));
@@ -158,7 +169,7 @@
 
     document.getElementById('product-add-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const quantity = getQty();
+      const quantity = Q().fromPacks(getPacks(), s.min, s.max);
       const link = validateLinkField(true);
       if (!link) return;
       window.BoosterinoCart.add({
