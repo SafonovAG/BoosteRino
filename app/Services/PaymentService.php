@@ -19,7 +19,7 @@ final class PaymentService
     public function createTopup(int $userId, float $amount): array
     {
         if ($amount < 10) {
-            throw new \InvalidArgumentException('Минимальная сумма пополнения — 10 ₽.');
+            throw new \InvalidArgumentException('Минимальная сумма пополнения - 10 ₽.');
         }
 
         return $this->createPayment($userId, 'topup', $amount);

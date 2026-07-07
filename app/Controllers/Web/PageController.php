@@ -15,7 +15,7 @@ final class PageController
     public static function home(Request $request): void
     {
         Response::html(View::render('public/home', [
-            'title' => 'Boosterino — продвижение в соцсетях',
+            'title' => 'Boosterino - продвижение в соцсетях',
             'page' => 'home',
         ]));
     }
@@ -23,7 +23,7 @@ final class PageController
     public static function services(Request $request): void
     {
         Response::html(View::render('public/services', [
-            'title' => 'Услуги — Boosterino',
+            'title' => 'Услуги - Boosterino',
             'page' => 'services',
         ]));
     }
@@ -34,23 +34,23 @@ final class PageController
             Response::redirect('/cabinet');
             return;
         }
-        Response::html(View::render('auth/login', ['title' => 'Вход — Boosterino', 'page' => 'login']));
+        Response::html(View::render('auth/login', ['title' => 'Вход - Boosterino', 'page' => 'login']));
     }
 
     public static function register(Request $request): void
     {
-        Response::html(View::render('auth/register', ['title' => 'Регистрация — Boosterino', 'page' => 'register']));
+        Response::html(View::render('auth/register', ['title' => 'Регистрация - Boosterino', 'page' => 'register']));
     }
 
     public static function forgotPassword(Request $request): void
     {
-        Response::html(View::render('auth/forgot-password', ['title' => 'Восстановление — Boosterino', 'page' => 'forgot']));
+        Response::html(View::render('auth/forgot-password', ['title' => 'Восстановление - Boosterino', 'page' => 'forgot']));
     }
 
     public static function resetPassword(Request $request): void
     {
         Response::html(View::render('auth/reset-password', [
-            'title' => 'Новый пароль — Boosterino',
+            'title' => 'Новый пароль - Boosterino',
             'page' => 'reset',
             'token' => $request->query('token', ''),
         ]));
@@ -61,7 +61,7 @@ final class PageController
         $token = (string) $request->query('token', '');
         $ok = $token !== '' && (new AuthService())->verifyEmail($token);
         Response::html(View::render('auth/verify-email', [
-            'title' => 'Подтверждение email — Boosterino',
+            'title' => 'Подтверждение email - Boosterino',
             'success' => $ok,
         ]));
     }
@@ -74,7 +74,7 @@ final class PageController
             return;
         }
         Response::html(View::render('cabinet/index', [
-            'title' => 'Личный кабинет — Boosterino',
+            'title' => 'Личный кабинет - Boosterino',
             'page' => 'cabinet',
             'user' => $user,
             'csrf' => Session::csrfToken(),
@@ -89,7 +89,7 @@ final class PageController
             return;
         }
         Response::html(View::render('admin/index', [
-            'title' => 'Админ-панель — Boosterino',
+            'title' => 'Админ-панель - Boosterino',
             'page' => 'admin',
             'user' => $user,
             'csrf' => Session::csrfToken(),

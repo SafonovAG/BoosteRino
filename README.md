@@ -8,16 +8,32 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
+[![Live](https://img.shields.io/badge/Сайт-boosterino.ru-6366f1?style=for-the-badge)](https://boosterino.ru)
 
-[Демо](https://boosterino.ru) · [Репозиторий](https://github.com/SafonovAG/BoosteRino) · [Issues](https://github.com/SafonovAG/BoosteRino/issues)
+### [boosterino.ru](https://boosterino.ru) - смотрите проект вживую и заказывайте услуги прямо сейчас
+
+[Перейти на сайт](https://boosterino.ru) · [Каталог услуг](https://boosterino.ru/services) · [Регистрация](https://boosterino.ru/register) · [GitHub](https://github.com/SafonovAG/BoosteRino)
 
 </div>
 
 ---
 
+## Живой проект
+
+**BoosteRino** уже работает на [boosterino.ru](https://boosterino.ru):
+
+- Просмотрите лендинг и каталог услуг в реальном времени
+- Зарегистрируйтесь и оформите заказ в личном кабинете
+- Пополните баланс или оплатите заказ через ЮMoney
+- Оцените адаптивный интерфейс и тёмную/светлую тему на своём устройстве
+
+> Этот репозиторий - исходный код production-сайта [boosterino.ru](https://boosterino.ru).
+
+---
+
 ## О проекте
 
-**BoosteRino** — современное веб-приложение для заказа услуг продвижения и накрутки. Интеграция с API поставщика Twiboost, личный кабинет покупателя, админ-панель с наценкой и приём платежей через ЮMoney.
+**BoosteRino** - современное веб-приложение для заказа услуг продвижения и накрутки. Интеграция с API поставщика Twiboost, личный кабинет покупателя, админ-панель с наценкой и приём платежей через ЮMoney.
 
 Создано с помощью [Cursor](https://cursor.com).
 
@@ -34,47 +50,39 @@
 ### Стек
 
 ```
-PHP 8.3  →  REST API + серверные шаблоны
-MySQL 8  →  данные и настройки (без .env)
-Apache   →  mod_rewrite, document root: public/
-JS       →  vanilla fetch, без фреймворков
+PHP 8.3  ->  REST API + серверные шаблоны
+MySQL 8  ->  данные и настройки (без .env)
+Apache   ->  mod_rewrite, document root: public/
+JS       ->  vanilla fetch, без фреймворков
 ```
 
 ---
 
-## Быстрый старт
+## Быстрый старт (для разработчиков)
 
 ```bash
-# 1. Зависимости
 composer install
-
-# 2. Подключение к БД (файл не коммитится в git)
 cp config/database.example.php config/database.php
-# отредактируйте config/database.php
-
-# 3. Схема базы
 mysql -u brino -p brino < database/schema.sql
-
-# 4. Первый superadmin
 php bin/create_superadmin.php admin@example.com YourPassword123
-
-# 5. Apache: DocumentRoot → public/
 ```
 
-После установки войдите в админку и заполните в **Настройках**: API-ключ Twiboost, кошелёк ЮMoney, SMTP.
+Apache: DocumentRoot -> `public/`
+
+После установки заполните в админке: API-ключ Twiboost, кошелёк ЮMoney, SMTP.
 
 ---
 
 ## Структура
 
 ```
-app/          — ядро, API, сервисы, middleware
-config/       — маршруты, database.example.php
-database/     — schema.sql
-public/       — точка входа (index.php, assets)
-views/        — PHP-шаблоны
-cron/         — синхронизация услуг и статусов заказов
-bin/          — CLI-утилиты
+app/          - ядро, API, сервисы, middleware
+config/       - маршруты, database.example.php
+database/     - schema.sql
+public/       - точка входа (index.php, assets)
+views/        - PHP-шаблоны
+cron/         - синхронизация услуг и статусов заказов
+bin/          - CLI-утилиты
 ```
 
 ---
@@ -90,13 +98,13 @@ bin/          — CLI-утилиты
 
 ## Безопасность
 
-- Секреты (API-ключи, пароли) — **только** в `config/database.php` (локально) и таблице `settings` в MySQL
+- Секреты (API-ключи, пароли) - **только** в `config/database.php` (локально) и таблице `settings` в MySQL
 - В публичный репозиторий не попадают: `.cursor/`, `.githooks/`, `config/database.php`
 
 ---
 
 <div align="center">
 
-**[boosterino.ru](https://boosterino.ru)** · Made with Cursor
+**[boosterino.ru](https://boosterino.ru)** - заказывайте SMM-услуги онлайн · Made with Cursor
 
 </div>

@@ -7,10 +7,10 @@ ob_start();
     <div class="container hero-grid">
         <div class="hero-content">
             <span class="badge">Премиальный SMM-сервис</span>
-            <h1>Продвижение в соцсетях — быстро и прозрачно</h1>
+            <h1>Продвижение в соцсетях - быстро и прозрачно</h1>
             <p class="lead">Подписчики, лайки, просмотры и активность для Instagram, Telegram, VK и других платформ. Оплата в рублях, личный кабинет, мгновенный старт.</p>
             <div class="hero-actions">
-                <a href="/register" class="btn btn-primary">Начать</a>
+                <a href="https://boosterino.ru/register" class="btn btn-primary">Начать на boosterino.ru</a>
                 <a href="/services" class="btn btn-secondary">Каталог услуг</a>
             </div>
         </div>
@@ -36,7 +36,7 @@ ob_start();
             </article>
             <article class="card feature-card">
                 <h3>Личный кабинет</h3>
-                <p>История заказов, баланс, refill и отмена — всё под контролем.</p>
+                <p>История заказов, баланс, refill и отмена - всё под контролем.</p>
             </article>
             <article class="card feature-card">
                 <h3>Безопасная оплата</h3>
@@ -60,7 +60,7 @@ ob_start();
             </details>
             <details class="card faq-item">
                 <summary>Можно ли отменить заказ?</summary>
-                <p>Если услуга поддерживает отмену — кнопка доступна в личном кабинете.</p>
+                <p>Если услуга поддерживает отмену - кнопка доступна в личном кабинете.</p>
             </details>
         </div>
     </div>

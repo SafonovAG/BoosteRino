@@ -1,0 +1,247 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover { color: var(--accent-hover); }
+
+.container {
+  width: min(1200px, 100% - 2rem);
+  margin-inline: auto;
+}
+
+.main { flex: 1; }
+
+.muted { color: var(--text-muted); }
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg-elevated) 85%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.logo span {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav a {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.nav a:hover,
+.nav a.active { color: var(--text); }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-toggle { display: none; }
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 2rem 0;
+  margin-top: 4rem;
+  text-align: center;
+}
+
+.footer-inner p { margin: 0.25rem 0; }
+
+.hero {
+  padding: 4rem 0 3rem;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -20%, var(--accent-soft), transparent),
+    var(--bg);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.hero-content h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin: 0.75rem 0 1rem;
+}
+
+.lead {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.section { padding: 3.5rem 0; }
+.section-muted { background: var(--bg-muted); }
+
+.section-title, .page-title {
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.5rem;
+}
+
+.features-grid,
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.auth-section { padding: 3rem 0; }
+.auth-container { max-width: 420px; margin: 0 auto; }
+
+.cabinet-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.cabinet-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cabinet-nav button,
+.cabinet-nav a {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.cabinet-nav button.active,
+.cabinet-nav a.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th, td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th { color: var(--text-muted); font-weight: 600; }
+
+.steps {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.steps li { margin-bottom: 0.5rem; }
+
+.faq-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.faq-item summary { cursor: pointer; font-weight: 600; }
+.faq-item p { margin: 0.75rem 0 0; color: var(--text-muted); }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.balance-card {
+  background: var(--gradient);
+  color: #fff;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+}
+
+.balance-card .amount {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    display: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem;
+  }
+
+  .nav.open { display: flex; }
+
+  .nav-toggle { display: block; }
+
+  .hero-grid,
+  .cabinet-grid {
+    grid-template-columns: 1fr;
+  }
+}

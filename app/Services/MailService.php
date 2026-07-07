@@ -21,7 +21,7 @@ final class MailService
         $url = rtrim($this->settings->get('app_url'), '/') . '/verify-email?token=' . urlencode($token);
         $this->send(
             $email,
-            'Подтверждение email — Boosterino',
+            'Подтверждение email - Boosterino',
             "<p>Здравствуйте!</p><p>Подтвердите email: <a href=\"{$url}\">{$url}</a></p>"
         );
     }
@@ -31,7 +31,7 @@ final class MailService
         $url = rtrim($this->settings->get('app_url'), '/') . '/reset-password?token=' . urlencode($token);
         $this->send(
             $email,
-            'Восстановление пароля — Boosterino',
+            'Восстановление пароля - Boosterino',
             "<p>Ссылка для сброса пароля: <a href=\"{$url}\">{$url}</a></p><p>Ссылка действует 1 час.</p>"
         );
     }

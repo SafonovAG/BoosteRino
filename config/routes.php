@@ -76,6 +76,6 @@ return static function (Router $router): void {
     $router->post('/api/v1/admin/admins', [AdminController::class, 'admins'], [$csrf, $auth, $superadmin()]);
     $router->delete('/api/v1/admin/admins', [AdminController::class, 'admins'], [$csrf, $auth, $superadmin()]);
 
-    // Payment notify (no CSRF — external)
+    // Payment notify (no CSRF - external)
     $router->post('/api/v1/payments/yoomoney/notify', [PaymentNotifyController::class, 'yoomoney']);
 };

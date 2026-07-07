@@ -12,16 +12,31 @@
     <link rel="stylesheet" href="/assets/css/components.css">
     <meta name="csrf-token" content="<?= \App\Core\View::e(\App\Core\Session::csrfToken()) ?>">
 </head>
-<body>
+<body <?= $bodyAttrs ?? '' ?>>
+    <?php
+    $authUser = null;
+    try {
+        $authUser = (new \App\Services\AuthService())->user();
+    } catch (\Throwable) {
+    }
+    ?>
     <header class="site-header">
         <div class="container header-inner">
             <a href="/" class="logo">Booste<span>Rino</span></a>
             <nav class="nav" id="main-nav">
                 <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>">Услуги</a>
-                <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>">Кабинет</a>
-                <a href="/login" class="<?= ($page ?? '') === 'login' ? 'active' : '' ?>">Вход</a>
+                <?php if ($authUser): ?>
+                    <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>">Кабинет</a>
+                    <?php if (in_array($authUser['role'], ['admin', 'superadmin'], true)): ?>
+                        <a href="/admin" class="<?= ($page ?? '') === 'admin' ? 'active' : '' ?>">Админ</a>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <a href="/login" class="<?= ($page ?? '') === 'login' ? 'active' : '' ?>">Вход</a>
+                    <a href="/register">Регистрация</a>
+                <?php endif; ?>
             </nav>
             <div class="header-actions">
+                <a href="https://boosterino.ru" class="btn btn-sm btn-secondary hidden-mobile" style="display:none" id="live-badge">Live</a>
                 <button type="button" class="btn-icon" id="theme-toggle" aria-label="Переключить тему">◐</button>
                 <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Меню">☰</button>
             </div>
@@ -34,7 +49,7 @@
 
     <footer class="site-footer">
         <div class="container footer-inner">
-            <p>© <?= date('Y') ?> Boosterino — продвижение в социальных сетях</p>
+            <p>© <?= date('Y') ?> Boosterino - продвижение в социальных сетях</p>
             <p class="muted">Надёжный сервис накрутки и SMM-продвижения</p>
         </div>
     </footer>
