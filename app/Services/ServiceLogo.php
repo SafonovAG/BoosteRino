@@ -93,8 +93,20 @@ final class ServiceLogo
         'avito' => 'Avito',
     ];
 
+    /** @var list<string> */
+    private const GENERIC_CATEGORIES = [
+        'api', 'other', 'others', 'misc', 'general',
+        'разное', 'прочее', 'другое', 'общее',
+    ];
+
     /** @var array<string, string> */
     private static array $categoryCache = [];
+
+    private static function isGenericCategory(string $category): bool
+    {
+        $key = mb_strtolower(trim($category));
+        return $key === '' || in_array($key, self::GENERIC_CATEGORIES, true);
+    }
 
     public static function forCategory(string $category): string
     {
@@ -111,16 +123,45 @@ final class ServiceLogo
     public static function forService(array $service): string
     {
         $category = trim($service['category'] ?? '');
-        if ($category !== '') {
-            return self::forCategory($category);
-        }
-
-        $hay = mb_strtolower(implode(' ', [
+        $hayName = mb_strtolower(implode(' ', [
             $service['name'] ?? '',
             $service['type'] ?? '',
         ]));
 
-        return self::matchText($hay);
+        if ($category !== '' && !self::isGenericCategory($category)) {
+            $fromCategory = self::forCategory($category);
+            if ($fromCategory !== self::DEFAULT) {
+                return $fromCategory;
+            }
+        }
+
+        $fromName = self::matchText($hayName);
+        if ($fromName !== self::DEFAULT) {
+            return $fromName;
+        }
+
+        if ($category !== '') {
+            return self::forCategory($category);
+        }
+
+        return self::DEFAULT;
+    }
+
+    public static function platformName(array $service): string
+    {
+        $slug = self::platformSlug($service);
+        return self::PLATFORM_NAMES[$slug] ?? 'Прочее';
+    }
+
+    public static function categoryLabel(array $service): string
+    {
+        $category = trim($service['category'] ?? '');
+        if (self::isGenericCategory($category)) {
+            $name = self::platformName($service);
+            return $name !== 'Прочее' ? $name : ($category !== '' ? $category : 'Прочее');
+        }
+
+        return $category !== '' ? $category : self::platformName($service);
     }
 
     private static function matchText(string $hay): string

@@ -34,7 +34,9 @@ final class PricingService
             'refill' => (bool) $s['refill'],
             'cancel' => (bool) $s['cancel'],
             'logo' => ServiceLogo::forService($s),
-            'platform' => self::platformSlug($s),
+            'platform' => ServiceLogo::platformSlug($s),
+            'platform_name' => ServiceLogo::platformName($s),
+            'category_label' => ServiceLogo::categoryLabel($s),
         ];
     }
 

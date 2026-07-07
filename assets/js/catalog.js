@@ -81,7 +81,7 @@
       '<div class="product-card-top">' +
         '<div class="product-card-logo"><img src="' + escapeHtml(s.logo) + '" alt="" width="40" height="40"></div>' +
         '<div class="product-card-meta">' +
-          '<span class="product-card-category">' + escapeHtml(s.category) + '</span>' +
+          '<span class="product-card-category">' + escapeHtml(s.category_label || s.platform_name || s.category) + '</span>' +
           '<h3 class="product-card-title">' + escapeHtml(s.name) + '</h3>' +
         '</div>' +
       '</div>' +
@@ -187,7 +187,7 @@
       const catLogo = items[0].logo || '/assets/images/logo/default.svg';
       html += '<div class="catalog-category-head">' +
         '<img src="' + escapeHtml(catLogo) + '" alt="" width="32" height="32">' +
-        '<h2 class="catalog-category-title">' + escapeHtml(cat) + '</h2>' +
+        '<h2 class="catalog-category-title">' + escapeHtml(items[0].category_label || cat) + '</h2>' +
         '</div>';
       items.forEach((s) => { html += renderCard(s); });
     });
