@@ -8,25 +8,38 @@
   }
 
   let servicesCache = [];
+  let platformsCache = [];
   let svcFilter = { platform: null, subcategory: null, q: '' };
   let expandedServiceId = null;
   let sidebarCatsOpen = true;
 
   function buildPlatforms() {
-    const map = new Map();
+    const counts = new Map();
     servicesCache.forEach((s) => {
       const slug = s.platform || 'other';
-      if (!map.has(slug)) {
-        map.set(slug, {
-          slug,
-          name: s.platform_name || (slug === 'other' ? 'Прочее' : slug),
-          logo: s.logo || '/assets/images/logo/default.svg',
-          count: 0,
-        });
-      }
-      map.get(slug).count++;
+      counts.set(slug, (counts.get(slug) || 0) + 1);
     });
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+
+    const fromApi = platformsCache.filter((p) => p.slug !== 'all');
+    const known = new Set(fromApi.map((p) => p.slug));
+
+    fromApi.forEach((p) => {
+      p.count = counts.get(p.slug) || 0;
+    });
+
+    if (counts.has('other') && !known.has('other')) {
+      fromApi.push({
+        slug: 'other',
+        name: 'Прочее',
+        logo: '/assets/images/logo/default.svg',
+        count: counts.get('other') || 0,
+      });
+    }
+
+    return fromApi.sort((a, b) => {
+      if (a.count !== b.count) return b.count - a.count;
+      return a.name.localeCompare(b.name, 'ru');
+    });
   }
 
   function buildSubcategories(platformSlug) {
@@ -35,7 +48,7 @@
       if ((s.platform || 'other') !== platformSlug) return;
       const cat = s.category || 'Прочее';
       if (!map.has(cat)) {
-        map.set(cat, { category: cat, count: 0, active: 0 });
+        map.set(cat, { category: cat, count: 0, active: 0, logo: s.logo || '/assets/images/logo/default.svg' });
       }
       const row = map.get(cat);
       row.count++;
@@ -51,8 +64,10 @@
       svcFilter.subcategory = null;
       return;
     }
+    const withProducts = platforms.filter((p) => p.count > 0);
+    const pickFrom = withProducts.length ? withProducts : platforms;
     if (!svcFilter.platform || !platforms.some((p) => p.slug === svcFilter.platform)) {
-      svcFilter.platform = platforms[0].slug;
+      svcFilter.platform = pickFrom[0].slug;
     }
     const subs = buildSubcategories(svcFilter.platform);
     if (!svcFilter.subcategory || !subs.some((s) => s.category === svcFilter.subcategory)) {
@@ -175,7 +190,7 @@
     if (platformBlock) {
       platformBlock.innerHTML = platforms.map((p) =>
         '<button type="button" class="admin-svc-platform' + (svcFilter.platform === p.slug ? ' is-active' : '') + '" data-platform="' + escape(p.slug) + '">' +
-          '<img src="' + escape(p.logo) + '" alt="" width="20" height="20" class="admin-svc-platform-logo">' +
+          '<img src="' + escape(p.logo || '/assets/images/logo/default.svg') + '" alt="" width="22" height="22" class="admin-svc-platform-logo" loading="lazy">' +
           '<span class="admin-svc-platform-name">' + escape(p.name) + '</span>' +
           '<span class="admin-svc-platform-count">' + p.count + '</span>' +
         '</button>'
@@ -196,8 +211,12 @@
     const subWrap = document.getElementById('admin-svc-subcats-wrap');
     const subBlock = document.getElementById('admin-svc-subcats');
     const platformLabel = document.getElementById('admin-svc-platform-label');
-    if (platformLabel) {
-      platformLabel.textContent = currentPlatform ? currentPlatform.name : 'Платформа';
+    if (platformLabel && currentPlatform) {
+      platformLabel.innerHTML =
+        '<img src="' + escape(currentPlatform.logo || '/assets/images/logo/default.svg') + '" alt="" width="20" height="20" class="admin-svc-platform-label-logo" loading="lazy">' +
+        '<span>' + escape(currentPlatform.name) + '</span>';
+    } else if (platformLabel) {
+      platformLabel.textContent = '—';
     }
     if (subWrap && subBlock) {
       const showSubs = subs.length > 0 && !svcFilter.q;
@@ -205,6 +224,7 @@
       if (showSubs) {
         subBlock.innerHTML = subs.map((sub) =>
           '<button type="button" class="admin-svc-subcat' + (svcFilter.subcategory === sub.category ? ' is-active' : '') + '" data-subcat="' + encodeURIComponent(sub.category) + '" title="' + escape(sub.category) + '">' +
+            '<img src="' + escape(sub.logo || '/assets/images/logo/default.svg') + '" alt="" width="18" height="18" class="admin-svc-subcat-logo" loading="lazy">' +
             '<span class="admin-svc-subcat-name">' + escape(sub.category) + '</span>' +
             '<span class="admin-svc-subcat-count">' + sub.count + '</span>' +
           '</button>'
@@ -285,7 +305,7 @@
               '<div class="admin-svc-subcats-wrap" id="admin-svc-subcats-wrap">' +
                 '<div class="admin-svc-subcats-head">' +
                   '<span class="admin-svc-subcats-kicker">Подкатегории</span>' +
-                  '<strong id="admin-svc-platform-label">—</strong>' +
+                  '<strong id="admin-svc-platform-label" class="admin-svc-platform-label"></strong>' +
                 '</div>' +
                 '<div class="admin-svc-subcats" id="admin-svc-subcats"></div>' +
               '</div>' +
@@ -342,6 +362,7 @@
     try {
       const data = await api('/api/v1/admin/services');
       servicesCache = data.services || [];
+      platformsCache = data.platforms || [];
       if (servicesCache.length && !window.AdminNav?.sampleServiceId) {
         window.AdminNav = window.AdminNav || {};
         window.AdminNav.sampleServiceId = servicesCache[0].id;

@@ -1752,6 +1752,22 @@ body.admin-order-open { overflow: hidden; }
   gap: 0.4rem;
 }
 
+.admin-svc-subcats-head strong,
+.admin-svc-platform-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-svc-platform-label-logo,
+.admin-svc-subcat-logo {
+  flex-shrink: 0;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
 .admin-svc-subcat {
   display: inline-flex;
   align-items: center;

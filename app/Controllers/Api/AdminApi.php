@@ -13,6 +13,7 @@ use App\Services\OrderStatus;
 use App\Services\PaymentService;
 use App\Services\PricingService;
 use App\Services\ServiceCatalog;
+use App\Services\ServiceLogo;
 use App\Services\SettingsService;
 use App\Services\TwiboostClient;
 use App\Services\UserService;
@@ -119,11 +120,17 @@ final class AdminApi
         $list = array_map(static function (array $s) use ($price): array {
             $fmt = $price->format($s);
             $s['price_per_thousand_rub'] = $fmt['price_per_thousand_rub'];
+            $s['platform'] = $fmt['platform'];
             $s['platform_name'] = $fmt['platform_name'];
             $s['category_label'] = $fmt['category_label'];
+            $s['logo'] = $fmt['logo'];
             return $s;
         }, $rows);
-        Response::ok(['services' => $list, 'categories' => ServiceCatalog::adminCategories()]);
+        Response::ok([
+            'services' => $list,
+            'categories' => ServiceCatalog::adminCategories(),
+            'platforms' => ServiceLogo::platforms(),
+        ]);
     }
 
     public static function serviceCategoriesGet(Request $r): void
