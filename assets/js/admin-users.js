@@ -71,8 +71,27 @@
     if (panel) panel.innerHTML = '';
   }
 
-  function linkOrder(id) {
-    return '<button type="button" class="admin-link-btn" data-open-order="' + id + '">#' + id + '</button>';
+  function linkOrder(id, num) {
+    const display = num != null ? num : id;
+    return '<button type="button" class="admin-link-btn" data-open-order="' + id + '">№' + display + '</button>';
+  }
+
+  const ORDER_STATUS_LABELS = {
+    pending: 'Ожидает обработки',
+    pending_payment: 'Ожидает оплаты',
+    Awaiting: 'Ожидает запуска',
+    'In progress': 'Выполняется',
+    Partial: 'Частично выполнен',
+    Completed: 'Выполнен',
+    Canceled: 'Отменён',
+    Cancelled: 'Отменён',
+    Fail: 'Ошибка',
+    Failed: 'Ошибка',
+    Error: 'Ошибка',
+  };
+
+  function statusLabel(status) {
+    return ORDER_STATUS_LABELS[status] || status || '—';
   }
 
   function linkService(id, name) {
@@ -139,11 +158,11 @@
             ? '<div class="admin-user-scroll-table"><table><thead><tr><th>#</th><th>Дата</th><th>Услуга</th><th>Сумма</th><th>Статус</th></tr></thead><tbody>' +
               u.orders.map((o) =>
                 '<tr class="admin-user-order-row" data-open-order="' + o.id + '">' +
-                  '<td>' + linkOrder(o.id) + '</td>' +
+                  '<td>' + linkOrder(o.id, o.order_number) + '</td>' +
                   '<td>' + fmtDate(o.created_at) + '</td>' +
                   '<td>' + linkService(o.service_id, o.service_name) + '</td>' +
                   '<td>' + o.cost_rub + ' ₽</td>' +
-                  '<td><span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
+                  '<td><span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status_label || statusLabel(o.status)) + '</span></td>' +
                 '</tr>'
               ).join('') +
               '</tbody></table></div>'
@@ -156,11 +175,13 @@
             ? '<div class="admin-user-scroll-table"><table><thead><tr><th>Дата</th><th>Тип</th><th>Сумма</th><th>После</th><th>Ссылка</th></tr></thead><tbody>' +
               u.transactions.map((t) =>
                 '<tr>' +
-                  '<td>' + fmtDate(t.created_at) + '</td>' +
-                  '<td>' + escape(t.type) + '</td>' +
+                  '<td>' + escape(t.created_at_formatted || t.created_at) + '</td>' +
+                  '<td>' + escape(t.type_label || t.type) + '</td>' +
                   '<td>' + t.amount_rub + ' ₽</td>' +
                   '<td>' + t.balance_after + ' ₽</td>' +
-                  '<td>' + (t.reference_type === 'order' && t.reference_id ? linkOrder(t.reference_id) : '—') + '</td>' +
+                  '<td>' + (t.reference_type === 'order' && t.reference_id
+                    ? linkOrder(t.reference_id, t.reference_order_number || t.reference_id)
+                    : '—') + '</td>' +
                 '</tr>'
               ).join('') +
               '</tbody></table></div>'
@@ -174,11 +195,11 @@
               u.payments.map((p) =>
                 '<tr>' +
                   '<td>' + p.id + '</td>' +
-                  '<td>' + fmtDate(p.created_at) + '</td>' +
-                  '<td>' + escape(p.type) + '</td>' +
+                  '<td>' + escape(p.created_at_formatted || p.created_at) + '</td>' +
+                  '<td>' + escape(p.type_label || p.type) + '</td>' +
                   '<td>' + p.amount_rub + ' ₽</td>' +
-                  '<td>' + escape(p.status) + '</td>' +
-                  '<td>' + (p.order_id ? linkOrder(p.order_id) : '—') + '</td>' +
+                  '<td>' + escape(p.status_label || p.status) + '</td>' +
+                  '<td>' + (p.order_id ? linkOrder(p.order_id, p.order_number || p.order_id) : '—') + '</td>' +
                 '</tr>'
               ).join('') +
               '</tbody></table></div>'

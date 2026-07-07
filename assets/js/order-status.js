@@ -97,7 +97,15 @@
     const label = statusLabel(o);
     const d = o.delivery || {};
     const unit = d.unit || o.quantity_unit || 'единиц';
+    const orderNum = o.order_number || o.id;
+    const cat = o.service_category;
+    const catHtml = cat
+      ? '<a href="/services?category=' + encodeURIComponent(cat) + '" class="order-v2-category-link">' + escape(cat) + '</a>'
+      : '—';
     lastSynced = o.synced_at || o.updated_at || new Date().toISOString();
+
+    const breadcrumb = document.getElementById('order-breadcrumb-label');
+    if (breadcrumb) breadcrumb.textContent = 'Заказ №' + orderNum;
 
     root.innerHTML =
       '<div class="order-v2">' +
@@ -105,7 +113,7 @@
           '<div class="order-v2-hero-grid">' +
             '<div class="order-v2-hero-visual">' + renderRing(o) + '</div>' +
             '<div class="order-v2-hero-info">' +
-              '<span class="order-v2-kicker">Заказ №' + (o.order_number || o.id) + '</span>' +
+              '<span class="order-v2-kicker">Заказ №' + orderNum + '</span>' +
               '<h1 class="order-v2-title">' + escape(o.service_name) + '</h1>' +
               '<span class="order-status-badge ' + statusClass(o.status) + '">' + escape(label) + '</span>' +
               '<p class="order-v2-hint">' + escape(statusHint(o)) + '</p>' +
@@ -136,10 +144,10 @@
           '<section class="card order-v2-panel">' +
             '<h2>Детали заказа</h2>' +
             '<ul class="order-v2-facts">' +
-              '<li><span>Категория</span><strong>' + escape(o.service_category || '—') + '</strong></li>' +
+              '<li><span>Категория</span><strong>' + catHtml + '</strong></li>' +
               '<li><span>Способ оплаты</span><strong>' + escape(o.payment_method === 'balance' ? 'С баланса' : 'ЮMoney') + '</strong></li>' +
-              '<li><span>Создан</span><strong>' + fmtDate(o.created_at) + '</strong></li>' +
-              '<li><span>Обновлён</span><strong>' + fmtDate(o.updated_at) + '</strong></li>' +
+              '<li><span>Создан</span><strong>' + escape(o.created_at_formatted || fmtDate(o.created_at)) + '</strong></li>' +
+              '<li><span>Обновлён</span><strong>' + escape(o.updated_at_formatted || fmtDate(o.updated_at)) + '</strong></li>' +
             '</ul>' +
           '</section>' +
         '</div>' +

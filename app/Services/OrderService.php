@@ -47,6 +47,7 @@ final class OrderService
         foreach ($rows as &$row) {
             $row['status_label'] = OrderStatus::label((string) $row['status']);
             $row['quantity_unit'] = DeliveryUnit::fromName((string) ($row['service_name'] ?? ''));
+            $row['created_at_formatted'] = RuDate::format((string) ($row['created_at'] ?? ''));
             $row = $this->sanitizeForClient($row);
         }
         return $rows;
@@ -147,6 +148,8 @@ final class OrderService
 
         $o['progress'] = $this->buildProgress($o);
         $o['synced_at'] = date('c');
+        $o['created_at_formatted'] = RuDate::format((string) ($o['created_at'] ?? ''));
+        $o['updated_at_formatted'] = RuDate::format((string) ($o['updated_at'] ?? ''));
         return $this->sanitizeForClient($o);
     }
 
@@ -340,14 +343,23 @@ final class OrderService
             $params['status'] = $status;
         }
         if ($search !== null && $search !== '') {
-            $sql .= ' AND (o.id = :id OR u.email LIKE :q OR s.name LIKE :q OR o.link LIKE :q)';
+            $sql .= ' AND (o.id = :id OR o.twiboost_order_id = :tid OR u.email LIKE :q OR s.name LIKE :q OR o.link LIKE :q)';
             $params['q'] = '%' . $search . '%';
             $params['id'] = is_numeric($search) ? (int) $search : 0;
+            $params['tid'] = is_numeric($search) ? (int) $search : 0;
         }
         $sql .= ' ORDER BY o.id DESC LIMIT 300';
         $st = Database::pdo()->prepare($sql);
         $st->execute($params);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn (array $row) => $this->enrichForAdmin($row), $rows);
+    }
+
+    public function enrichForAdmin(array $o): array
+    {
+        $o['order_number'] = !empty($o['twiboost_order_id']) ? (int) $o['twiboost_order_id'] : (int) $o['id'];
+        $o['status_label'] = OrderStatus::label((string) ($o['status'] ?? ''));
+        return $o;
     }
 
     public function adminGet(int $id): ?array
@@ -361,7 +373,7 @@ final class OrderService
         );
         $st->execute(['id' => $id]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return $row ? $this->enrichForAdmin($row) : null;
     }
 
     public function adminUpdateStatus(int $id, string $status): void

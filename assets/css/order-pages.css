@@ -310,6 +310,16 @@
   font-size: 0.78rem;
 }
 
+.order-v2-category-link {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.order-v2-category-link:hover {
+  text-decoration: underline;
+}
+
 .order-v2-supplier-metrics {
   display: grid;
   gap: 0.75rem;

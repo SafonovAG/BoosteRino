@@ -45,7 +45,17 @@ final class UserService
              LIMIT 150'
         );
         $orders->execute(['u' => $id]);
-        $user['orders'] = $orders->fetchAll(PDO::FETCH_ASSOC);
+        $orderRows = $orders->fetchAll(PDO::FETCH_ASSOC);
+        $orderService = new OrderService();
+        $user['orders'] = array_map(
+            static fn (array $row) => $orderService->enrichForAdmin($row),
+            $orderRows
+        );
+
+        $orderNumbers = [];
+        foreach ($user['orders'] as $ord) {
+            $orderNumbers[(int) $ord['id']] = (int) $ord['order_number'];
+        }
 
         $tx = $pdo->prepare(
             'SELECT id, type, amount_rub, balance_after, reference_type, reference_id, created_at
@@ -55,7 +65,16 @@ final class UserService
              LIMIT 80'
         );
         $tx->execute(['u' => $id]);
-        $user['transactions'] = $tx->fetchAll(PDO::FETCH_ASSOC);
+        $txRows = $tx->fetchAll(PDO::FETCH_ASSOC);
+        $user['transactions'] = array_map(static function (array $row) use ($orderNumbers): array {
+            $row['type_label'] = BalanceTransactionType::label((string) $row['type']);
+            $row['created_at_formatted'] = RuDate::format((string) ($row['created_at'] ?? ''));
+            if (($row['reference_type'] ?? '') === 'order' && !empty($row['reference_id'])) {
+                $refId = (int) $row['reference_id'];
+                $row['reference_order_number'] = $orderNumbers[$refId] ?? $refId;
+            }
+            return $row;
+        }, $txRows);
 
         $pay = $pdo->prepare(
             'SELECT id, type, amount_rub, status, order_id, label, yoomoney_operation_id, created_at
@@ -65,7 +84,17 @@ final class UserService
              LIMIT 80'
         );
         $pay->execute(['u' => $id]);
-        $user['payments'] = $pay->fetchAll(PDO::FETCH_ASSOC);
+        $payRows = $pay->fetchAll(PDO::FETCH_ASSOC);
+        $user['payments'] = array_map(static function (array $row) use ($orderNumbers): array {
+            $row['type_label'] = PaymentType::label((string) $row['type']);
+            $row['status_label'] = PaymentType::statusLabel((string) $row['status']);
+            $row['created_at_formatted'] = RuDate::format((string) ($row['created_at'] ?? ''));
+            if (!empty($row['order_id'])) {
+                $oid = (int) $row['order_id'];
+                $row['order_number'] = $orderNumbers[$oid] ?? $oid;
+            }
+            return $row;
+        }, $payRows);
 
         $stats = $pdo->prepare(
             'SELECT COUNT(*) AS order_count, COALESCE(SUM(cost_rub), 0) AS total_spent

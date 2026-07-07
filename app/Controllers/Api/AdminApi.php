@@ -9,6 +9,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Services\AdminDiagnosticsService;
 use App\Services\OrderService;
+use App\Services\OrderStatus;
 use App\Services\PaymentService;
 use App\Services\PricingService;
 use App\Services\ServiceCatalog;
@@ -54,7 +55,7 @@ final class AdminApi
                 'SELECT status, COUNT(*) AS cnt FROM orders GROUP BY status ORDER BY cnt DESC'
             )->fetchAll(),
             'recent_orders' => $pdo->query(
-                'SELECT o.id, o.status, o.cost_rub, o.created_at, u.email, u.id AS user_id, s.name AS service_name
+                'SELECT o.id, o.twiboost_order_id, o.status, o.cost_rub, o.created_at, u.email, u.id AS user_id, s.name AS service_name
                  FROM orders o
                  JOIN users u ON u.id = o.user_id
                  JOIN services s ON s.id = o.service_id
@@ -70,10 +71,21 @@ final class AdminApi
             if (isset($tb['balance'])) {
                 $tb['balance'] = round((float) $tb['balance'], 2);
             }
+            $tb['currency'] = 'RUB';
             $stats['twiboost'] = $tb;
         } catch (\Throwable $e) {
             $stats['twiboost_error'] = $e->getMessage();
         }
+
+        $orderService = new OrderService();
+        $stats['recent_orders'] = array_map(
+            static fn (array $row) => $orderService->enrichForAdmin($row),
+            $stats['recent_orders']
+        );
+        $stats['orders_by_status'] = array_map(static function (array $row): array {
+            $row['status_label'] = OrderStatus::label((string) ($row['status'] ?? ''));
+            return $row;
+        }, $stats['orders_by_status']);
 
         Response::ok(['stats' => $stats]);
     }

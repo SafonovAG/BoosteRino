@@ -29,6 +29,30 @@
     'Completed', 'Canceled', 'Cancelled', 'Fail', 'Failed', 'Error',
   ];
 
+  const ORDER_STATUS_LABELS = {
+    pending: 'Ожидает обработки',
+    pending_payment: 'Ожидает оплаты',
+    Awaiting: 'Ожидает запуска',
+    'In progress': 'Выполняется',
+    Partial: 'Частично выполнен',
+    Completed: 'Выполнен',
+    Canceled: 'Отменён',
+    Cancelled: 'Отменён',
+    Fail: 'Ошибка',
+    Failed: 'Ошибка',
+    Error: 'Ошибка',
+  };
+
+  function statusLabel(status) {
+    return ORDER_STATUS_LABELS[status] || status || '—';
+  }
+
+  function orderNum(o) {
+    if (o == null) return '—';
+    if (typeof o === 'object') return o.order_number || o.twiboost_order_id || o.id;
+    return o;
+  }
+
   function escape(s) {
     const d = document.createElement('div');
     d.textContent = s ?? '';
@@ -91,20 +115,20 @@
 
       const supplierValue = s.twiboost_error
         ? '<span class="admin-dash-error">' + escape(s.twiboost_error) + '</span>'
-        : fmtMoney(tb.balance, tb.currency);
+        : fmtRub(tb.balance);
 
       const statusRows = (s.orders_by_status || []).map((row) =>
-        '<span class="admin-dash-status"><span class="admin-status ' + statusClass(row.status) + '">' + escape(row.status) + '</span> ' + fmtNum(row.cnt) + '</span>'
+        '<span class="admin-dash-status"><span class="admin-status ' + statusClass(row.status) + '">' + escape(row.status_label || statusLabel(row.status)) + '</span> ' + fmtNum(row.cnt) + '</span>'
       ).join('');
 
       const recentOrders = (s.recent_orders || []).map((ord) =>
         '<tr class="admin-dash-row-click" data-dash-order="' + ord.id + '">' +
-          '<td>#' + ord.id + '</td>' +
+          '<td>№' + orderNum(ord) + '</td>' +
           '<td>' + fmtDate(ord.created_at) + '</td>' +
           '<td><button type="button" class="admin-link-btn" data-open-user-inline="' + ord.user_id + '">' + escape(ord.email) + '</button></td>' +
           '<td class="admin-order-service">' + escape(ord.service_name) + '</td>' +
           '<td>' + fmtRub(ord.cost_rub) + '</td>' +
-          '<td><span class="admin-status ' + statusClass(ord.status) + '">' + escape(ord.status) + '</span></td>' +
+          '<td><span class="admin-status ' + statusClass(ord.status) + '">' + escape(ord.status_label || statusLabel(ord.status)) + '</span></td>' +
         '</tr>'
       ).join('');
 
@@ -241,11 +265,11 @@
         '<div class="admin-order-drawer-top">' +
           '<div class="admin-order-drawer-title">' +
               '<span class="admin-order-drawer-label">Заказ</span>' +
-              '<h3>№' + (o.twiboost_order_id || o.id) + '</h3>' +
+              '<h3>№' + orderNum(o) + '</h3>' +
               (o.twiboost_order_id && o.twiboost_order_id != o.id
-                ? '<span class="admin-order-drawer-label">Boosterino #' + o.id + '</span>'
+                ? '<span class="admin-order-drawer-label">Внутренний #' + o.id + '</span>'
                 : '') +
-            '<span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span>' +
+            '<span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status_label || statusLabel(o.status)) + '</span>' +
           '</div>' +
           '<button type="button" class="btn btn-sm btn-ghost admin-order-drawer-close" id="close-order-detail" aria-label="Закрыть">×</button>' +
         '</div>' +
@@ -275,14 +299,14 @@
             '<a href="' + escape(o.link) + '" target="_blank" rel="noopener" class="admin-order-link">' + escape(o.link) + '</a>' +
           '</section>' +
           '<section class="admin-order-section">' +
-            '<h4>Прогресс у поставщика (Twiboost)</h4>' +
+            '<h4>Прогресс выполнения</h4>' +
             '<div class="admin-order-fields admin-order-fields--4">' +
-              '<div class="admin-order-field"><span>Номер у Twiboost</span><strong>' + (o.twiboost_order_id || '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Номер заказа</span><strong>' + orderNum(o) + '</strong></div>' +
               '<div class="admin-order-field"><span>Было до старта</span><strong>' + (o.start_count ?? '—') + '</strong></div>' +
               '<div class="admin-order-field"><span>Осталось доставить</span><strong>' + (o.remains ?? '—') + '</strong></div>' +
-              '<div class="admin-order-field"><span>Себестоимость Twiboost</span><strong>' + (o.charge != null ? o.charge + ' USD' : '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Сумма заказа</span><strong>' + fmtRub(o.cost_rub) + '</strong></div>' +
             '</div>' +
-            '<p class="muted" style="margin:0.5rem 0 0;font-size:0.78rem">Себестоимость — списание с баланса Twiboost в USD, не сумма клиента. «Было до старта» — показатель на странице до накрутки. «Осталось» — единиц заказа, которые ещё не доставлены.</p>' +
+            '<p class="muted" style="margin:0.5rem 0 0;font-size:0.78rem">«Было до старта» - показатель на странице до накрутки. «Осталось» - единиц заказа, которые ещё не доставлены.</p>' +
           '</section>' +
           '<section class="admin-order-section">' +
             '<h4>Даты</h4>' +
@@ -297,7 +321,7 @@
             '<label>Статус вручную' +
               '<select id="admin-order-status" class="shop-select">' +
                 ORDER_STATUSES.map((st) =>
-                  '<option value="' + st + '"' + (o.status === st ? ' selected' : '') + '>' + st + '</option>'
+                  '<option value="' + st + '"' + (o.status === st ? ' selected' : '') + '>' + escape(statusLabel(st)) + '</option>'
                 ).join('') +
               '</select>' +
             '</label>' +
@@ -358,7 +382,7 @@
       });
 
       panel.querySelector('#admin-order-delete')?.addEventListener('click', async () => {
-        if (!confirm('Удалить заказ #' + id + ' безвозвратно? Это действие нельзя отменить.')) return;
+        if (!confirm('Удалить заказ №' + orderNum(o) + ' безвозвратно? Это действие нельзя отменить.')) return;
         try {
           await api('/api/v1/admin/orders/' + id, { method: 'DELETE' });
           toast('Заказ удалён');
@@ -405,10 +429,10 @@
             '<select id="admin-orders-status-filter" class="shop-select">' +
               '<option value="all">Все статусы</option>' +
               ORDER_STATUSES.map((st) =>
-                '<option value="' + st + '"' + (ordersFilter.status === st ? ' selected' : '') + '>' + st + '</option>'
+                '<option value="' + st + '"' + (ordersFilter.status === st ? ' selected' : '') + '>' + escape(statusLabel(st)) + '</option>'
               ).join('') +
             '</select>' +
-            '<input type="search" id="admin-orders-search" placeholder="ID, email, ссылка..." value="' + escape(ordersFilter.q) + '">' +
+            '<input type="search" id="admin-orders-search" placeholder="Номер, email, ссылка..." value="' + escape(ordersFilter.q) + '">' +
             '<button type="button" class="btn btn-secondary btn-sm" id="admin-orders-refresh">Обновить</button>' +
             '<button type="button" class="btn btn-primary btn-sm" id="admin-orders-sync-all">Синхр. все</button>' +
           '</div>' +
@@ -419,13 +443,13 @@
             '</tr></thead><tbody>' +
             rows.map((o) =>
               '<tr class="admin-order-row' + (selectedOrderId === o.id ? ' is-selected' : '') + '" data-order-id="' + o.id + '">' +
-                '<td>' + o.id + '</td>' +
+                '<td>№' + orderNum(o) + '</td>' +
                 '<td>' + fmtDate(o.created_at) + '</td>' +
                 '<td><button type="button" class="admin-link-btn" data-open-user-inline="' + o.user_id + '">' + escape(o.email) + '</button></td>' +
                 '<td class="admin-order-service">' + escape(o.service_name) + '</td>' +
                 '<td>' + o.quantity + '</td>' +
-                '<td>' + o.cost_rub + ' ₽</td>' +
-                '<td><span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
+                '<td>' + fmtRub(o.cost_rub) + '</td>' +
+                '<td><span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status_label || statusLabel(o.status)) + '</span></td>' +
               '</tr>'
             ).join('') +
             '</tbody></table></div>'

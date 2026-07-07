@@ -8,8 +8,10 @@ use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Services\AuthService;
+use App\Services\BalanceTransactionType;
 use App\Services\OrderService;
 use App\Services\PaymentService;
+use App\Services\RuDate;
 
 final class UserApi
 {
@@ -122,6 +124,13 @@ final class UserApi
         $u = (new AuthService())->user();
         $st = Database::pdo()->prepare('SELECT * FROM balance_transactions WHERE user_id=:u ORDER BY id DESC LIMIT 50');
         $st->execute(['u' => $u['id']]);
-        Response::ok(['transactions' => $st->fetchAll()]);
+        $rows = $st->fetchAll();
+        $out = [];
+        foreach ($rows as $row) {
+            $row['type_label'] = BalanceTransactionType::label((string) $row['type']);
+            $row['created_at_formatted'] = RuDate::format((string) ($row['created_at'] ?? ''));
+            $out[] = $row;
+        }
+        Response::ok(['transactions' => $out]);
     }
 }

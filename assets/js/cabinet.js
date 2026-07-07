@@ -92,7 +92,7 @@
                 '<ul class="cabinet-order-facts">' +
                   '<li><span>Количество</span><strong>' + o.quantity + ' ' + escape(unit) + '</strong></li>' +
                   '<li><span>Сумма</span><strong>' + fmt(o.cost_rub) + '</strong></li>' +
-                  '<li><span>Дата</span><strong>' + fmtDate(o.created_at) + '</strong></li>' +
+                  '<li><span>Дата</span><strong>' + fmtDate(o.created_at_formatted || o.created_at) + '</strong></li>' +
                 '</ul>' +
               '</div>' +
               '<div class="cabinet-order-card-action">' +
@@ -115,8 +115,8 @@
     txEl.innerHTML = '<div class="table-wrap"><table>' +
       '<thead><tr><th>Дата</th><th>Тип</th><th>Сумма</th><th>Баланс</th></tr></thead><tbody>' +
       rows.map((t) => '<tr>' +
-        '<td>' + escape(t.created_at) + '</td>' +
-        '<td>' + escape(t.type) + '</td>' +
+        '<td>' + escape(t.created_at_formatted || t.created_at) + '</td>' +
+        '<td>' + escape(t.type_label || t.type) + '</td>' +
         '<td>' + fmt(t.amount_rub) + '</td>' +
         '<td>' + fmt(t.balance_after) + '</td>' +
         '</tr>').join('') +

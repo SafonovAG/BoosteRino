@@ -4,7 +4,7 @@ ob_start();
 <section class="shop-section shop-section-compact">
     <div class="container">
         <nav class="breadcrumbs">
-            <a href="/">Главная</a><span>/</span><a href="/cabinet">Кабинет</a><span>/</span><span>Заказ #<?= (int) ($orderId ?? 0) ?></span>
+            <a href="/">Главная</a><span>/</span><a href="/cabinet">Кабинет</a><span>/</span><span id="order-breadcrumb-label">Заказ</span>
         </nav>
     </div>
 </section>
