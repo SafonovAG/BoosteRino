@@ -12,9 +12,14 @@
     <link rel="stylesheet" href="/assets/css/animations.css">
     <link rel="stylesheet" href="/assets/css/shop.css">
     <link rel="stylesheet" href="/assets/css/shop-fixes.css">
+    <?php if (!empty($styles)): ?>
+        <?php foreach ($styles as $style): ?>
+            <link rel="stylesheet" href="<?= \App\Core\View::e($style) ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
     <meta name="csrf-token" content="<?= \App\Core\View::e(\App\Core\Session::csrf()) ?>">
 </head>
-<body class="shop-page" <?= $bodyAttrs ?? '' ?>>
+<body class="shop-page<?= !empty($bodyClass) ? ' ' . \App\Core\View::e($bodyClass) : '' ?>" <?= $bodyAttrs ?? '' ?>>
 <?php
 $authUser = null;
 try {

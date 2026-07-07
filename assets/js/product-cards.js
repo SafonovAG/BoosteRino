@@ -49,9 +49,10 @@
   function bindQuickAdd(container, servicesById) {
     if (!container) return;
     container.addEventListener('click', (e) => {
-      const btn = e.target.closest('.btn-add-cart');
+      const btn = e.target.closest('.btn-add-cart, .catalog-row-add');
       if (!btn) return;
       e.preventDefault();
+      e.stopPropagation();
       const s = servicesById.get(+btn.dataset.serviceId);
       if (!s || !window.BoosterinoCart) return;
       BoosterinoCart.add({
@@ -68,10 +69,39 @@
         refill: s.refill,
         cancel: s.cancel,
       });
+      btn.classList.add('is-added');
+      setTimeout(() => btn.classList.remove('is-added'), 600);
       const { toast } = window.Boosterino || {};
-      if (toast) toast('Добавлено в корзину');
+      if (toast) toast('В корзине');
     });
   }
 
-  window.BoosterinoProductCard = { render: renderProductCard, bindQuickAdd, formatPrice, escapeHtml };
+  function renderCatalogRow(s) {
+    const label = s.category_label || s.platform_name || s.category || '';
+    const href = '/services/' + s.id;
+    const badges = [];
+    if (s.refill) badges.push('<span class="catalog-row-badge catalog-row-badge--refill">Рефилл</span>');
+    if (s.cancel) badges.push('<span class="catalog-row-badge catalog-row-badge--cancel">Отмена</span>');
+
+    return '<article class="catalog-row" data-platform="' + escapeHtml(s.platform) + '">' +
+      '<a href="' + href + '" class="catalog-row-main">' +
+        '<div class="catalog-row-logo"><img src="' + escapeHtml(s.logo) + '" alt="" width="22" height="22"></div>' +
+        '<div class="catalog-row-info">' +
+          '<span class="catalog-row-platform">' + escapeHtml(label) + '</span>' +
+          '<h3 class="catalog-row-title">' + escapeHtml(s.name) + '</h3>' +
+          (badges.length ? '<div class="catalog-row-meta">' + badges.join('') + '</div>' : '') +
+        '</div>' +
+        '<div class="catalog-row-price">' +
+          '<strong>' + formatPrice(s.price_per_thousand_rub) + '</strong>' +
+          '<span>/1000</span>' +
+        '</div>' +
+      '</a>' +
+      '<div class="catalog-row-actions">' +
+        '<button type="button" class="catalog-row-add" data-service-id="' + s.id + '" title="В корзину">+</button>' +
+        '<a href="' + href + '" class="catalog-row-go" title="Подробнее">→</a>' +
+      '</div>' +
+    '</article>';
+  }
+
+  window.BoosterinoProductCard = { render: renderProductCard, renderCatalogRow, bindQuickAdd, formatPrice, escapeHtml };
 })();

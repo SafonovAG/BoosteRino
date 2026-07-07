@@ -2,85 +2,63 @@
 use App\Services\ServiceLogo;
 $platforms = ServiceLogo::platforms();
 $activePlatform = $_GET['platform'] ?? 'all';
+$bodyClass = 'catalog-pro-page';
+$styles = ['/assets/css/catalog-pro.css'];
 ob_start();
 ?>
-<section class="shop-section shop-section-compact catalog-hero">
-    <div class="container">
-        <nav class="breadcrumbs">
-            <a href="/">Главная</a>
-            <span>/</span>
-            <span>Каталог</span>
-        </nav>
-        <h1 class="page-title">Каталог SMM-услуг</h1>
-        <p class="page-lead">Выберите платформу и услугу. Все цены указаны за 1000 единиц в рублях.</p>
-    </div>
-</section>
-
-<section class="shop-section catalog-section">
-    <div class="container catalog-layout">
-        <aside class="filter-sidebar" id="filter-sidebar">
-            <div class="filter-sidebar-header">
-                <h3>Фильтры</h3>
-                <button type="button" class="filter-close" id="filter-close" aria-label="Закрыть">×</button>
-            </div>
-
-            <div class="filter-sidebar-scroll">
-                <div class="filter-block">
-                    <h4>Платформа</h4>
-                    <ul class="filter-list filter-list-compact" id="platform-filters">
-                        <?php foreach ($platforms as $p): ?>
-                            <li>
-                                <button type="button"
-                                    class="filter-item <?= $activePlatform === $p['slug'] ? 'active' : '' ?>"
-                                    data-platform="<?= \App\Core\View::e($p['slug']) ?>">
-                                    <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="" width="24" height="24">
-                                    <span><?= \App\Core\View::e($p['name']) ?></span>
-                                </button>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
+<div class="catalog-pro">
+    <div class="catalog-pro-deck" id="catalog-deck">
+        <div class="container catalog-pro-deck-inner">
+            <div class="catalog-pro-top">
+                <div class="catalog-pro-heading">
+                    <h1 class="catalog-pro-title">Каталог</h1>
+                    <span class="catalog-pro-count" id="catalog-count">...</span>
                 </div>
-
-                <div class="filter-block" id="category-filters-block">
-                    <h4>Категории</h4>
-                    <div id="category-filters" class="filter-category-tree">
-                        <p class="filter-placeholder muted">Загрузка категорий...</p>
-                    </div>
+                <div class="catalog-pro-search">
+                    <svg class="catalog-pro-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="search" id="catalog-search" placeholder="Поиск услуги..." autocomplete="off">
+                    <button type="button" class="catalog-pro-search-clear hidden" id="search-clear" aria-label="Очистить">×</button>
                 </div>
+            </div>
 
-                <div class="filter-block">
-                    <h4>Поиск</h4>
-                    <input type="search" id="catalog-search" class="filter-search" placeholder="Название услуги...">
+            <div class="catalog-pro-rail-wrap">
+                <div class="catalog-pro-rail" id="platform-filters" role="tablist">
+                    <?php foreach ($platforms as $p): ?>
+                        <button type="button"
+                            class="catalog-pro-chip <?= $activePlatform === $p['slug'] ? 'is-active' : '' ?>"
+                            data-platform="<?= \App\Core\View::e($p['slug']) ?>"
+                            role="tab"
+                            aria-selected="<?= $activePlatform === $p['slug'] ? 'true' : 'false' ?>">
+                            <span class="catalog-pro-chip-icon">
+                                <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="" width="22" height="22">
+                            </span>
+                            <span class="catalog-pro-chip-label"><?= \App\Core\View::e($p['name']) ?></span>
+                        </button>
+                    <?php endforeach; ?>
                 </div>
+            </div>
 
-                <?php
-                $catalogUser = null;
-                try { $catalogUser = (new \App\Services\AuthService())->user(); } catch (\Throwable) {}
-                if (!$catalogUser):
-                ?>
-                    <div class="filter-promo card">
-                        <p><strong>Нужен аккаунт</strong> для оформления заказа</p>
-                        <a href="/register" class="btn btn-primary btn-block btn-sm">Регистрация</a>
-                    </div>
-                <?php endif; ?>
+            <div class="catalog-pro-cats-wrap hidden" id="category-rail-wrap">
+                <div class="catalog-pro-cats" id="category-filters"></div>
             </div>
-        </aside>
 
-        <div class="catalog-main">
-            <div class="catalog-toolbar">
-                <button type="button" class="btn btn-secondary btn-sm" id="filter-open">☰ Фильтры</button>
-                <span id="catalog-count" class="catalog-count">Загрузка...</span>
-            </div>
-            <div id="services-catalog" class="product-grid">
-                <div class="product-card skeleton"></div>
-                <div class="product-card skeleton"></div>
-                <div class="product-card skeleton"></div>
-                <div class="product-card skeleton"></div>
-            </div>
-            <nav id="catalog-pagination" class="catalog-pagination" aria-label="Страницы каталога"></nav>
+            <div class="catalog-pro-active" id="active-filters"></div>
         </div>
     </div>
-</section>
+
+    <div class="container catalog-pro-body">
+        <div id="services-catalog" class="catalog-pro-list is-loading">
+            <?php for ($i = 0; $i < 6; $i++): ?>
+                <div class="catalog-row catalog-row-skeleton"></div>
+            <?php endfor; ?>
+        </div>
+        <nav id="catalog-pagination" class="catalog-pro-pagination" aria-label="Страницы"></nav>
+    </div>
+
+    <button type="button" class="catalog-pro-fab" id="scroll-top" aria-label="Наверх" hidden>↑</button>
+</div>
+
+<div class="catalog-pro-overlay" id="catalog-overlay" hidden></div>
 <?php
 $content = ob_get_clean();
 $scripts = ['/assets/js/catalog.js'];
