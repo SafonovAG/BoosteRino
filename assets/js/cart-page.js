@@ -5,6 +5,10 @@
   if (!root || !cart) return;
 
   const I = window.BoosterinoIcons;
+  const pay = window.BoosterinoPayment || {
+    short: 'Карта, SberPay, МИР или ЮMoney',
+    long: 'банковской картой, SberPay, МИР или кошельком ЮMoney',
+  };
   const fmt = window.BoosterinoProductCard?.formatPrice || ((n) => n + ' ₽');
   const fmtQty = window.BoosterinoProductCard?.formatQty || ((n) => String(n));
   const escape = window.BoosterinoProductCard?.escapeHtml || ((s) => s);
@@ -81,7 +85,7 @@
           '<div class="shop-select-wrap">' +
             '<select id="cart-payment" class="shop-select">' +
               '<option value="balance">С баланса</option>' +
-              '<option value="yoomoney">ЮMoney</option>' +
+              '<option value="yoomoney">' + pay.short + '</option>' +
             '</select>' +
           '</div>' +
         '</div>' +
@@ -89,7 +93,7 @@
           '<button type="button" class="btn btn-primary btn-lg cart-pro-checkout-submit" id="cart-checkout">Оформить заказ</button>' +
         '</div>'
       : '<div class="cart-pro-checkout-guest">' +
-          '<p class="cart-pro-checkout-guest-text">Войдите в аккаунт, чтобы оформить заказ и оплатить с баланса или через ЮMoney.</p>' +
+          '<p class="cart-pro-checkout-guest-text">Войдите в аккаунт, чтобы оформить заказ и оплатить с баланса или ' + pay.long + '.</p>' +
           '<div class="cart-pro-checkout-btns">' +
             '<a href="/login?next=/cart" class="btn btn-primary btn-lg cart-pro-checkout-submit">Войти</a>' +
             '<a href="/register" class="btn btn-secondary btn-block">Создать аккаунт</a>' +
@@ -322,7 +326,7 @@
     }
 
     if (payment === 'yoomoney' && items.length > 1) {
-      toast('ЮMoney: оформляйте по одному товару или выберите оплату с баланса', 'error');
+      toast('Оплата картой, SberPay, МИР или кошельком ЮMoney: оформляйте по одному товару или выберите оплату с баланса', 'error');
       return;
     }
 

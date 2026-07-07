@@ -48,6 +48,7 @@ final class OrderService
             $row['status_label'] = OrderStatus::label((string) $row['status']);
             $row['quantity_unit'] = DeliveryUnit::fromName((string) ($row['service_name'] ?? ''));
             $row['created_at_formatted'] = RuDate::formatDateTime((string) ($row['created_at'] ?? ''));
+            $row['payment_method_label'] = PaymentMethod::label((string) ($row['payment_method'] ?? ''));
             $row = $this->sanitizeForClient($row);
         }
         return $rows;
@@ -155,6 +156,7 @@ final class OrderService
         $o['status_final'] = OrderStatus::isFinal($status);
         $o['created_at_formatted'] = RuDate::formatDateTime((string) ($o['created_at'] ?? ''));
         $o['updated_at_formatted'] = RuDate::formatDateTime((string) ($o['updated_at'] ?? ''));
+        $o['payment_method_label'] = PaymentMethod::label((string) ($o['payment_method'] ?? ''));
         return $this->sanitizeForClient($o);
     }
 

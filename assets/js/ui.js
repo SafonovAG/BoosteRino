@@ -15,4 +15,10 @@
   );
 
   reveals.forEach((el) => observer.observe(el));
+
+  window.BoosterinoPayment = {
+    short: 'Карта, SberPay, МИР или ЮMoney',
+    long: 'банковской картой, SberPay, МИР или кошельком ЮMoney',
+    noun: 'Банковской картой, SberPay, МИР или кошелёк ЮMoney',
+  };
 })();

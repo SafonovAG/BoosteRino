@@ -70,7 +70,7 @@ ob_start();
                         </button>
                         <button type="button" class="cabinet-pro-quick-card" data-panel-jump="topup">
                             <span class="cabinet-pro-quick-title">Пополнение</span>
-                            <span class="muted">ЮMoney от 10 ₽</span>
+                            <span class="muted">Карта, SberPay, МИР или ЮMoney · от 10 ₽</span>
                         </button>
                         <a href="/services" class="cabinet-pro-quick-card cabinet-pro-quick-card--link">
                             <span class="cabinet-pro-quick-title">Каталог</span>
@@ -99,7 +99,7 @@ ob_start();
                 <div id="panel-topup" class="panel cabinet-pro-panel">
                     <header class="cabinet-pro-panel-head">
                         <h1>Пополнение баланса</h1>
-                        <p class="muted">Минимум 10 ₽ · оплата через ЮMoney</p>
+                        <p class="muted">Минимум 10 ₽ · банковской картой, SberPay, МИР или кошельком ЮMoney</p>
                     </header>
                     <section class="cabinet-pro-card cabinet-pro-card--accent">
                         <form id="topup-form" class="cabinet-pro-form form">

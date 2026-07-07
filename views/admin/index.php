@@ -39,8 +39,8 @@ $isSuper = !empty($super);
                         <p class="muted">Секреты не отображаются - оставьте поле пустым, чтобы не менять.</p>
 
                         <div class="settings-block">
-                            <h3><i class="bi bi-credit-card app-icon app-icon--blue app-icon--inline" aria-hidden="true"></i> ЮMoney - HTTP-уведомления</h3>
-                            <p class="muted">URL для настройки кошелька ЮMoney:</p>
+                            <h3><i class="bi bi-credit-card app-icon app-icon--blue app-icon--inline" aria-hidden="true"></i> Приём платежей — HTTP-уведомления</h3>
+                            <p class="muted">URL для настройки приёма платежей (карта, SberPay, МИР, кошелёк ЮMoney):</p>
                             <div class="notify-url-row">
                                 <input type="text" id="yoomoney-notify-url" readonly value="https://boosterino.ru/api/v1/payments/yoomoney/notify">
                                 <button type="button" class="btn btn-secondary" id="copy-notify-url">Копировать</button>
@@ -53,8 +53,8 @@ $isSuper = !empty($super);
                                 <label>URL сайта<input name="app_url" type="url"></label>
                                 <label>Наценка, %<input name="global_markup_percent" type="number" step="0.1"></label>
                                 <label>Ключ поставщика<input name="twiboost_api_key" type="password" placeholder="новый ключ"></label>
-                                <label>Кошелёк ЮMoney<input name="yoomoney_wallet"></label>
-                                <label>Секрет ЮMoney<input name="yoomoney_secret" type="password" placeholder="новый секрет"></label>
+                                <label>Кошелёк для приёма платежей<input name="yoomoney_wallet" placeholder="номер кошелька для приёма платежей"></label>
+                                <label>Секрет уведомлений<input name="yoomoney_secret" type="password" placeholder="секрет HTTP-уведомлений о платежах"></label>
                                 <label>SMTP-сервер<input name="mail_host"></label>
                                 <label>SMTP-порт<input name="mail_port"></label>
                                 <label>SMTP-логин<input name="mail_user"></label>

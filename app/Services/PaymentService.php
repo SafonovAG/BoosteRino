@@ -85,7 +85,7 @@ final class PaymentService
         $s = new SettingsService();
         $wallet = $s->get('yoomoney_wallet');
         if ($wallet === '') {
-            throw new \RuntimeException('Кошелёк ЮMoney не настроен.');
+            throw new \RuntimeException('Приём платежей не настроен: укажите кошелёк для приёма платежей в админке.');
         }
         $base = rtrim($s->get('app_url'), '/');
         $successUrl = $orderId

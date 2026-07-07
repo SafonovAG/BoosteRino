@@ -57,7 +57,7 @@
     if (s.includes('partial')) return 'Часть заказа уже доставлена, остаток в работе.';
     if (s.includes('await')) return 'Заказ принят и скоро начнёт выполняться.';
     if (s.includes('cancel')) return 'Заказ отменён.';
-    if (o.status === 'pending_payment') return 'Ожидается оплата через ЮMoney.';
+    if (o.status === 'pending_payment') return 'Ожидается оплата картой, SberPay, МИР или кошельком ЮMoney.';
     if (o.status === 'pending') return 'Заказ создан и ожидает обработки.';
     return 'Статус обновляется автоматически.';
   }
@@ -154,7 +154,7 @@
             '<h2>Детали заказа</h2>' +
             '<ul class="order-v2-facts">' +
               '<li><span>Категория</span><strong>' + catHtml + '</strong></li>' +
-              '<li><span>Способ оплаты</span><strong>' + escape(o.payment_method === 'balance' ? 'С баланса' : 'ЮMoney') + '</strong></li>' +
+              '<li><span>Способ оплаты</span><strong>' + escape(o.payment_method_label || (o.payment_method === 'balance' ? 'С баланса' : 'Карта, SberPay, МИР или ЮMoney')) + '</strong></li>' +
               '<li><span>Создан</span><strong>' + escape(o.created_at_formatted || fmtDate(o.created_at)) + '</strong></li>' +
               '<li><span>Обновлён</span><strong>' + escape(o.updated_at_formatted || fmtDate(o.updated_at)) + '</strong></li>' +
             '</ul>' +

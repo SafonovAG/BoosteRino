@@ -21,10 +21,10 @@ final class AdminDiagnosticsService
         $results[] = $this->check('Настройки', 'URL сайта', fn () => $this->checkSetting('app_url'));
         $results[] = $this->check('Настройки', 'Наценка', fn () => $this->checkSetting('global_markup_percent'));
         $results[] = $this->check('Настройки', 'Ключ поставщика', fn () => $this->checkSecret('twiboost_api_key'));
-        $results[] = $this->check('Настройки', 'Кошелёк ЮMoney', fn () => $this->checkSetting('yoomoney_wallet'));
-        $results[] = $this->check('Настройки', 'Секрет ЮMoney', fn () => $this->checkSecret('yoomoney_secret'));
+        $results[] = $this->check('Настройки', 'Кошелёк для приёма платежей', fn () => $this->checkSetting('yoomoney_wallet'));
+        $results[] = $this->check('Настройки', 'Секрет приёма платежей', fn () => $this->checkSecret('yoomoney_secret'));
         $results[] = $this->check('Настройки', 'SMTP host', fn () => $this->checkSetting('mail_host'));
-        $results[] = $this->check('Интеграции', 'URL уведомлений ЮMoney', fn () => $this->checkYoomoneyNotifyUrl());
+        $results[] = $this->check('Интеграции', 'URL уведомлений о платежах', fn () => $this->checkYoomoneyNotifyUrl());
         $results[] = $this->check('Каталог', 'Активные услуги', fn () => $this->checkActiveServices());
 
         return $results;

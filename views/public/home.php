@@ -9,7 +9,7 @@ ob_start();
                 Быстрая накрутка<br>
                 <span class="gradient-text">в социальных сетях</span>
             </h1>
-            <p class="shop-hero-lead">Увеличьте подписчиков, просмотры и реакции по выгодным ценам. Прозрачный каталог, личный кабинет и оплата в рублях через ЮMoney.</p>
+            <p class="shop-hero-lead">Увеличьте подписчиков, просмотры и реакции по выгодным ценам. Прозрачный каталог, личный кабинет и оплата в рублях банковской картой, SberPay, МИР или кошельком ЮMoney.</p>
             <div class="shop-hero-actions">
                 <a href="/services" class="btn btn-primary btn-lg"><i class="bi bi-grid-3x3-gap-fill app-icon app-icon--inline" aria-hidden="true"></i> Открыть каталог</a>
                 <a href="/register" class="btn btn-secondary btn-lg">Создать аккаунт</a>

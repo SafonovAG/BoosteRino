@@ -736,7 +736,7 @@
     const desc = document.getElementById('diag-tab-desc');
     if (desc) {
       const texts = {
-        system: 'База данных, настройки магазина, ЮMoney, SMTP и каталог.',
+        system: 'База данных, настройки магазина, приём платежей, SMTP и каталог.',
         'shop-api': 'Проверка всех эндпоинтов Boosterino API.',
         supplier: 'Проверка Twiboost API v2 по документации api/info: balance, services, status, refill, cancel и сверка каталога.',
       };
@@ -758,7 +758,7 @@
           '<button type="button" class="diag-tab" data-diag-tab="shop-api">API магазина</button>' +
           '<button type="button" class="diag-tab" data-diag-tab="supplier">API поставщика</button>' +
         '</div>' +
-        '<p class="muted" id="diag-tab-desc">База данных, настройки магазина, ЮMoney, SMTP и каталог.</p>' +
+        '<p class="muted" id="diag-tab-desc">База данных, настройки магазина, приём платежей, SMTP и каталог.</p>' +
         '<div class="diag-toolbar">' +
           '<button type="button" class="btn btn-primary" id="run-diagnostics">Запустить проверку</button>' +
           '<label class="diag-dry-label" style="display:none"><input type="checkbox" id="diag-dry-run" checked> Безопасный режим (только API магазина)</label>' +

@@ -129,7 +129,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
                 <div class="store-footer-col">
                     <h4>Оплата</h4>
                     <ul>
-                        <li>ЮMoney - кошелёк</li>
+                        <li>Карта, SberPay, МИР или кошелёк ЮMoney</li>
                         <li>Предоплата на баланс</li>
                         <li>Оплата при заказе</li>
                     </ul>

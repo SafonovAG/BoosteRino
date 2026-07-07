@@ -9,7 +9,7 @@ ob_start();
                 <p class="muted">Управляйте заказами, балансом и историей покупок.</p>
                 <ul class="promo-list">
                     <li><img src="/assets/images/logo/telegram.svg" alt="" width="20" height="20"> Telegram, VK, YouTube</li>
-                    <li><i class="bi bi-credit-card app-icon app-icon--blue" aria-hidden="true"></i> Оплата ЮMoney</li>
+                    <li><i class="bi bi-credit-card app-icon app-icon--blue" aria-hidden="true"></i> Оплата картой, SberPay, МИР или кошельком ЮMoney</li>
                     <li><i class="bi bi-box-seam app-icon app-icon--violet" aria-hidden="true"></i> Статус каждого заказа</li>
                 </ul>
             </div>

@@ -211,6 +211,6 @@
 
   const paymentStatus = new URLSearchParams(location.search).get('payment');
   if (paymentStatus === 'ok' || paymentStatus === 'success') {
-    toast('Оплата принята. Баланс обновится после подтверждения ЮMoney.');
+    toast('Оплата принята. Баланс обновится после подтверждения платежа.');
   }
 })();
