@@ -11,17 +11,17 @@ $isSuper = !empty($super);
         <div class="account-layout admin-shop-shell">
             <aside class="admin-shop-sidebar">
                 <div class="admin-shop-sidebar-header">
-                    <h2><?= $isSuper ? '👑 Superadmin' : '🛡️ Admin' ?></h2>
+                    <h2><?= $isSuper ? '<i class="bi bi-award-fill app-icon app-icon--amber" aria-hidden="true"></i> Superadmin' : '<i class="bi bi-shield-check app-icon app-icon--blue" aria-hidden="true"></i> Admin' ?></h2>
                     <p class="muted">Управление магазином</p>
                 </div>
                 <nav class="admin-shop-nav cabinet-nav">
-                    <button type="button" class="active" data-panel="dashboard"><span class="nav-icon">📊</span> Дашборд</button>
-                    <button type="button" data-panel="services"><span class="nav-icon">📦</span> Товары</button>
-                    <button type="button" data-panel="orders"><span class="nav-icon">🛒</span> Заказы</button>
-                    <button type="button" data-panel="users"><span class="nav-icon">👥</span> Клиенты</button>
-                    <button type="button" data-panel="diagnostics"><span class="nav-icon">🔬</span> Диагностика</button>
+                    <button type="button" class="active" data-panel="dashboard"><span class="nav-icon"><i class="bi bi-speedometer2 app-icon app-icon--accent" aria-hidden="true"></i></span> Дашборд</button>
+                    <button type="button" data-panel="services"><span class="nav-icon"><i class="bi bi-box-seam app-icon app-icon--accent" aria-hidden="true"></i></span> Товары</button>
+                    <button type="button" data-panel="orders"><span class="nav-icon"><i class="bi bi-bag-check app-icon app-icon--accent" aria-hidden="true"></i></span> Заказы</button>
+                    <button type="button" data-panel="users"><span class="nav-icon"><i class="bi bi-people app-icon app-icon--accent" aria-hidden="true"></i></span> Клиенты</button>
+                    <button type="button" data-panel="diagnostics"><span class="nav-icon"><i class="bi bi-heart-pulse app-icon app-icon--accent" aria-hidden="true"></i></span> Диагностика</button>
                     <?php if ($isSuper): ?>
-                    <button type="button" data-panel="settings"><span class="nav-icon">⚙️</span> Настройки</button>
+                    <button type="button" data-panel="settings"><span class="nav-icon"><i class="bi bi-gear app-icon app-icon--accent" aria-hidden="true"></i></span> Настройки</button>
                     <?php endif; ?>
                 </nav>
             </aside>
@@ -35,11 +35,11 @@ $isSuper = !empty($super);
                 <?php if ($isSuper): ?>
                 <div id="panel-settings" class="panel">
                     <div class="card panel-card">
-                        <h2>⚙️ Настройки магазина</h2>
+                        <h2><i class="bi bi-gear-fill app-icon app-icon--accent app-icon--inline" aria-hidden="true"></i> Настройки магазина</h2>
                         <p class="muted">Секреты не отображаются - оставьте поле пустым, чтобы не менять.</p>
 
                         <div class="settings-block">
-                            <h3>💳 ЮMoney - HTTP-уведомления</h3>
+                            <h3><i class="bi bi-credit-card app-icon app-icon--blue app-icon--inline" aria-hidden="true"></i> ЮMoney - HTTP-уведомления</h3>
                             <p class="muted">URL для настройки кошелька ЮMoney:</p>
                             <div class="notify-url-row">
                                 <input type="text" id="yoomoney-notify-url" readonly value="https://boosterino.ru/api/v1/payments/yoomoney/notify">

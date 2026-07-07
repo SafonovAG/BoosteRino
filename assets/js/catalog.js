@@ -12,6 +12,7 @@
   const scrollTopBtn = document.getElementById('scroll-top');
   if (!container) return;
 
+  const I = window.BoosterinoIcons;
   const PAGE_SIZE = 30;
   const params = new URLSearchParams(location.search);
   const renderRow = window.BoosterinoProductCard?.renderCatalogRow;
@@ -343,7 +344,7 @@
 
     let html = '<div class="catalog-pagination-inner">';
     html += '<button type="button" class="catalog-page-btn" data-page="' + (page - 1) + '"' +
-      (page <= 1 ? ' disabled' : '') + '>←</button>';
+      (page <= 1 ? ' disabled' : '') + '><i class="bi bi-chevron-left" aria-hidden="true"></i></button>';
 
     const pages = buildPageList(page, totalPages);
 
@@ -357,7 +358,7 @@
     });
 
     html += '<button type="button" class="catalog-page-btn" data-page="' + (page + 1) + '"' +
-      (page >= totalPages ? ' disabled' : '') + '>→</button></div>';
+      (page >= totalPages ? ' disabled' : '') + '><i class="bi bi-chevron-right" aria-hidden="true"></i></button></div>';
     html += '<p class="catalog-page-info muted">' + page + ' / ' + totalPages + ' · ' + total + ' ' + pluralServices(total) + '</p>';
 
     paginationEl.innerHTML = html;
@@ -382,7 +383,7 @@
     if (!filtered.length) {
       container.innerHTML =
         '<div class="catalog-pro-empty">' +
-          '<div class="catalog-pro-empty-icon">🔍</div>' +
+          '<div class="catalog-pro-empty-icon">' + I.empty('search') + '</div>' +
           '<p>Ничего не найдено</p>' +
           '<button type="button" class="btn btn-secondary btn-sm" id="reset-filters">Сбросить фильтры</button>' +
         '</div>';

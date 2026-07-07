@@ -25,9 +25,10 @@
     root.style.colorScheme = resolved;
     localStorage.setItem(KEY, pref);
     if (btn) {
-      const labels = { auto: '🌓', light: '☀️', dark: '🌙' };
-      btn.textContent = labels[pref] || '🌓';
-      btn.title = 'Тема: ' + (pref === 'auto' ? 'авто' : pref);
+      const icons = { auto: 'bi-circle-half', light: 'bi-sun-fill', dark: 'bi-moon-stars-fill' };
+      const titles = { auto: 'авто', light: 'светлая', dark: 'тёмная' };
+      btn.innerHTML = '<i class="bi ' + (icons[pref] || icons.auto) + ' app-icon app-icon--btn" aria-hidden="true"></i>';
+      btn.title = 'Тема: ' + (titles[pref] || titles.auto);
     }
   }
 

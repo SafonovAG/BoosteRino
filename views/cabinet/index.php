@@ -9,7 +9,7 @@ ob_start();
         </nav>
 
         <div id="email-warning" class="cabinet-pro-alert hidden">
-            <span class="cabinet-pro-alert-icon" aria-hidden="true">!</span>
+            <span class="cabinet-pro-alert-icon" aria-hidden="true"><i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i></span>
             <div>
                 <strong>Подтвердите email</strong>
                 <p>Перед первым заказом проверьте почту и перейдите по ссылке из письма.</p>
@@ -32,23 +32,23 @@ ob_start();
 
                     <nav class="cabinet-pro-nav cabinet-nav" aria-label="Разделы кабинета">
                         <button type="button" class="active" data-panel="overview">
-                            <span class="cabinet-pro-nav-icon" aria-hidden="true">◆</span>
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
                             <span>Обзор</span>
                         </button>
                         <button type="button" data-panel="orders">
-                            <span class="cabinet-pro-nav-icon" aria-hidden="true">◇</span>
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true"><i class="bi bi-bag-check" aria-hidden="true"></i></span>
                             <span>Мои заказы</span>
                         </button>
                         <button type="button" data-panel="topup">
-                            <span class="cabinet-pro-nav-icon" aria-hidden="true">+</span>
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true"><i class="bi bi-plus-circle-fill" aria-hidden="true"></i></span>
                             <span>Пополнение</span>
                         </button>
                         <button type="button" data-panel="history">
-                            <span class="cabinet-pro-nav-icon" aria-hidden="true">≡</span>
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true"><i class="bi bi-list-ul" aria-hidden="true"></i></span>
                             <span>Операции</span>
                         </button>
                         <button type="button" id="logout-btn" class="cabinet-pro-nav-logout">
-                            <span class="cabinet-pro-nav-icon" aria-hidden="true">→</span>
+                            <span class="cabinet-pro-nav-icon" aria-hidden="true"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
                             <span>Выйти</span>
                         </button>
                     </nav>

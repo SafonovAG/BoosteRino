@@ -19,6 +19,11 @@
     return v.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' ₽';
   }
 
+
+  function resultIcon() {
+    return '<div class="order-result-icon"><i class="bi bi-check-circle-fill app-icon app-icon--success app-icon--xl" aria-hidden="true"></i></div>';
+  }
+
   function statusClass(status) {
     const s = String(status || '').toLowerCase();
     if (s.includes('complet')) return 'order-status--ok';
@@ -30,7 +35,7 @@
   function renderEmpty() {
     root.innerHTML =
       '<div class="order-result-card card">' +
-        '<div class="order-result-icon">✅</div>' +
+        resultIcon() +
         '<h1>Спасибо за заказ!</h1>' +
         '<p class="muted">Перейдите в кабинет, чтобы посмотреть историю заказов.</p>' +
         '<div class="order-result-actions">' +
@@ -46,7 +51,7 @@
 
     root.innerHTML =
       '<div class="order-result-card card">' +
-        '<div class="order-result-icon">✅</div>' +
+        resultIcon() +
         '<h1>' + (multi ? 'Заказы успешно оформлены' : 'Заказ успешно оплачен') + '</h1>' +
         '<p class="order-result-lead">' +
           (multi
@@ -62,7 +67,7 @@
               '</div>' +
               '<h3>' + escape(o.service_name) + '</h3>' +
               '<p class="muted order-result-meta">' + o.quantity + ' ' + (o.quantity_unit || 'ед.') + ' · ' + fmtRub(o.cost_rub) + '</p>' +
-              '<a href="/orders/' + o.id + '" class="btn btn-secondary btn-sm">Статус заказа →</a>' +
+              '<a href="/orders/' + o.id + '" class="btn btn-secondary btn-sm">Статус заказа <i class="bi bi-arrow-right app-icon app-icon--inline" aria-hidden="true"></i></a>' +
             '</article>'
           ).join('') +
         '</div>' +

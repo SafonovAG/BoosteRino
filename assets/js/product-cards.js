@@ -104,7 +104,7 @@
             '<span>' + escapeHtml(priceUnitLabel(s)) + '</span>' +
           '</div>' +
           '<div class="home-tile-actions">' +
-            '<a href="' + href + '" class="home-tile-more" title="Подробнее">→</a>' +
+            '<a href="' + href + '" class="home-tile-more" title="Подробнее"><i class="bi bi-arrow-right" aria-hidden="true"></i></a>' +
             '<button type="button" class="home-tile-add btn-add-cart" data-service-id="' + s.id + '">В корзину</button>' +
           '</div>' +
         '</div>' +

@@ -501,11 +501,13 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 .faq-item summary::before {
-  content: '❓';
+  content: '\F504';
+  font-family: 'bootstrap-icons';
   font-size: 1.1rem;
+  color: var(--accent);
 }
 
-.faq-item[open] summary::before { content: '✨'; }
+.faq-item[open] summary::before { content: '\F586'; }
 
 .faq-item summary::-webkit-details-marker { display: none; }
 
@@ -527,13 +529,15 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 .balance-card::after {
-  content: '💎';
+  content: '\F3E5';
+  font-family: 'bootstrap-icons';
   position: absolute;
   right: 1.5rem;
   top: 50%;
   transform: translateY(-50%);
   font-size: 3.5rem;
   opacity: 0.25;
+  color: #fff;
 }
 
 .balance-card .muted { color: rgba(255,255,255,0.75); }

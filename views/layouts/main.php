@@ -18,7 +18,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/assets/css/themes.css">
+    <link rel="stylesheet" href="/assets/css/icons.css">
     <link rel="stylesheet" href="/assets/css/animations.css">
     <link rel="stylesheet" href="/assets/css/shop.css">
     <link rel="stylesheet" href="/assets/css/shop-fixes.css">
@@ -41,8 +43,8 @@ $platforms = \App\Services\ServiceLogo::platforms();
 ?>
     <div class="shop-topbar" id="shop-topbar">
         <div class="shop-topbar-inner">
-            <span>🎁 Выгодные цены - оплата в рублях, мгновенный запуск заказов</span>
-            <button type="button" class="shop-topbar-close" id="topbar-close" aria-label="Закрыть">×</button>
+            <span><i class="bi bi-gift-fill app-icon app-icon--amber" aria-hidden="true"></i> Выгодные цены - оплата в рублях, мгновенный запуск заказов</span>
+            <button type="button" class="shop-topbar-close" id="topbar-close" aria-label="Закрыть"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
         </div>
     </div>
 
@@ -54,11 +56,11 @@ $platforms = \App\Services\ServiceLogo::platforms();
             </a>
 
             <nav class="store-nav" id="store-nav">
-                <a href="/" class="<?= ($page ?? '') === 'home' ? 'active' : '' ?>">Главная</a>
-                <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>">Каталог</a>
-                <a href="/cart" class="<?= ($page ?? '') === 'cart' ? 'active' : '' ?>">Корзина</a>
+                <a href="/" class="<?= ($page ?? '') === 'home' ? 'active' : '' ?>"><i class="bi bi-house-door app-icon app-icon--inline" aria-hidden="true"></i> Главная</a>
+                <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>"><i class="bi bi-grid-3x3-gap app-icon app-icon--inline" aria-hidden="true"></i> Каталог</a>
+                <a href="/cart" class="<?= ($page ?? '') === 'cart' ? 'active' : '' ?>"><i class="bi bi-cart3 app-icon app-icon--inline" aria-hidden="true"></i> Корзина</a>
                 <?php if ($authUser): ?>
-                    <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>">Мой кабинет</a>
+                    <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>"><i class="bi bi-person-circle app-icon app-icon--inline" aria-hidden="true"></i> Мой кабинет</a>
                     <?php if (in_array($authUser['role'], ['admin', 'superadmin'], true)): ?>
                         <a href="/admin" class="<?= ($page ?? '') === 'admin' ? 'active' : '' ?>">Админ</a>
                     <?php endif; ?>
@@ -67,7 +69,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
 
             <div class="store-header-actions">
                 <a href="/cart" class="cart-pill" id="cart-link" title="Корзина">
-                    <span class="cart-pill-icon">🛒</span>
+                    <span class="cart-pill-icon"><i class="bi bi-cart3 app-icon app-icon--accent" aria-hidden="true"></i></span>
                     <span class="cart-pill-count" id="cart-count">0</span>
                 </a>
                 <?php if ($authUser): ?>
@@ -79,8 +81,8 @@ $platforms = \App\Services\ServiceLogo::platforms();
                     <a href="/login" class="btn btn-ghost">Вход</a>
                     <a href="/register" class="btn btn-primary">Регистрация</a>
                 <?php endif; ?>
-                <button type="button" class="btn-icon" id="theme-toggle" aria-label="Тема">🌓</button>
-                <button type="button" class="btn-icon store-nav-toggle" id="nav-toggle" aria-label="Меню">☰</button>
+                <button type="button" class="btn-icon" id="theme-toggle" aria-label="Тема"><i class="bi bi-circle-half app-icon" aria-hidden="true"></i></button>
+                <button type="button" class="btn-icon store-nav-toggle" id="nav-toggle" aria-label="Меню"><i class="bi bi-list app-icon" aria-hidden="true"></i></button>
             </div>
         </div>
     </header>
@@ -140,6 +142,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
     </footer>
 
     <div id="toast-container" class="toast-container"></div>
+    <script src="/assets/js/icons.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/ui.js"></script>

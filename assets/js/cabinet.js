@@ -1,5 +1,6 @@
 (function () {
   const { api, toast } = window.Boosterino;
+  const I = window.BoosterinoIcons;
   const panels = document.querySelectorAll('.cabinet-pro-panel, .panel');
   const navBtns = document.querySelectorAll('[data-panel]');
 
@@ -73,35 +74,25 @@
   function renderStats(stats, profile) {
     if (!statsEl) return;
     const verified = stats.email_verified ?? !!profile.email_verified_at;
+    const stat = (icon, value, label, sm) =>
+      '<div class="cabinet-pro-stat">' +
+        '<span class="cabinet-pro-stat-icon">' + I.html(icon, 'app-icon--accent') + '</span>' +
+        '<span class="cabinet-pro-stat-value' + (sm ? ' cabinet-pro-stat-value--sm' : '') + '">' + value + '</span>' +
+        '<span class="cabinet-pro-stat-label">' + label + '</span>' +
+      '</div>';
     statsEl.innerHTML =
       '<div class="cabinet-pro-stats-grid">' +
-        '<div class="cabinet-pro-stat">' +
-          '<span class="cabinet-pro-stat-value">' + (stats.orders_total ?? 0) + '</span>' +
-          '<span class="cabinet-pro-stat-label">Всего заказов</span>' +
-        '</div>' +
-        '<div class="cabinet-pro-stat">' +
-          '<span class="cabinet-pro-stat-value">' + (stats.orders_active ?? 0) + '</span>' +
-          '<span class="cabinet-pro-stat-label">В работе</span>' +
-        '</div>' +
-        '<div class="cabinet-pro-stat">' +
-          '<span class="cabinet-pro-stat-value">' + (stats.orders_completed ?? 0) + '</span>' +
-          '<span class="cabinet-pro-stat-label">Выполнено</span>' +
-        '</div>' +
-        '<div class="cabinet-pro-stat">' +
-          '<span class="cabinet-pro-stat-value">' + fmt(stats.spent_rub ?? 0) + '</span>' +
-          '<span class="cabinet-pro-stat-label">Потрачено</span>' +
-        '</div>' +
-        '<div class="cabinet-pro-stat">' +
-          '<span class="cabinet-pro-stat-value">' + fmt(stats.topup_rub ?? 0) + '</span>' +
-          '<span class="cabinet-pro-stat-label">Пополнено</span>' +
-        '</div>' +
-        '<div class="cabinet-pro-stat">' +
-          '<span class="cabinet-pro-stat-value cabinet-pro-stat-value--sm">' + escape(stats.member_since || '—') + '</span>' +
-          '<span class="cabinet-pro-stat-label">С нами с</span>' +
-        '</div>' +
+        stat('bag-check', stats.orders_total ?? 0, 'Всего заказов', false) +
+        stat('hourglass-split', stats.orders_active ?? 0, 'В работе', false) +
+        stat('check-circle', stats.orders_completed ?? 0, 'Выполнено', false) +
+        stat('currency-dollar', fmt(stats.spent_rub ?? 0), 'Потрачено', false) +
+        stat('wallet2', fmt(stats.topup_rub ?? 0), 'Пополнено', false) +
+        stat('calendar-event', escape(stats.member_since || '—'), 'С нами с', true) +
       '</div>' +
       '<p class="cabinet-pro-stats-note muted">' +
-        (verified ? 'Email подтверждён' : 'Email не подтверждён') +
+        (verified
+          ? '<i class="bi bi-patch-check-fill app-icon app-icon--success app-icon--inline" aria-hidden="true"></i> Email подтверждён'
+          : '<i class="bi bi-envelope-exclamation app-icon app-icon--amber app-icon--inline" aria-hidden="true"></i> Email не подтверждён') +
       '</p>';
   }
 

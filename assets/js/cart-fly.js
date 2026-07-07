@@ -27,8 +27,8 @@
       img.alt = '';
       el.appendChild(img);
     } else {
-      el.textContent = '🛒';
-      el.classList.add('cart-fly-particle--emoji');
+      el.classList.add('cart-fly-particle--icon');
+      el.innerHTML = '<i class="bi bi-cart3" aria-hidden="true"></i>';
     }
 
     document.body.appendChild(el);

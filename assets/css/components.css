@@ -282,8 +282,10 @@
 }
 
 .service-category::before {
-  content: '📂';
+  content: '\F3D7';
+  font-family: 'bootstrap-icons';
   font-size: 1.25rem;
+  color: var(--accent);
 }
 
 .status-badge {
@@ -380,10 +382,6 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-
-.stat-card.stat-users .stat-icon { filter: hue-rotate(0deg); }
-.stat-card.stat-orders .stat-icon { filter: hue-rotate(30deg); }
-.stat-card.stat-balance .stat-icon { filter: hue-rotate(60deg); }
 
 .grid-2 {
   display: grid;

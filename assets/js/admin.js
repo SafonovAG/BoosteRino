@@ -1,5 +1,6 @@
 (function () {
   const { api, toast } = window.Boosterino;
+  const I = window.BoosterinoIcons;
   const isSuper = document.body.dataset.superadmin === '1';
 
   const panels = document.querySelectorAll('.panel');
@@ -144,19 +145,19 @@
       el.innerHTML =
         '<div class="admin-dash">' +
           '<div class="admin-dash-head">' +
-            '<h2><span class="panel-icon">📊</span> Обзор магазина</h2>' +
+            '<h2>' + I.panel('speedometer2') + ' Обзор магазина</h2>' +
             '<p class="muted">Сводка на ' + fmtDate(s.generated_at || new Date().toISOString()) + '</p>' +
           '</div>' +
 
           '<div class="admin-shop-stats admin-dash-stats">' +
-            '<div class="card stat-card"><span class="stat-icon">👥</span><div class="value">' + fmtNum(u.total) + '</div><div class="label">Клиентов</div><div class="stat-sub">+' + fmtNum(u.today) + ' сегодня</div></div>' +
-            '<div class="card stat-card"><span class="stat-icon">🛒</span><div class="value">' + fmtNum(o.today) + '</div><div class="label">Заказов сегодня</div><div class="stat-sub">' + fmtNum(o.week) + ' за 7 дней</div></div>' +
-            '<div class="card stat-card"><span class="stat-icon">💰</span><div class="value">' + fmtRub(r.today) + '</div><div class="label">Выручка сегодня</div><div class="stat-sub">' + fmtRub(r.week) + ' за неделю</div></div>' +
-            '<div class="card stat-card"><span class="stat-icon">📈</span><div class="value">' + fmtRub(r.total) + '</div><div class="label">Выручка всего</div><div class="stat-sub">' + fmtNum(o.total) + ' заказов</div></div>' +
-            '<div class="card stat-card"><span class="stat-icon">⏳</span><div class="value">' + fmtNum(o.active) + '</div><div class="label">В работе</div><div class="stat-sub">ожидают / выполняются</div></div>' +
-            '<div class="card stat-card"><span class="stat-icon">📦</span><div class="value">' + fmtNum(svc.active) + '</div><div class="label">Товаров активно</div><div class="stat-sub">из ' + fmtNum(svc.total) + '</div></div>' +
-            '<div class="card stat-card"><span class="stat-icon">💳</span><div class="value">' + fmtRub(s.balances?.users_total) + '</div><div class="label">Балансы клиентов</div><div class="stat-sub">' + fmtNum(u.active) + ' активных</div></div>' +
-            '<div class="card stat-card stat-card--supplier"><span class="stat-icon">💎</span><div class="value">' + supplierValue + '</div><div class="label">Баланс поставщика</div><div class="stat-sub">Twiboost</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">' + I.html('people', 'app-icon--violet') + '</span><div class="value">' + fmtNum(u.total) + '</div><div class="label">Клиентов</div><div class="stat-sub">+' + fmtNum(u.today) + ' сегодня</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">' + I.html('bag-check', 'app-icon--blue') + '</span><div class="value">' + fmtNum(o.today) + '</div><div class="label">Заказов сегодня</div><div class="stat-sub">' + fmtNum(o.week) + ' за 7 дней</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">' + I.html('currency-dollar', 'app-icon--green') + '</span><div class="value">' + fmtRub(r.today) + '</div><div class="label">Выручка сегодня</div><div class="stat-sub">' + fmtRub(r.week) + ' за неделю</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">' + I.html('graph-up-arrow', 'app-icon--indigo') + '</span><div class="value">' + fmtRub(r.total) + '</div><div class="label">Выручка всего</div><div class="stat-sub">' + fmtNum(o.total) + ' заказов</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">' + I.html('hourglass-split', 'app-icon--amber') + '</span><div class="value">' + fmtNum(o.active) + '</div><div class="label">В работе</div><div class="stat-sub">ожидают / выполняются</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">' + I.html('box-seam', 'app-icon--cyan') + '</span><div class="value">' + fmtNum(svc.active) + '</div><div class="label">Товаров активно</div><div class="stat-sub">из ' + fmtNum(svc.total) + '</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">' + I.html('wallet2', 'app-icon--pink') + '</span><div class="value">' + fmtRub(s.balances?.users_total) + '</div><div class="label">Балансы клиентов</div><div class="stat-sub">' + fmtNum(u.active) + ' активных</div></div>' +
+            '<div class="card stat-card stat-card--supplier"><span class="stat-icon">' + I.html('gem', 'app-icon--orange') + '</span><div class="value">' + supplierValue + '</div><div class="label">Баланс поставщика</div><div class="stat-sub">Twiboost</div></div>' +
           '</div>' +
 
           '<div class="admin-dash-grid">' +
@@ -165,7 +166,7 @@
               (statusRows ? '<div class="admin-dash-statuses">' + statusRows + '</div>' : '<p class="muted">Нет заказов</p>') +
             '</section>' +
             '<section class="card panel-card admin-dash-panel">' +
-              '<div class="admin-dash-panel-head"><h3>Новые клиенты</h3><button type="button" class="btn btn-ghost btn-sm" data-dash-go="users">Все →</button></div>' +
+              '<div class="admin-dash-panel-head"><h3>Новые клиенты</h3><button type="button" class="btn btn-ghost btn-sm" data-dash-go="users">Все <i class="bi bi-arrow-right app-icon app-icon--inline" aria-hidden="true"></i></button></div>' +
               (recentUsers
                 ? '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Email</th><th>Баланс</th><th>Регистрация</th></tr></thead><tbody>' + recentUsers + '</tbody></table></div>'
                 : '<p class="muted">Пока нет регистраций</p>') +
@@ -173,7 +174,7 @@
           '</div>' +
 
           '<section class="card panel-card admin-dash-panel">' +
-            '<div class="admin-dash-panel-head"><h3>Последние заказы</h3><button type="button" class="btn btn-ghost btn-sm" data-dash-go="orders">Все →</button></div>' +
+            '<div class="admin-dash-panel-head"><h3>Последние заказы</h3><button type="button" class="btn btn-ghost btn-sm" data-dash-go="orders">Все <i class="bi bi-arrow-right app-icon app-icon--inline" aria-hidden="true"></i></button></div>' +
             (recentOrders
               ? '<div class="table-wrap admin-orders-table-wrap"><table><thead><tr><th>#</th><th>Дата</th><th>Клиент</th><th>Услуга</th><th>Сумма</th><th>Статус</th></tr></thead><tbody>' + recentOrders + '</tbody></table></div>'
               : '<p class="muted">Заказов пока нет</p>') +
@@ -424,7 +425,7 @@
     el.innerHTML =
       '<div class="admin-orders-list card panel-card">' +
         '<div class="admin-orders-toolbar">' +
-          '<h2><span class="panel-icon">🛒</span> Заказы</h2>' +
+          '<h2>' + I.panel('bag-check') + ' Заказы</h2>' +
           '<div class="admin-orders-filters">' +
             '<select id="admin-orders-status-filter" class="shop-select">' +
               '<option value="all">Все статусы</option>' +
@@ -453,7 +454,7 @@
               '</tr>'
             ).join('') +
             '</tbody></table></div>'
-          : '<p class="muted">📭 Нет заказов</p>') +
+          : '<p class="muted"><i class="bi bi-inbox app-icon app-icon--muted app-icon--inline" aria-hidden="true"></i> Нет заказов</p>') +
       '</div>';
 
     el.querySelector('#admin-orders-status-filter')?.addEventListener('change', (e) => {
@@ -636,7 +637,13 @@
     Object.keys(groups).forEach((g) => {
       html += '<div class="diag-group"><h3>' + escape(g) + '</h3><div class="diag-list">';
       groups[g].forEach((r) => {
-        const icon = r.status === 'ok' ? '✓' : (r.status === 'warn' ? '!' : (r.status === 'skip' ? '○' : '✕'));
+        const icon = r.status === 'ok'
+          ? '<span class="diag-status-icon diag-status-icon--ok">' + I.html('check-circle-fill') + '</span>'
+          : (r.status === 'warn'
+            ? '<span class="diag-status-icon diag-status-icon--warn">' + I.html('exclamation-triangle-fill') + '</span>'
+            : (r.status === 'skip'
+              ? '<span class="diag-status-icon diag-status-icon--skip">' + I.html('dash-circle') + '</span>'
+              : '<span class="diag-status-icon diag-status-icon--bad">' + I.html('x-circle-fill') + '</span>'));
         html += '<div class="diag-item diag-item--' + r.status + '">' +
           '<span class="diag-icon">' + icon + '</span>' +
           '<div class="diag-body">' +
@@ -745,7 +752,7 @@
     el.dataset.ready = '1';
     el.innerHTML =
       '<div class="card panel-card">' +
-        '<h2><span class="panel-icon">🔬</span> Диагностика</h2>' +
+        '<h2>' + I.panel('heart-pulse') + ' Диагностика</h2>' +
         '<div class="diag-tabs">' +
           '<button type="button" class="diag-tab is-active" data-diag-tab="system">Система</button>' +
           '<button type="button" class="diag-tab" data-diag-tab="shop-api">API магазина</button>' +

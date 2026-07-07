@@ -4,6 +4,7 @@
   const root = document.getElementById('cart-page');
   if (!root || !cart) return;
 
+  const I = window.BoosterinoIcons;
   const fmt = window.BoosterinoProductCard?.formatPrice || ((n) => n + ' ₽');
   const fmtQty = window.BoosterinoProductCard?.formatQty || ((n) => String(n));
   const escape = window.BoosterinoProductCard?.escapeHtml || ((s) => s);
@@ -24,7 +25,7 @@
     shellReady = false;
     root.innerHTML =
       '<div class="cart-pro-empty">' +
-        '<div class="cart-pro-empty-icon">🛒</div>' +
+        '<div class="cart-pro-empty-icon">' + I.empty('cart-x') + '</div>' +
         '<h2>Корзина пуста</h2>' +
         '<p class="muted">Выберите услуги в каталоге и добавьте их сюда</p>' +
         '<a href="/services" class="btn btn-primary">Открыть каталог</a>' +
@@ -39,7 +40,7 @@
         '<aside class="cart-pro-checkout" id="cart-pro-summary">' +
           '<div class="cart-pro-checkout-glow" aria-hidden="true"></div>' +
           '<header class="cart-pro-checkout-head">' +
-            '<span class="cart-pro-checkout-icon" aria-hidden="true">🧾</span>' +
+            '<span class="cart-pro-checkout-icon" aria-hidden="true"><i class="bi bi-receipt app-icon app-icon--accent" aria-hidden="true"></i></span>' +
             '<div>' +
               '<h2 class="cart-pro-checkout-title">Ваш заказ</h2>' +
               '<p class="cart-pro-checkout-sub muted">Проверьте сумму и оформите покупку</p>' +
@@ -79,8 +80,8 @@
           '<label class="shop-field-label" for="cart-payment">Способ оплаты</label>' +
           '<div class="shop-select-wrap">' +
             '<select id="cart-payment" class="shop-select">' +
-              '<option value="balance">💰 С баланса</option>' +
-              '<option value="yoomoney">💳 ЮMoney</option>' +
+              '<option value="balance">С баланса</option>' +
+              '<option value="yoomoney">ЮMoney</option>' +
             '</select>' +
           '</div>' +
         '</div>' +

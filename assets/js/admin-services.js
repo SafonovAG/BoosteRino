@@ -1,5 +1,6 @@
 (function () {
   const { api, toast } = window.Boosterino;
+  const I = window.BoosterinoIcons;
 
   function escape(s) {
     const d = document.createElement('div');
@@ -278,10 +279,10 @@
       el.innerHTML =
         '<div class="admin-svc-shell">' +
           '<div class="admin-svc-toolbar">' +
-            '<div><h2><span class="panel-icon">📦</span> Товары</h2><p class="muted" id="admin-svc-count">Загрузка...</p></div>' +
+            '<div><h2>' + I.panel('box-seam') + ' Товары</h2><p class="muted" id="admin-svc-count">Загрузка...</p></div>' +
             '<div class="admin-svc-toolbar-actions">' +
               '<input type="search" id="admin-svc-search" placeholder="Поиск в выбранной платформе...">' +
-              '<button type="button" class="btn btn-primary btn-sm" id="sync-services">🔄 Синхронизировать</button>' +
+              '<button type="button" class="btn btn-primary btn-sm" id="sync-services"><i class="bi bi-arrow-repeat app-icon app-icon--inline" aria-hidden="true"></i> Синхронизировать</button>' +
             '</div>' +
           '</div>' +
           '<p class="muted admin-svc-sync-hint">Новые товары импортируются полностью. У уже добавленных обновляются цена, min/max, рефилл и отмена - название, видимость и описание сохраняются.</p>' +

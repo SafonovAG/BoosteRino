@@ -17,7 +17,7 @@ ob_start();
                 <div class="catalog-pro-search">
                     <svg class="catalog-pro-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     <input type="search" id="catalog-search" placeholder="Поиск услуги..." autocomplete="off">
-                    <button type="button" class="catalog-pro-search-clear hidden" id="search-clear" aria-label="Очистить">×</button>
+                    <button type="button" class="catalog-pro-search-clear hidden" id="search-clear" aria-label="Очистить"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
                 </div>
             </div>
 
@@ -75,7 +75,7 @@ ob_start();
         <nav id="catalog-pagination" class="catalog-pro-pagination" aria-label="Страницы"></nav>
     </div>
 
-    <button type="button" class="catalog-pro-fab" id="scroll-top" aria-label="Наверх" hidden>↑</button>
+    <button type="button" class="catalog-pro-fab" id="scroll-top" aria-label="Наверх" hidden><i class="bi bi-arrow-up" aria-hidden="true"></i></button>
 </div>
 
 <div class="catalog-pro-overlay" id="catalog-overlay" hidden></div>

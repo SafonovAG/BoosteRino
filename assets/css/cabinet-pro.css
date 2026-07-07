@@ -304,6 +304,15 @@
   border: 1px solid var(--border);
 }
 
+.cabinet-pro-stat-icon {
+  display: inline-flex;
+  margin-bottom: 0.15rem;
+}
+
+.cabinet-pro-stat-icon .bi {
+  font-size: 1.1rem;
+}
+
 .cabinet-pro-stat-value {
   font-size: 1.25rem;
   font-weight: 800;

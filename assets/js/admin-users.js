@@ -1,5 +1,6 @@
 (function () {
   const { api, toast } = window.Boosterino;
+  const I = window.BoosterinoIcons;
   const isSuper = document.body.dataset.superadmin === '1';
 
   function escape(s) {
@@ -268,7 +269,7 @@
     el.innerHTML =
       '<div class="admin-users-shell">' +
         '<div class="admin-users-toolbar">' +
-          '<div><h2><span class="panel-icon">👥</span> Клиенты</h2><p class="muted">' + usersCache.length + ' пользователей</p></div>' +
+          '<div><h2>' + I.panel('people') + ' Клиенты</h2><p class="muted">' + usersCache.length + ' пользователей</p></div>' +
           '<input type="search" id="admin-users-search" placeholder="ID или email..." value="' + escape(usersFilter.q) + '">' +
         '</div>' +
         '<div class="admin-users-grid">' +
