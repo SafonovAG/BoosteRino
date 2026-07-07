@@ -65,10 +65,12 @@ ob_start();
     </div>
 
     <div class="container catalog-pro-body">
-        <div id="services-catalog" class="catalog-pro-list is-loading">
+        <div class="catalog-pro-list-stage" id="catalog-list-stage">
+            <div id="services-catalog" class="catalog-pro-list is-loading">
             <?php for ($i = 0; $i < 6; $i++): ?>
                 <div class="catalog-row catalog-row-skeleton"></div>
             <?php endfor; ?>
+            </div>
         </div>
         <nav id="catalog-pagination" class="catalog-pro-pagination" aria-label="Страницы"></nav>
     </div>

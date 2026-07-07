@@ -1,6 +1,7 @@
 (function () {
   const { api } = window.Boosterino;
   const container = document.getElementById('services-catalog');
+  const listStage = document.getElementById('catalog-list-stage');
   const countEl = document.getElementById('catalog-count');
   const searchEl = document.getElementById('catalog-search');
   const searchClear = document.getElementById('search-clear');
@@ -20,6 +21,8 @@
   let category = params.get('category') || 'all';
   let page = Math.max(1, parseInt(params.get('page') || '1', 10) || 1);
   let searchTimer = null;
+  let pageTransitionTimer = null;
+  const PAGE_TRANSITION_MS = 220;
 
   function setupScrollRail(root) {
     const track = root.querySelector('.catalog-pro-rail, .catalog-pro-cats');
@@ -231,6 +234,39 @@
     refreshScrollRails();
   }
 
+  function scrollToCatalogTop() {
+    const deck = document.getElementById('catalog-deck');
+    if (!deck) return;
+    const headerH = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--shop-header-h') || '64',
+      10
+    ) || 64;
+    const top = deck.getBoundingClientRect().top + window.scrollY - headerH;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }
+
+  function goToPage(next, totalPages) {
+    if (!next || next < 1 || next > totalPages || next === page) return;
+    if (pageTransitionTimer) clearTimeout(pageTransitionTimer);
+
+    listStage?.classList.add('is-page-changing');
+    paginationEl?.classList.add('is-busy');
+
+    pageTransitionTimer = setTimeout(() => {
+      page = next;
+      updateUrl();
+      renderProducts(getFiltered(), { pageChange: true });
+      scrollToCatalogTop();
+
+      requestAnimationFrame(() => {
+        listStage?.classList.remove('is-page-changing');
+        paginationEl?.classList.remove('is-busy');
+        container.classList.add('is-animating');
+        setTimeout(() => container.classList.remove('is-animating'), 460);
+      });
+    }, PAGE_TRANSITION_MS);
+  }
+
   function buildPageList(current, total) {
     if (total <= 7) {
       return Array.from({ length: total }, (_, i) => i + 1);
@@ -275,17 +311,12 @@
 
     paginationEl.querySelectorAll('.catalog-page-btn[data-page]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const next = +btn.dataset.page;
-        if (!next || next < 1 || next > totalPages || next === page) return;
-        page = next;
-        updateUrl();
-        render();
-        document.getElementById('catalog-deck')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        goToPage(+btn.dataset.page, totalPages);
       });
     });
   }
 
-  function renderProducts(filtered) {
+  function renderProducts(filtered, options) {
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     if (page > totalPages) page = totalPages;
 
@@ -338,9 +369,12 @@
       html += '</div></div>';
     });
 
-    container.classList.add('is-animating');
     container.innerHTML = html;
-    setTimeout(() => container.classList.remove('is-animating'), 400);
+
+    if (!options?.pageChange) {
+      container.classList.add('is-animating');
+      setTimeout(() => container.classList.remove('is-animating'), 400);
+    }
 
     renderPagination(filtered.length, totalPages);
   }
