@@ -120,7 +120,7 @@
     const data = await api('/api/v1/services');
     services = data.services || [];
     serviceSelect.innerHTML = services.map((s) =>
-      '<option value="' + s.id + '">' + escape(s.name) + ' - ' + fmt(s.price_per_thousand_rub) + '/1000</option>'
+      '<option value="' + s.id + '">' + escape(s.name) + ' - ' + fmt(s.price_per_thousand_rub) + ' (' + escape(s.price_unit_label || 'за 1000') + ')</option>'
     ).join('');
     updateServiceLogo();
     updatePrice();

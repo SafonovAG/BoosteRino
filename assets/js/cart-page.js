@@ -110,7 +110,7 @@
             '<button type="button" class="cart-qty-plus" aria-label="Больше на 1 пак">+</button>' +
           '</div>' +
           '<div class="cart-pro-item-side">' +
-            '<div class="cart-pro-item-rate">' + fmt(item.price_per_thousand_rub) + ' / 1000</div>' +
+            '<div class="cart-pro-item-rate">' + fmt(item.price_per_thousand_rub) + ' · ' + escape(item.price_unit_label || 'за 1000') + '</div>' +
             '<div class="cart-pro-item-total">' + fmt(total) + '</div>' +
             '<div class="cart-pro-item-qty-note muted">' + fmtQty(item.quantity) + ' ед.</div>' +
           '</div>' +

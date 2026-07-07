@@ -7,6 +7,7 @@
   const fmt = window.BoosterinoProductCard?.formatPrice || ((n) => n + ' ₽');
   const fmtQty = window.BoosterinoProductCard?.formatQty || ((n) => String(n));
   const parseUnit = window.BoosterinoProductCard?.parseDeliveryUnit || (() => 'единиц');
+  const priceUnitLabel = window.BoosterinoProductCard?.priceUnitLabel || ((s) => 'за 1000');
   const escape = window.BoosterinoProductCard?.escapeHtml || ((s) => s);
 
   if (!serviceId) {
@@ -46,7 +47,7 @@
   function updateUI() {
     const packs = getPacks();
     const units = Q().actualUnits(packs, service.min, service.max);
-    const unit = parseUnit(service.name);
+    const unit = service.delivery_unit || parseUnit(service.name);
     const deliveryEl = document.getElementById('product-delivery-value');
     const priceEl = document.getElementById('product-total-price');
     const minusBtn = document.getElementById('product-qty-minus');
@@ -69,7 +70,8 @@
     const badges = [];
     if (s.refill) badges.push('<span class="badge badge-refill">Рефилл</span>');
     if (s.cancel) badges.push('<span class="badge badge-cancel">Отмена</span>');
-    const unit = parseUnit(s.name);
+    const unit = s.delivery_unit || parseUnit(s.name);
+    const unitPriceLabel = s.price_unit_label || priceUnitLabel(s);
     const label = s.category_label || s.platform_name || s.category || '';
     const linkLabel = s.link_label || 'Ссылка на профиль или пост';
     const linkPlaceholder = s.link_placeholder || s.link_example || 'https://...';
@@ -89,7 +91,7 @@
           '<h1 class="product-pro-title">' + escape(s.name) + '</h1>' +
           '<div class="product-pro-rate">' +
             '<strong>' + fmt(s.price_per_thousand_rub) + '</strong>' +
-            '<span>за 1000 ' + escape(unit) + '</span>' +
+            '<span>' + escape(unitPriceLabel) + '</span>' +
           '</div>' +
           '<div class="product-pro-specs">' +
             '<div class="product-pro-spec"><label>Минимум</label><strong>' + fmtQty(s.min) + '</strong></div>' +
@@ -182,6 +184,8 @@
         service_type: s.type,
         link_label: s.link_label,
         link_placeholder: s.link_placeholder,
+        price_unit_label: s.price_unit_label,
+        delivery_unit: s.delivery_unit,
         price_per_thousand_rub: s.price_per_thousand_rub,
         min: s.min,
         max: s.max,

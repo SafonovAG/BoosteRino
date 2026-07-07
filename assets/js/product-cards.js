@@ -37,6 +37,12 @@
     return 'единиц';
   }
 
+  function priceUnitLabel(s) {
+    if (s.price_unit_label) return s.price_unit_label;
+    const unit = s.delivery_unit || parseDeliveryUnit(s.name);
+    return 'за 1000 ' + unit;
+  }
+
   function renderProductCard(s, options) {
     options = options || {};
     const badges = [];
@@ -60,7 +66,7 @@
       '<div class="product-card-body">' +
         '<div class="product-card-price-row">' +
           '<span class="product-card-price">' + formatPrice(s.price_per_thousand_rub) + '</span>' +
-          '<span class="product-card-price-unit">/ 1000</span>' +
+          '<span class="product-card-price-unit">' + escapeHtml(priceUnitLabel(s)) + '</span>' +
         '</div>' +
         '<div class="product-card-stats">' +
           '<span>мин. ' + formatQty(s.min) + '</span>' +
@@ -77,7 +83,7 @@
   function renderHomeTile(s) {
     const label = s.category_label || s.platform_name || s.category || '';
     const href = '/services/' + s.id;
-    const unit = parseDeliveryUnit(s.name);
+    const unit = s.delivery_unit || parseDeliveryUnit(s.name);
     const badges = [];
     if (s.refill) badges.push('<span class="home-tile-badge home-tile-badge--refill">Р</span>');
     if (s.cancel) badges.push('<span class="home-tile-badge home-tile-badge--cancel">О</span>');
@@ -97,7 +103,7 @@
         '<div class="home-tile-foot">' +
           '<div class="home-tile-price">' +
             '<strong>' + formatPrice(s.price_per_thousand_rub) + '</strong>' +
-            '<span>за 1000</span>' +
+            '<span>' + escapeHtml(priceUnitLabel(s)) + '</span>' +
           '</div>' +
           '<div class="home-tile-actions">' +
             '<a href="' + href + '" class="home-tile-more" title="Подробнее">→</a>' +
@@ -127,6 +133,8 @@
         service_type: s.type,
         link_label: s.link_label,
         link_placeholder: s.link_placeholder,
+        price_unit_label: s.price_unit_label,
+        delivery_unit: s.delivery_unit,
         price_per_thousand_rub: s.price_per_thousand_rub,
         min: s.min,
         max: s.max,
@@ -153,7 +161,7 @@
   function renderCatalogRow(s) {
     const label = s.category_label || s.platform_name || s.category || '';
     const href = '/services/' + s.id;
-    const unit = parseDeliveryUnit(s.name);
+    const unit = s.delivery_unit || parseDeliveryUnit(s.name);
     const badges = [];
     if (s.refill) badges.push('<span class="catalog-tile-badge catalog-tile-badge--refill">Рефилл</span>');
     if (s.cancel) badges.push('<span class="catalog-tile-badge catalog-tile-badge--cancel">Отмена</span>');
@@ -177,7 +185,7 @@
       '<div class="catalog-tile-foot">' +
         '<div class="catalog-tile-price">' +
           '<strong>' + formatPrice(s.price_per_thousand_rub) + '</strong>' +
-          '<span>за 1000</span>' +
+          '<span>' + escapeHtml(priceUnitLabel(s)) + '</span>' +
         '</div>' +
         '<div class="catalog-tile-actions">' +
           '<a href="' + href + '" class="btn btn-ghost btn-sm catalog-tile-more">Подробнее</a>' +
@@ -195,6 +203,7 @@
     formatPrice,
     formatQty,
     parseDeliveryUnit,
+    priceUnitLabel,
     escapeHtml,
   };
 })();

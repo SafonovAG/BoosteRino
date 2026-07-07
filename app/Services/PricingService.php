@@ -6,10 +6,12 @@ namespace App\Services;
 
 final class PricingService
 {
+    private const PRICE_BASIS = 1000;
+
     public function price(float $rate, int $qty, ?float $override = null): float
     {
         $markup = $override ?? (new SettingsService())->getFloat('global_markup_percent', 30);
-        $base = ($rate / 1000) * $qty;
+        $base = ($rate / self::PRICE_BASIS) * $qty;
         return ceil($base * (1 + $markup / 100) * 100) / 100;
     }
 
@@ -23,13 +25,17 @@ final class PricingService
     {
         $ov = $s['markup_override'] !== null ? (float) $s['markup_override'] : null;
         $linkHint = (new LinkValidator())->hint($s);
+        $deliveryUnit = DeliveryUnit::fromName((string) $s['name']);
         return [
             'id' => (int) $s['id'],
             'external_id' => (int) $s['external_id'],
             'name' => $s['name'],
             'type' => $s['type'],
             'category' => $s['category'],
-            'price_per_thousand_rub' => $this->price((float) $s['rate'], 1000, $ov),
+            'price_basis' => self::PRICE_BASIS,
+            'delivery_unit' => $deliveryUnit,
+            'price_unit_label' => DeliveryUnit::priceLabel((string) $s['name'], self::PRICE_BASIS),
+            'price_per_thousand_rub' => $this->price((float) $s['rate'], self::PRICE_BASIS, $ov),
             'min' => (int) $s['min_qty'],
             'max' => (int) $s['max_qty'],
             'refill' => (bool) $s['refill'],

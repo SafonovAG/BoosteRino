@@ -78,6 +78,8 @@
         service_type: item.service_type || item.type || '',
         link_label: item.link_label || '',
         link_placeholder: item.link_placeholder || '',
+        price_unit_label: item.price_unit_label || '',
+        delivery_unit: item.delivery_unit || '',
         price_per_thousand_rub: +item.price_per_thousand_rub,
         min,
         max,
