@@ -1,9 +1,6 @@
 (function () {
   const KEY = 'boosterino_cart';
   const Q = () => window.BoosterinoQty || {
-    PACK: 1000,
-    minPacks: (min) => Math.max(1, Math.ceil(min / 1000)),
-    fromPacks: (p, min, max) => Math.max(min || 1, Math.min(max || 1e9, p * 1000)),
     snap: (q, min, max) => Math.max(min, Math.min(max, +q)),
     calcPriceActual: (p, q) => (p / 1000) * q,
   };
@@ -62,10 +59,11 @@
     const existing = cart.items.find((i) => +i.service_id === sid);
     const min = +item.min;
     const max = +item.max;
-    const qty = normalizeQty(item.quantity || Q().fromPacks(Q().minPacks(min), min, max), min, max);
+    const qty = normalizeQty(item.quantity || min, min, max);
 
     if (existing) {
-      existing.quantity = normalizeQty(existing.quantity + Q().PACK, existing.min, existing.max);
+      const addQty = normalizeQty(item.quantity || min, min, max);
+      existing.quantity = normalizeQty(existing.quantity + addQty, existing.min, existing.max);
       if (item.link) existing.link = item.link;
     } else {
       cart.items.push({

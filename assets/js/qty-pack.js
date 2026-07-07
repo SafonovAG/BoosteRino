@@ -1,98 +1,44 @@
 (function () {
-  const PACK = 1000;
+  const PRICE_BASIS = 1000;
 
-  function minPacks(min) {
-    return Math.max(1, Math.ceil(min / PACK));
+  function snap(qty, min, max) {
+    let q = Math.round(Number(qty));
+    if (!Number.isFinite(q)) q = min;
+    return Math.max(min, Math.min(max, q));
   }
 
-  function maxPacks(max) {
-    return Math.max(minPacks(1), Math.floor(max / PACK));
+  function step(qty, direction, min, max) {
+    const next = snap(qty, min, max) + direction;
+    if (next < min) return min;
+    if (next > max) return max;
+    return next;
   }
 
-  function snapPacks(packs, min, max) {
-    const lo = minPacks(min);
-    const hi = maxPacks(max);
-    let p = Math.round(packs);
-    if (!Number.isFinite(p)) p = lo;
-    return Math.max(lo, Math.min(hi, p));
+  function canDecrease(qty, min) {
+    return snap(qty, min, Number.MAX_SAFE_INTEGER) > min;
   }
 
-  function stepPacks(packs, direction, min, max) {
-    return snapPacks(packs + direction, min, max);
+  function canIncrease(qty, max) {
+    return snap(qty, 1, max) < max;
   }
 
-  function fromPacks(packs, min, max) {
-    return snapPacks(packs, min, max) * PACK;
+  function calcPrice(pricePerThousand, qty) {
+    return (pricePerThousand / PRICE_BASIS) * snap(qty, 1, Number.MAX_SAFE_INTEGER);
   }
 
-  function toPacks(actual, min, max) {
-    if (!actual) return minPacks(min);
-    return snapPacks(Math.round(actual / PACK), min, max);
-  }
-
-  function actualUnits(packs, min, max) {
-    return fromPacks(packs, min, max);
-  }
-
-  function calcPrice(pricePerThousand, packs) {
-    return pricePerThousand * snapPacks(packs, 1, Number.MAX_SAFE_INTEGER);
-  }
-
-  function calcPriceActual(pricePerThousand, actualQty) {
-    return pricePerThousand * (actualQty / PACK);
-  }
-
-  function canDecreasePacks(packs, min) {
-    return snapPacks(packs, min, Number.MAX_SAFE_INTEGER) > minPacks(min);
-  }
-
-  function canIncreasePacks(packs, max) {
-    return snapPacks(packs, 1, max) < maxPacks(max);
-  }
-
-  function labelSuffix() {
-    return ' (шаг 1)';
-  }
-
-  function hintText() {
-    return '1 в поле = 1000 ед. · цена указана за 1000';
-  }
-
-  function snap(actualQty, min, max) {
-    return fromPacks(toPacks(actualQty, min, max), min, max);
-  }
-
-  function step(actualQty, direction, min, max) {
-    const packs = toPacks(actualQty, min, max);
-    return fromPacks(stepPacks(packs, direction, min, max), min, max);
-  }
-
-  function canDecrease(actualQty, min) {
-    return canDecreasePacks(toPacks(actualQty, min, Number.MAX_SAFE_INTEGER), min);
-  }
-
-  function canIncrease(actualQty, max) {
-    return canIncreasePacks(toPacks(actualQty, 1, max), max);
+  function hintText(min, max, priceUnitLabel) {
+    const label = priceUnitLabel || 'цена за 1000';
+    return 'от ' + min + ' до ' + max + ' · ' + label;
   }
 
   window.BoosterinoQty = {
-    PACK,
-    minPacks,
-    maxPacks,
-    snapPacks,
-    stepPacks,
-    fromPacks,
-    toPacks,
-    actualUnits,
-    calcPrice,
-    calcPriceActual,
-    canDecreasePacks,
-    canIncreasePacks,
-    labelSuffix,
-    hintText,
+    PRICE_BASIS,
     snap,
     step,
     canDecrease,
     canIncrease,
+    calcPrice,
+    calcPriceActual: calcPrice,
+    hintText,
   };
 })();

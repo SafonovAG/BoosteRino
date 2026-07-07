@@ -138,7 +138,7 @@
         price_per_thousand_rub: s.price_per_thousand_rub,
         min: s.min,
         max: s.max,
-        quantity: Q().fromPacks(Q().minPacks(s.min), s.min, s.max),
+        quantity: s.min,
         link: '',
         refill: s.refill,
         cancel: s.cancel,

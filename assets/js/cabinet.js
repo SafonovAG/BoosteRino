@@ -136,27 +136,23 @@
   }
 
   const Q = () => window.BoosterinoQty || {
-    PACK: 1000,
-    minPacks: () => 1,
-    maxPacks: () => 999999,
-    snapPacks: (p) => p,
-    stepPacks: (p, d) => p + d,
-    fromPacks: (p) => p * 1000,
-    calcPrice: (price, p) => price * p,
-    hintText: () => '',
+    snap: (q, min, max) => Math.max(min, Math.min(max, +q)),
+    step: (q, d, min, max) => Math.max(min, Math.min(max, (+q || min) + d)),
+    calcPrice: (price, q) => (price / 1000) * q,
+    hintText: (min, max, label) => 'от ' + min + ' до ' + max + ' · ' + (label || 'за 1000'),
   };
 
   function updatePrice() {
     const preview = document.getElementById('order-price');
     if (!preview || !serviceSelect) return;
     const sid = +serviceSelect.value;
-    const packs = +(document.getElementById('order-quantity')?.value || 0);
+    const qty = +(document.getElementById('order-quantity')?.value || 0);
     const svc = services.find((s) => s.id === sid);
-    if (!svc || !packs) {
+    if (!svc || !qty) {
       preview.textContent = '-';
       return;
     }
-    preview.textContent = fmt(Q().calcPrice(svc.price_per_thousand_rub, packs));
+    preview.textContent = fmt(Q().calcPrice(svc.price_per_thousand_rub, qty));
   }
 
   function updateLinkHint() {
@@ -173,11 +169,20 @@
     }
     if (h) linkInput.placeholder = h.placeholder;
     const qty = document.getElementById('order-quantity');
+    const qtyLabel = document.getElementById('order-qty-label');
+    const qtyHint = document.getElementById('order-qty-hint');
+    const unit = svc.delivery_unit || window.BoosterinoProductCard?.parseDeliveryUnit(svc.name) || 'ед.';
+    if (qtyLabel) {
+      qtyLabel.textContent = 'Сколько получите (' + unit + ')';
+    }
     if (qty && svc.min) {
-      qty.min = Q().minPacks(svc.min);
-      qty.max = Q().maxPacks(svc.max);
+      qty.min = svc.min;
+      qty.max = svc.max;
       qty.step = 1;
-      qty.value = Q().snapPacks(+qty.value || Q().minPacks(svc.min), svc.min, svc.max);
+      qty.value = Q().snap(+qty.value || svc.min, svc.min, svc.max);
+    }
+    if (qtyHint) {
+      qtyHint.textContent = Q().hintText(svc.min, svc.max, svc.price_unit_label);
     }
   }
 
@@ -191,33 +196,29 @@
       const row = document.createElement('div');
       row.className = 'order-qty-stepper';
       row.innerHTML =
-        '<button type="button" id="order-qty-minus" aria-label="Меньше на 1 пак">−</button>' +
+        '<button type="button" id="order-qty-minus" aria-label="Меньше">−</button>' +
         '<span class="order-qty-input-wrap"></span>' +
-        '<button type="button" id="order-qty-plus" aria-label="Больше на 1 пак">+</button>';
+        '<button type="button" id="order-qty-plus" aria-label="Больше">+</button>';
       const holder = row.querySelector('.order-qty-input-wrap');
       holder?.appendChild(qtyInput);
       wrap.appendChild(row);
-      const note = document.createElement('p');
-      note.className = 'muted';
-      note.textContent = Q().hintText();
-      wrap.appendChild(note);
     }
     document.getElementById('order-qty-minus')?.addEventListener('click', () => {
       const svc = services.find((s) => s.id === +serviceSelect?.value);
       if (!svc || !qtyInput) return;
-      qtyInput.value = Q().stepPacks(+qtyInput.value, -1, svc.min, svc.max);
+      qtyInput.value = Q().step(+qtyInput.value, -1, svc.min, svc.max);
       updatePrice();
     });
     document.getElementById('order-qty-plus')?.addEventListener('click', () => {
       const svc = services.find((s) => s.id === +serviceSelect?.value);
       if (!svc || !qtyInput) return;
-      qtyInput.value = Q().stepPacks(+qtyInput.value, 1, svc.min, svc.max);
+      qtyInput.value = Q().step(+qtyInput.value, 1, svc.min, svc.max);
       updatePrice();
     });
     qtyInput?.addEventListener('change', () => {
       const svc = services.find((s) => s.id === +serviceSelect?.value);
       if (!svc || !qtyInput) return;
-      qtyInput.value = Q().snapPacks(+qtyInput.value, svc.min, svc.max);
+      qtyInput.value = Q().snap(+qtyInput.value, svc.min, svc.max);
       updatePrice();
     });
   }
@@ -236,10 +237,9 @@
     orderForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(orderForm);
-      let packs = +fd.get('quantity');
+      let quantity = +fd.get('quantity');
       const svc = services.find((s) => s.id === +fd.get('service_id'));
-      if (svc) packs = Q().snapPacks(packs, svc.min, svc.max);
-      const quantity = svc ? Q().fromPacks(packs, svc.min, svc.max) : packs;
+      if (svc) quantity = Q().snap(quantity, svc.min, svc.max);
       let link = String(fd.get('link') || '').trim();
       const linkInput = orderForm.querySelector('[name="link"]');
       if (svc && window.BoosterinoLinkValidator) {

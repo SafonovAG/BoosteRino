@@ -56,7 +56,10 @@ ob_start();
                                 </div>
                             </label>
                             <label>🔗 Ссылка на профиль/пост<input type="url" name="link" required placeholder="https://..."></label>
-                            <label>Количество<input type="number" name="quantity" id="order-quantity" min="1" step="1" required value="1"></label>
+                            <label><span id="order-qty-label">Сколько получите</span>
+                                <input type="number" name="quantity" id="order-quantity" min="1" step="1" required value="100">
+                            </label>
+                            <p class="muted" id="order-qty-hint"></p>
                             <div class="order-total-box">
                                 <span>Итого к оплате</span>
                                 <strong id="order-price">-</strong>

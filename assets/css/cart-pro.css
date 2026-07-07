@@ -143,9 +143,24 @@
 .cart-pro-item-controls {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.cart-pro-qty-block {
+  flex: 1;
+  min-width: 200px;
+}
+
+.cart-pro-qty-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
 }
 
 .cart-pro-stepper {
@@ -176,7 +191,7 @@
 .cart-pro-stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .cart-pro-stepper input {
-  width: 72px;
+  width: 88px;
   border: none;
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
