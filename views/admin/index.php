@@ -27,17 +27,17 @@ $isSuper = !empty($super);
                         <p class="muted">Доступно только superadmin. Секреты не отображаются - оставьте поле пустым, чтобы не менять.</p>
                         <form id="settings-form" class="form">
                             <div class="grid-2">
-                                <label>app_url<input name="app_url" type="url"></label>
-                                <label>global_markup_percent<input name="global_markup_percent" type="number" step="0.1"></label>
-                                <label>twiboost_api_key<input name="twiboost_api_key" type="password" placeholder="новый ключ"></label>
-                                <label>yoomoney_wallet<input name="yoomoney_wallet"></label>
-                                <label>yoomoney_secret<input name="yoomoney_secret" type="password" placeholder="новый secret"></label>
-                                <label>mail_host<input name="mail_host"></label>
-                                <label>mail_port<input name="mail_port"></label>
-                                <label>mail_user<input name="mail_user"></label>
-                                <label>mail_pass<input name="mail_pass" type="password" placeholder="новый пароль"></label>
-                                <label>mail_from<input name="mail_from"></label>
-                                <label>mail_from_name<input name="mail_from_name"></label>
+                                <label>URL сайта<input name="app_url" type="url"></label>
+                                <label>Глобальная наценка, %<input name="global_markup_percent" type="number" step="0.1"></label>
+                                <label>API-ключ Twiboost<input name="twiboost_api_key" type="password" placeholder="новый ключ"></label>
+                                <label>Кошелёк ЮMoney<input name="yoomoney_wallet"></label>
+                                <label>Секрет ЮMoney<input name="yoomoney_secret" type="password" placeholder="новый секрет"></label>
+                                <label>SMTP-сервер<input name="mail_host"></label>
+                                <label>SMTP-порт<input name="mail_port"></label>
+                                <label>SMTP-логин<input name="mail_user"></label>
+                                <label>SMTP-пароль<input name="mail_pass" type="password" placeholder="новый пароль"></label>
+                                <label>Email отправителя<input name="mail_from"></label>
+                                <label>Имя отправителя<input name="mail_from_name"></label>
                             </div>
                             <button type="submit" class="btn btn-primary">Сохранить</button>
                         </form>
