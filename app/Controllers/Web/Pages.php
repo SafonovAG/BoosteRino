@@ -80,6 +80,35 @@ final class Pages
         Response::html(View::render('cabinet/index', ['title' => 'Кабинет - Boosterino', 'page' => 'cabinet', 'csrf' => Session::csrf()]));
     }
 
+    public static function orderSuccess(Request $r): void
+    {
+        if (!(new AuthService())->user()) {
+            Response::redirect('/login?next=' . rawurlencode('/orders/success' . ($r->query('ids') ? '?ids=' . $r->query('ids') : '')));
+        }
+        Response::html(View::render('public/order-success', [
+            'title' => 'Заказ оформлен - Boosterino',
+            'page' => 'cabinet',
+            'orderIds' => (string) $r->query('ids', ''),
+        ]));
+    }
+
+    public static function order(Request $r, array $par): void
+    {
+        if (!(new AuthService())->user()) {
+            Response::redirect('/login?next=' . rawurlencode('/orders/' . ($par['id'] ?? '')));
+        }
+        $id = (int) ($par['id'] ?? 0);
+        if ($id <= 0) {
+            Response::html(View::render('errors/404', ['title' => '404 - Boosterino']), 404);
+            return;
+        }
+        Response::html(View::render('public/order', [
+            'title' => 'Заказ #' . $id . ' - Boosterino',
+            'page' => 'cabinet',
+            'orderId' => $id,
+        ]));
+    }
+
     public static function admin(Request $r): void
     {
         $u = (new AuthService())->user();

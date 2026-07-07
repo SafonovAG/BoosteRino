@@ -46,6 +46,95 @@ final class OrderService
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getDetailForUser(int $uid, int $oid, bool $syncSupplier = true): ?array
+    {
+        $st = Database::pdo()->prepare(
+            'SELECT o.*, s.name AS service_name, s.category AS service_category, s.type AS service_type,
+                    s.refill AS service_refill, s.cancel AS service_cancel, s.id AS service_id
+             FROM orders o
+             JOIN services s ON s.id = o.service_id
+             WHERE o.id = :id AND o.user_id = :u'
+        );
+        $st->execute(['id' => $oid, 'u' => $uid]);
+        $o = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$o) {
+            return null;
+        }
+
+        if ($syncSupplier && !empty($o['twiboost_order_id'])) {
+            $o = $this->applySupplierStatus($oid, (int) $o['twiboost_order_id'], $o);
+        }
+
+        return $this->enrichForUser($o);
+    }
+
+    /** @param list<int> $ids */
+    public function listDetailsForUser(int $uid, array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if (!$ids) {
+            return [];
+        }
+        $out = [];
+        foreach ($ids as $id) {
+            $o = $this->getDetailForUser($uid, $id, true);
+            if ($o) {
+                $out[] = $o;
+            }
+        }
+        return $out;
+    }
+
+    private function applySupplierStatus(int $orderId, int $tbId, array $local): array
+    {
+        try {
+            $stat = $this->tb->status($tbId);
+            Database::pdo()->prepare(
+                'UPDATE orders SET status=:s, charge=:c, remains=:r, start_count=:sc, updated_at=NOW() WHERE id=:id'
+            )->execute([
+                's' => $stat['status'] ?? $local['status'],
+                'c' => $stat['charge'] ?? null,
+                'r' => $stat['remains'] ?? null,
+                'sc' => $stat['start_count'] ?? null,
+                'id' => $orderId,
+            ]);
+            $st = Database::pdo()->prepare(
+                'SELECT o.*, s.name AS service_name, s.category AS service_category, s.type AS service_type,
+                        s.refill AS service_refill, s.cancel AS service_cancel, s.id AS service_id
+                 FROM orders o JOIN services s ON s.id = o.service_id WHERE o.id = :id'
+            );
+            $st->execute(['id' => $orderId]);
+            return $st->fetch(PDO::FETCH_ASSOC) ?: $local;
+        } catch (\Throwable) {
+            return $local;
+        }
+    }
+
+    private function enrichForUser(array $o): array
+    {
+        $o['service_refill'] = (bool) ($o['service_refill'] ?? false);
+        $o['service_cancel'] = (bool) ($o['service_cancel'] ?? false);
+        $o['progress'] = $this->buildProgress($o);
+        $o['supplier_synced'] = !empty($o['twiboost_order_id']);
+        return $o;
+    }
+
+  /** @return array{percent: float, done: int, total: int, remains: int}|null */
+    private function buildProgress(array $o): ?array
+    {
+        $qty = (int) ($o['quantity'] ?? 0);
+        if ($qty <= 0) {
+            return null;
+        }
+        if ($o['remains'] === null || $o['remains'] === '') {
+            return null;
+        }
+        $rem = max(0, (int) $o['remains']);
+        $done = max(0, $qty - $rem);
+        $pct = min(100, round(($done / $qty) * 100, 1));
+        return ['percent' => $pct, 'done' => $done, 'total' => $qty, 'remains' => $rem];
+    }
+
     public function refill(int $uid, int $oid): array
     {
         $o = $this->own($uid, $oid);

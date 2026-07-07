@@ -76,17 +76,21 @@ final class PaymentService
             ->execute(['u' => $uid, 't' => $type, 'a' => $amount, 'l' => $label, 'o' => $orderId]);
         return [
             'payment_id' => (int) $pdo->lastInsertId(),
-            'payment_url' => $this->quickpayUrl($amount, $label),
+            'payment_url' => $this->quickpayUrl($amount, $label, $orderId),
         ];
     }
 
-    private function quickpayUrl(float $amount, string $label): string
+    private function quickpayUrl(float $amount, string $label, ?int $orderId = null): string
     {
         $s = new SettingsService();
         $wallet = $s->get('yoomoney_wallet');
         if ($wallet === '') {
             throw new \RuntimeException('Кошелёк ЮMoney не настроен.');
         }
+        $base = rtrim($s->get('app_url'), '/');
+        $successUrl = $orderId
+            ? $base . '/orders/success?ids=' . $orderId
+            : $base . '/cabinet?payment=ok';
         $q = http_build_query([
             'receiver' => $wallet,
             'quickpay-form' => 'shop',
@@ -94,7 +98,7 @@ final class PaymentService
             'paymentType' => 'PC',
             'sum' => number_format($amount, 2, '.', ''),
             'label' => $label,
-            'successURL' => rtrim($s->get('app_url'), '/') . '/cabinet?payment=ok',
+            'successURL' => $successUrl,
         ]);
         return 'https://yoomoney.ru/quickpay/confirm.xml?' . $q;
     }

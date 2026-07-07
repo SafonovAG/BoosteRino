@@ -67,12 +67,13 @@
     ordersEl.innerHTML = '<div class="table-wrap"><table>' +
       '<thead><tr><th>#</th><th>Услуга</th><th>Кол-во</th><th>Сумма</th><th>Статус</th><th></th></tr></thead><tbody>' +
       orders.map((o) => '<tr>' +
-        '<td>' + o.id + '</td>' +
+        '<td><a href="/orders/' + o.id + '" class="order-id-link">#' + o.id + '</a></td>' +
         '<td>' + escape(o.service_name || o.service_id) + '</td>' +
         '<td>' + o.quantity + '</td>' +
         '<td>' + fmt(o.cost_rub) + '</td>' +
         '<td><span class="status-badge ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
-        '<td>' +
+        '<td class="order-actions-cell">' +
+        '<a href="/orders/' + o.id + '" class="btn btn-sm btn-primary">Статус</a> ' +
         '<button class="btn btn-sm btn-secondary" data-refill="' + o.id + '" type="button">Рефилл</button> ' +
         '<button class="btn btn-sm btn-danger" data-cancel="' + o.id + '" type="button">Отмена</button>' +
         '</td></tr>').join('') +
@@ -266,6 +267,11 @@
         });
         if (result.payment_url) {
           location.href = result.payment_url;
+          return;
+        }
+        const order = result.order || result;
+        if (order?.id) {
+          location.href = '/orders/success?ids=' + order.id;
           return;
         }
         toast('Заказ создан');

@@ -29,6 +29,8 @@ return static function (Router $r): void {
     $r->get('/forgot-password', [Pages::class, 'forgot']);
     $r->get('/reset-password', [Pages::class, 'reset']);
     $r->get('/verify-email', [Pages::class, 'verify']);
+    $r->get('/orders/success', [Pages::class, 'orderSuccess']);
+    $r->get('/orders/{id}', [Pages::class, 'order']);
     $r->get('/cabinet', [Pages::class, 'cabinet']);
     $r->get('/admin', [Pages::class, 'admin']);
 
@@ -45,7 +47,10 @@ return static function (Router $r): void {
     $r->get('/api/v1/user/profile', [UserApi::class, 'profile'], [$auth]);
     $r->post('/api/v1/user/change-password', [UserApi::class, 'changePassword'], [$csrf, $auth]);
     $r->get('/api/v1/user/orders', [UserApi::class, 'orders'], [$auth]);
+    $r->get('/api/v1/user/orders/batch', [UserApi::class, 'ordersBatch'], [$auth]);
+    $r->get('/api/v1/user/orders/{id}', [UserApi::class, 'orderShow'], [$auth]);
     $r->post('/api/v1/user/orders', [UserApi::class, 'createOrder'], [$csrf, $auth, $ver]);
+    $r->post('/api/v1/user/orders/{id}/sync', [UserApi::class, 'orderSync'], [$csrf, $auth, $ver]);
     $r->post('/api/v1/user/orders/{id}/refill', [UserApi::class, 'refill'], [$csrf, $auth, $ver]);
     $r->post('/api/v1/user/orders/{id}/cancel', [UserApi::class, 'cancel'], [$csrf, $auth, $ver]);
     $r->post('/api/v1/user/balance/topup', [UserApi::class, 'topup'], [$csrf, $auth, $ver]);

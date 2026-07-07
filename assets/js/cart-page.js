@@ -330,6 +330,7 @@
     if (btn) btn.disabled = true;
 
     try {
+      const orderIds = [];
       for (let i = 0; i < items.length; i++) {
         setProgress(((i) / items.length) * 100);
         const item = items[i];
@@ -348,12 +349,19 @@
           location.href = result.payment_url;
           return;
         }
+
+        const order = result.order || result;
+        if (order?.id) orderIds.push(order.id);
+        cart.remove(item.service_id);
       }
 
       setProgress(100);
       cart.clear();
-      toast('Заказы оформлены');
-      location.href = '/cabinet';
+      if (orderIds.length) {
+        location.href = '/orders/success?ids=' + orderIds.join(',');
+      } else {
+        location.href = '/cabinet';
+      }
     } catch (e) {
       toast(e.message, 'error');
       setProgress(0);
