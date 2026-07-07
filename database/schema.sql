@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS services (
     name VARCHAR(512) NOT NULL,
     type VARCHAR(64) NOT NULL,
     category VARCHAR(512) NOT NULL,
+    description TEXT NULL DEFAULT NULL,
     rate DECIMAL(12, 4) NOT NULL,
     min_qty INT UNSIGNED NOT NULL,
     max_qty INT UNSIGNED NOT NULL,

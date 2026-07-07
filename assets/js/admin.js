@@ -7,15 +7,16 @@
   let selectedOrderId = null;
   let sampleServiceId = null;
 
-  document.querySelectorAll('[data-panel]').forEach((btn) => {
+  window.AdminNav = window.AdminNav || {};
+  window.AdminNav.selectedUserId = null;
     btn.addEventListener('click', () => {
       const id = btn.dataset.panel;
       document.querySelectorAll('[data-panel]').forEach((b) => b.classList.toggle('active', b === btn));
       panels.forEach((p) => p.classList.toggle('active', p.id === 'panel-' + id));
       if (id === 'dashboard') loadDashboard();
-      if (id === 'services') loadAdminServices();
+      if (id === 'services') (window.loadAdminServices || (() => {}))();
       if (id === 'orders') loadAdminOrders();
-      if (id === 'users') loadUsers();
+      if (id === 'users') (window.loadUsers || (() => {}))();
       if (id === 'diagnostics') initDiagnostics();
       if (id === 'settings' && isSuper) loadSettings();
     });
@@ -65,46 +66,7 @@
     }
   }
 
-  async function loadAdminServices() {
-    const el = document.getElementById('admin-services');
-    if (!el) return;
-    const data = await api('/api/v1/admin/services');
-    const list = data.services || [];
-    if (list.length && !sampleServiceId) sampleServiceId = list[0].id;
-    el.innerHTML = '<h2><span class="panel-icon">📦</span> Услуги</h2><div class="table-wrap"><table>' +
-      '<thead><tr><th>ID</th><th>Название</th><th>Цена</th><th>Наценка %</th><th>Активна</th><th></th></tr></thead><tbody>' +
-      list.map((s) => '<tr>' +
-        '<td>' + s.id + '</td>' +
-        '<td>' + escape(s.name) + '</td>' +
-        '<td>' + s.rate + '</td>' +
-        '<td><input type="number" step="0.1" value="' + (s.markup_override ?? '') + '" data-markup="' + s.id + '" placeholder="глоб." style="width:80px"></td>' +
-        '<td><input type="checkbox" data-active="' + s.id + '" ' + (s.is_active ? 'checked' : '') + '></td>' +
-        '<td><button class="btn btn-sm btn-secondary" data-save="' + s.id + '" type="button">Сохранить</button></td>' +
-        '</tr>').join('') +
-      '</tbody></table></div>' +
-      '<p style="margin-top:1.25rem"><button class="btn btn-primary" id="sync-services" type="button">🔄 Синхронизировать каталог</button></p>';
-
-    el.querySelector('#sync-services')?.addEventListener('click', async () => {
-      const r = await api('/api/v1/admin/services/sync', { method: 'POST', body: '{}' });
-      toast('Синхронизировано: ' + (r.synced ?? 0));
-      loadAdminServices();
-    });
-
-    el.querySelectorAll('[data-save]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = btn.dataset.save;
-        const markup = el.querySelector('[data-markup="' + id + '"]')?.value;
-        const active = el.querySelector('[data-active="' + id + '"]')?.checked;
-        await api('/api/v1/admin/services', {
-          method: 'PUT',
-          body: JSON.stringify({ id: +id, markup_override: markup, is_active: active }),
-        });
-        toast('Сохранено');
-      });
-    });
-  }
-
-  const ORDER_STATUSES = [
+  async function loadOrderDetail(id) {
     'pending', 'pending_payment', 'Awaiting', 'In progress', 'Partial',
     'Completed', 'Canceled', 'Cancelled', 'Fail', 'Failed', 'Error',
   ];
@@ -170,8 +132,12 @@
           '<section class="admin-order-section">' +
             '<h4>Клиент и услуга</h4>' +
             '<div class="admin-order-fields admin-order-fields--3">' +
-              '<div class="admin-order-field"><span>Email</span><strong>' + escape(o.email) + '</strong></div>' +
-              '<div class="admin-order-field"><span>Услуга</span><strong>' + escape(o.service_name) + '</strong></div>' +
+              '<div class="admin-order-field"><span>Клиент</span><strong>' +
+                '<button type="button" class="admin-link-btn" data-open-user="' + (o.user_id || '') + '">' + escape(o.email) + '</button>' +
+              '</strong></div>' +
+              '<div class="admin-order-field"><span>Услуга</span><strong>' +
+                '<button type="button" class="admin-link-btn" data-open-service="' + (o.service_id || '') + '">' + escape(o.service_name) + '</button>' +
+              '</strong></div>' +
               '<div class="admin-order-field"><span>Количество</span><strong>' + o.quantity + '</strong></div>' +
             '</div>' +
           '</section>' +
@@ -219,6 +185,7 @@
             '<button type="button" class="btn btn-primary btn-sm" id="admin-order-sync">Синхронизировать</button>' +
             '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-refill">Рефилл</button>' +
             '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-cancel">Отменить заказ</button>' +
+            '<button type="button" class="btn btn-danger btn-sm" id="admin-order-delete">Удалить навсегда</button>' +
           '</div>' +
         '</div>';
 
@@ -267,6 +234,30 @@
           toast(e.message, 'error');
         }
       });
+
+      panel.querySelector('#admin-order-delete')?.addEventListener('click', async () => {
+        if (!confirm('Удалить заказ #' + id + ' безвозвратно? Это действие нельзя отменить.')) return;
+        try {
+          await api('/api/v1/admin/orders/' + id, { method: 'DELETE' });
+          toast('Заказ удалён');
+          closeOrderDrawer();
+          loadAdminOrders(false);
+          if (window.AdminNav?.selectedUserId && window.AdminNav?.openUser) {
+            window.AdminNav.openUser(window.AdminNav.selectedUserId);
+          }
+        } catch (e) {
+          toast(e.message, 'error');
+        }
+      });
+
+      panel.querySelector('[data-open-user]')?.addEventListener('click', () => {
+        const uid = +panel.querySelector('[data-open-user]')?.dataset.openUser;
+        if (uid && window.AdminNav?.openUser) window.AdminNav.openUser(uid);
+      });
+      panel.querySelector('[data-open-service]')?.addEventListener('click', () => {
+        const sid = +panel.querySelector('[data-open-service]')?.dataset.openService;
+        if (sid && window.AdminNav?.openService) window.AdminNav.openService(sid);
+      });
     } catch (e) {
       panel.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
     }
@@ -308,7 +299,7 @@
               '<tr class="admin-order-row' + (selectedOrderId === o.id ? ' is-selected' : '') + '" data-order-id="' + o.id + '">' +
                 '<td>' + o.id + '</td>' +
                 '<td>' + fmtDate(o.created_at) + '</td>' +
-                '<td>' + escape(o.email) + '</td>' +
+                '<td><button type="button" class="admin-link-btn" data-open-user-inline="' + o.user_id + '">' + escape(o.email) + '</button></td>' +
                 '<td class="admin-order-service">' + escape(o.service_name) + '</td>' +
                 '<td>' + o.quantity + '</td>' +
                 '<td>' + o.cost_rub + ' ₽</td>' +
@@ -351,43 +342,24 @@
         loadOrderDetail(selectedOrderId);
       });
     });
-  }
 
-  async function loadUsers() {
-    const el = document.getElementById('admin-users');
-    if (!el) return;
-    const data = await api('/api/v1/admin/users');
-    const rows = data.users || [];
-    const roleLabel = { user: 'Пользователь', admin: 'Админ', superadmin: 'Superadmin' };
-    el.innerHTML = '<h2><span class="panel-icon">👥</span> Пользователи</h2><div class="table-wrap"><table>' +
-      '<thead><tr><th>ID</th><th>Email</th><th>Роль</th><th>Баланс</th>' + (isSuper ? '<th></th>' : '') + '</tr></thead><tbody>' +
-      rows.map((u) => {
-        let roleCell = roleLabel[u.role] || u.role;
-        if (isSuper) {
-          roleCell = '<select class="shop-select" data-role-user="' + u.id + '">' +
-            ['user', 'admin', 'superadmin'].map((r) =>
-              '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' + (roleLabel[r] || r) + '</option>'
-            ).join('') +
-            '</select>';
-        }
-        return '<tr><td>' + u.id + '</td><td>' + escape(u.email) + '</td><td>' + roleCell + '</td><td>' + u.balance_rub + '</td>' +
-          (isSuper ? '<td><button type="button" class="btn btn-sm btn-secondary" data-save-role="' + u.id + '">Сохранить</button></td>' : '') +
-          '</tr>';
-      }).join('') +
-      '</tbody></table></div>';
-
-    if (isSuper) {
-      el.querySelectorAll('[data-save-role]').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-          const id = btn.dataset.saveRole;
-          const role = el.querySelector('[data-role-user="' + id + '"]')?.value;
-          await api('/api/v1/admin/users/' + id, { method: 'PUT', body: JSON.stringify({ role }) });
-          toast('Роль обновлена');
-          loadUsers();
-        });
+    el.querySelectorAll('[data-open-user-inline]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const uid = +btn.dataset.openUserInline;
+        if (uid && window.AdminNav?.openUser) window.AdminNav.openUser(uid);
       });
-    }
+    });
   }
+
+  window.AdminNav.openOrder = function (id) {
+    document.querySelector('[data-panel="orders"]')?.click();
+    setTimeout(() => {
+      selectedOrderId = id;
+      loadOrderDetail(id);
+      document.querySelector('.admin-order-row[data-order-id="' + id + '"]')?.classList.add('is-selected');
+    }, 80);
+  };
 
   function setNotifyUrl(url) {
     const inp = document.getElementById('yoomoney-notify-url');
@@ -430,7 +402,7 @@
   }
 
   function buildApiProbes() {
-    const sid = sampleServiceId || 1;
+    const sid = window.AdminNav?.sampleServiceId || sampleServiceId || 1;
     const oid = selectedOrderId || 1;
     const uid = 1;
     const probes = [

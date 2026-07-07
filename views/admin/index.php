@@ -74,5 +74,5 @@ $isSuper = !empty($super);
 <?php
 $content = ob_get_clean();
 $bodyAttrs = $isSuper ? 'data-superadmin="1"' : '';
-$scripts = ['/assets/js/admin.js'];
+$scripts = ['/assets/js/admin.js', '/assets/js/admin-services.js', '/assets/js/admin-users.js'];
 include dirname(__DIR__) . '/layouts/main.php';

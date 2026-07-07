@@ -182,7 +182,7 @@ final class OrderService
 
     public function adminList(?string $status = null, ?string $search = null): array
     {
-        $sql = 'SELECT o.*, u.email, s.name AS service_name, s.external_id
+        $sql = 'SELECT o.*, u.email, u.id AS user_id, s.name AS service_name, s.external_id
                 FROM orders o
                 JOIN users u ON u.id = o.user_id
                 JOIN services s ON s.id = o.service_id
@@ -206,7 +206,7 @@ final class OrderService
     public function adminGet(int $id): ?array
     {
         $st = Database::pdo()->prepare(
-            'SELECT o.*, u.email, s.name AS service_name, s.external_id, s.category
+            'SELECT o.*, u.email, u.id AS user_id, s.name AS service_name, s.external_id, s.category, s.id AS service_id
              FROM orders o
              JOIN users u ON u.id = o.user_id
              JOIN services s ON s.id = o.service_id
@@ -281,5 +281,27 @@ final class OrderService
         }
         Database::pdo()->prepare('UPDATE orders SET status=\'Canceled\', updated_at=NOW() WHERE id=:id')->execute(['id' => $id]);
         return $result;
+    }
+
+    public function adminDelete(int $id): void
+    {
+        $o = $this->adminGet($id);
+        if (!$o) {
+            throw new \InvalidArgumentException('Заказ не найден.');
+        }
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('UPDATE payments SET order_id = NULL WHERE order_id = :id')->execute(['id' => $id]);
+            $st = $pdo->prepare('DELETE FROM orders WHERE id = :id');
+            $st->execute(['id' => $id]);
+            if ($st->rowCount() === 0) {
+                throw new \InvalidArgumentException('Заказ не найден.');
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
     }
 }

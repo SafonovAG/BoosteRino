@@ -10,9 +10,12 @@ use App\Core\Response;
 use App\Services\AdminDiagnosticsService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
+use App\Services\PricingService;
 use App\Services\ServiceCatalog;
 use App\Services\SettingsService;
 use App\Services\TwiboostClient;
+use App\Services\UserService;
+use App\Services\AuthService;
 
 final class AdminApi
 {
@@ -53,7 +56,54 @@ final class AdminApi
 
     public static function servicesGet(Request $r): void
     {
-        Response::ok(['services' => Database::pdo()->query('SELECT * FROM services ORDER BY category,name')->fetchAll()]);
+        ServiceCatalog::ensureDescriptionColumn();
+        $pdo = Database::pdo();
+        $rows = $pdo->query('SELECT * FROM services ORDER BY category,name')->fetchAll();
+        $price = new PricingService();
+        $list = array_map(static function (array $s) use ($price): array {
+            $fmt = $price->format($s);
+            $s['price_per_thousand_rub'] = $fmt['price_per_thousand_rub'];
+            $s['platform_name'] = $fmt['platform_name'];
+            $s['category_label'] = $fmt['category_label'];
+            return $s;
+        }, $rows);
+        Response::ok(['services' => $list, 'categories' => ServiceCatalog::adminCategories()]);
+    }
+
+    public static function serviceCategoriesGet(Request $r): void
+    {
+        Response::ok(['categories' => ServiceCatalog::adminCategories()]);
+    }
+
+    public static function serviceCategoriesPut(Request $r): void
+    {
+        try {
+            $renamed = ServiceCatalog::adminRenameCategory(
+                (string) $r->input('old_name', ''),
+                (string) $r->input('new_name', '')
+            );
+            Response::ok(['renamed' => $renamed, 'categories' => ServiceCatalog::adminCategories()]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        }
+    }
+
+    public static function serviceUpdate(Request $r, array $par): void
+    {
+        ServiceCatalog::ensureDescriptionColumn();
+        try {
+            $svc = ServiceCatalog::adminUpdate((int) $par['id'], $r->all());
+            if (!$svc) {
+                Response::fail('not_found', 'Услуга не найдена.', 404);
+            }
+            $fmt = (new PricingService())->format($svc);
+            $svc['price_per_thousand_rub'] = $fmt['price_per_thousand_rub'];
+            $svc['platform_name'] = $fmt['platform_name'];
+            $svc['category_label'] = $fmt['category_label'];
+            Response::ok(['service' => $svc]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        }
     }
 
     public static function servicesPut(Request $r): void
@@ -81,25 +131,37 @@ final class AdminApi
 
     public static function users(Request $r): void
     {
-        Response::ok(['users' => Database::pdo()->query('SELECT id,email,role,balance_rub,email_verified_at,created_at FROM users ORDER BY id DESC LIMIT 200')->fetchAll()]);
+        $search = $r->query('q');
+        Response::ok(['users' => (new UserService())->adminList($search ?: null)]);
+    }
+
+    public static function userShow(Request $r, array $par): void
+    {
+        $user = (new UserService())->adminGet((int) $par['id']);
+        if (!$user) {
+            Response::fail('not_found', 'Пользователь не найден.', 404);
+        }
+        Response::ok(['user' => $user]);
+    }
+
+    public static function userUpdate(Request $r, array $par): void
+    {
+        $auth = (new AuthService())->user();
+        $canSetRole = ($auth['role'] ?? '') === 'superadmin';
+        if (!$canSetRole && $r->input('role') !== null) {
+            Response::fail('forbidden', 'Изменение роли доступно только superadmin.', 403);
+        }
+        try {
+            $user = (new UserService())->adminUpdate((int) $par['id'], $r->all(), $canSetRole);
+            Response::ok(['user' => $user]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        }
     }
 
     public static function setUserRole(Request $r, array $par): void
     {
-        $role = (string) $r->input('role', '');
-        if (!in_array($role, ['user', 'admin', 'superadmin'], true)) {
-            Response::fail('validation', 'Неверная роль.', 422);
-        }
-        $id = (int) $par['id'];
-        $pdo = Database::pdo();
-        $st = $pdo->prepare('SELECT id,role FROM users WHERE id=:id');
-        $st->execute(['id' => $id]);
-        $u = $st->fetch();
-        if (!$u) {
-            Response::fail('not_found', 'Пользователь не найден.', 404);
-        }
-        $pdo->prepare('UPDATE users SET role=:r WHERE id=:id')->execute(['r' => $role, 'id' => $id]);
-        Response::ok();
+        self::userUpdate($r, $par);
     }
 
     public static function orders(Request $r): void
@@ -167,6 +229,16 @@ final class AdminApi
             Response::fail('validation', $e->getMessage(), 422);
         } catch (\Throwable $e) {
             Response::fail('cancel', $e->getMessage(), 500);
+        }
+    }
+
+    public static function orderDelete(Request $r, array $par): void
+    {
+        try {
+            (new OrderService())->adminDelete((int) $par['id']);
+            Response::ok(['deleted' => true]);
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
         }
     }
 
