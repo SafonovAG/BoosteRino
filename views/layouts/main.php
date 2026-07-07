@@ -132,6 +132,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/qty-pack.js"></script>
     <script src="/assets/js/cart.js"></script>
     <script src="/assets/js/cart-fly.js"></script>
     <script src="/assets/js/link-validator.js"></script>

@@ -1,5 +1,6 @@
 (function () {
   const KEY = 'boosterino_cart';
+  const Q = () => window.BoosterinoQty || { PACK: 1000, snap: (q, min, max) => Math.max(min, Math.min(max, +q)), calcPrice: (p, q) => (p / 1000) * q };
 
   function load() {
     try {
@@ -26,11 +27,15 @@
   }
 
   function count() {
+    return load().items.length;
+  }
+
+  function totalUnits() {
     return load().items.reduce((sum, i) => sum + (i.quantity || 0), 0);
   }
 
   function lineTotal(item) {
-    return (item.price_per_thousand_rub / 1000) * item.quantity;
+    return Q().calcPrice(item.price_per_thousand_rub, item.quantity);
   }
 
   function total() {
@@ -41,14 +46,20 @@
     return load().items;
   }
 
+  function normalizeQty(qty, min, max) {
+    return Q().snap(+qty, +min, +max);
+  }
+
   function add(item) {
     const cart = load();
     const sid = +item.service_id;
     const existing = cart.items.find((i) => +i.service_id === sid);
-    const qty = Math.max(1, +item.quantity || 1);
+    const min = +item.min;
+    const max = +item.max;
+    const qty = normalizeQty(item.quantity || min, min, max);
 
     if (existing) {
-      existing.quantity = Math.min(existing.max, existing.quantity + qty);
+      existing.quantity = normalizeQty(existing.quantity + Q().PACK, existing.min, existing.max);
       if (item.link) existing.link = item.link;
     } else {
       cart.items.push({
@@ -62,9 +73,9 @@
         link_label: item.link_label || '',
         link_placeholder: item.link_placeholder || '',
         price_per_thousand_rub: +item.price_per_thousand_rub,
-        min: +item.min,
-        max: +item.max,
-        quantity: Math.max(+item.min, Math.min(+item.max, qty)),
+        min,
+        max,
+        quantity: qty,
         link: item.link || '',
         refill: !!item.refill,
         cancel: !!item.cancel,
@@ -79,7 +90,7 @@
     const item = cart.items.find((i) => +i.service_id === +serviceId);
     if (!item) return cart;
     if (patch.quantity != null) {
-      item.quantity = Math.max(item.min, Math.min(item.max, +patch.quantity));
+      item.quantity = normalizeQty(patch.quantity, item.min, item.max);
     }
     if (patch.link != null) item.link = patch.link;
     save(cart);
@@ -97,7 +108,7 @@
     save({ items: [] });
   }
 
-  const BoosterinoCart = { load, add, update, remove, clear, count, total, getItems, lineTotal };
+  const BoosterinoCart = { load, add, update, remove, clear, count, totalUnits, total, getItems, lineTotal, normalizeQty };
   window.BoosterinoCart = BoosterinoCart;
 
   document.addEventListener('DOMContentLoaded', syncBadge);

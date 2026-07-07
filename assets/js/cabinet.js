@@ -125,6 +125,7 @@
     updateServiceLogo();
     updatePrice();
     updateLinkHint();
+    bindOrderQtyStepper();
   }
 
   function updateServiceLogo() {
@@ -133,6 +134,8 @@
     const svc = services.find((s) => s.id === +serviceSelect.value);
     img.src = svc?.logo || '/assets/images/logo/default.svg';
   }
+
+  const Q = () => window.BoosterinoQty || { PACK: 1000, snap: (q, min, max) => q, step: (q, d, min, max) => q + d, calcPrice: (p, q) => (p / 1000) * q };
 
   function updatePrice() {
     const preview = document.getElementById('order-price');
@@ -144,8 +147,7 @@
       preview.textContent = '-';
       return;
     }
-    const perUnit = svc.price_per_thousand_rub / 1000;
-    preview.textContent = fmt(perUnit * qty);
+    preview.textContent = fmt(Q().calcPrice(svc.price_per_thousand_rub, qty));
   }
 
   function updateLinkHint() {
@@ -165,8 +167,51 @@
     if (qty && svc.min) {
       qty.min = svc.min;
       qty.max = svc.max;
+      qty.step = Q().PACK;
       if (+qty.value < svc.min) qty.value = svc.min;
+      if (+qty.value > svc.max) qty.value = svc.max;
     }
+  }
+
+  let orderQtyBound = false;
+  function bindOrderQtyStepper() {
+    if (orderQtyBound || !orderForm) return;
+    orderQtyBound = true;
+    const qtyInput = document.getElementById('order-quantity');
+    const wrap = qtyInput?.closest('label');
+    if (wrap && !document.getElementById('order-qty-minus')) {
+      const row = document.createElement('div');
+      row.className = 'order-qty-stepper';
+      row.innerHTML =
+        '<button type="button" id="order-qty-minus" aria-label="Меньше на 1000">−</button>' +
+        '<span class="order-qty-input-wrap"></span>' +
+        '<button type="button" id="order-qty-plus" aria-label="Больше на 1000">+</button>';
+      const holder = row.querySelector('.order-qty-input-wrap');
+      holder?.appendChild(qtyInput);
+      wrap.appendChild(row);
+      const note = document.createElement('p');
+      note.className = 'muted';
+      note.textContent = 'Шаг ± 1000 · цена указана за 1000 ед.';
+      wrap.appendChild(note);
+    }
+    document.getElementById('order-qty-minus')?.addEventListener('click', () => {
+      const svc = services.find((s) => s.id === +serviceSelect?.value);
+      if (!svc || !qtyInput) return;
+      qtyInput.value = Q().step(+qtyInput.value, -1, svc.min, svc.max);
+      updatePrice();
+    });
+    document.getElementById('order-qty-plus')?.addEventListener('click', () => {
+      const svc = services.find((s) => s.id === +serviceSelect?.value);
+      if (!svc || !qtyInput) return;
+      qtyInput.value = Q().step(+qtyInput.value, 1, svc.min, svc.max);
+      updatePrice();
+    });
+    qtyInput?.addEventListener('change', () => {
+      const svc = services.find((s) => s.id === +serviceSelect?.value);
+      if (!svc || !qtyInput) return;
+      qtyInput.value = Q().snap(+qtyInput.value, svc.min, svc.max);
+      updatePrice();
+    });
   }
 
   if (serviceSelect) {
@@ -174,6 +219,7 @@
       updateServiceLogo();
       updatePrice();
       updateLinkHint();
+      bindOrderQtyStepper();
     });
     document.getElementById('order-quantity')?.addEventListener('input', updatePrice);
   }
@@ -182,7 +228,9 @@
     orderForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(orderForm);
+      let quantity = +fd.get('quantity');
       const svc = services.find((s) => s.id === +fd.get('service_id'));
+      if (svc) quantity = Q().snap(quantity, svc.min, svc.max);
       let link = String(fd.get('link') || '').trim();
       const linkInput = orderForm.querySelector('[name="link"]');
       if (svc && window.BoosterinoLinkValidator) {
@@ -203,7 +251,7 @@
           body: JSON.stringify({
             service_id: +fd.get('service_id'),
             link,
-            quantity: +fd.get('quantity'),
+            quantity,
             payment_method: fd.get('payment_method'),
           }),
         });

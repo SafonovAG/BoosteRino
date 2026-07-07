@@ -2858,3 +2858,46 @@
   background: var(--bg-muted);
   border: 1px solid var(--border);
 }
+
+.order-qty-stepper {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-top: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.order-qty-stepper button {
+  width: 2.5rem;
+  border: none;
+  background: var(--bg-muted);
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.order-qty-stepper button:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.order-qty-stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.order-qty-input-wrap input {
+  width: 5.5rem;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  text-align: center;
+  font-weight: 700;
+  padding: 0.5rem;
+  background: transparent;
+  color: var(--text);
+  -moz-appearance: textfield;
+}
+
+.order-qty-input-wrap input::-webkit-outer-spin-button,
+.order-qty-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }

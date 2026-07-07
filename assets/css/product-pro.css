@@ -228,6 +228,11 @@
   margin: 0;
 }
 
+.product-qty-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+}
+
 .product-pro-delivery {
   padding: 1rem 1.15rem;
   border-radius: var(--radius-sm);

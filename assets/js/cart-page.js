@@ -9,6 +9,8 @@
   const escape = window.BoosterinoProductCard?.escapeHtml || ((s) => s);
   const isLoggedIn = !!document.querySelector('.balance-pill');
 
+  const Q = () => window.BoosterinoQty || { PACK: 1000, snap: (q, min, max) => q, step: (q, d, min, max) => q + d, calcPrice: (p, q) => (p / 1000) * q, canDecrease: (q, min) => q > min, canIncrease: (q, max) => q < max };
+
   let shellReady = false;
   let checkoutBusy = false;
 
@@ -90,13 +92,14 @@
         '</label>' +
         '<div class="cart-pro-item-controls">' +
           '<div class="cart-pro-stepper">' +
-            '<button type="button" class="cart-qty-minus" aria-label="Меньше">−</button>' +
-            '<input type="number" class="cart-pro-item-qty" min="' + item.min + '" max="' + item.max + '" value="' + item.quantity + '">' +
-            '<button type="button" class="cart-qty-plus" aria-label="Больше">+</button>' +
+            '<button type="button" class="cart-qty-minus" aria-label="Меньше на 1000">−</button>' +
+            '<input type="number" class="cart-pro-item-qty" min="' + item.min + '" max="' + item.max + '" step="' + Q().PACK + '" value="' + item.quantity + '">' +
+            '<button type="button" class="cart-qty-plus" aria-label="Больше на 1000">+</button>' +
           '</div>' +
           '<div class="cart-pro-item-side">' +
-            '<div class="cart-pro-item-rate">за 1000: ' + fmt(item.price_per_thousand_rub) + '</div>' +
+            '<div class="cart-pro-item-rate">' + fmt(item.price_per_thousand_rub) + ' / 1000</div>' +
             '<div class="cart-pro-item-total">' + fmt(total) + '</div>' +
+            '<div class="cart-pro-item-qty-note muted">' + fmtQty(item.quantity) + ' ед.</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -109,7 +112,7 @@
     const unitsEl = document.getElementById('cart-units-count');
     const grandEl = document.getElementById('cart-grand-total');
     if (posEl) posEl.textContent = String(cart.getItems().length);
-    if (unitsEl) unitsEl.textContent = fmtQty(cart.count());
+    if (unitsEl) unitsEl.textContent = fmtQty(cart.totalUnits());
     if (grandEl) {
       grandEl.textContent = fmt(cart.total());
       if (animate) {
@@ -136,10 +139,12 @@
         setTimeout(() => totalEl.classList.remove('is-pulse'), 300);
       }
     }
+    const noteEl = row.querySelector('.cart-pro-item-qty-note');
+    if (noteEl) noteEl.textContent = fmtQty(item.quantity) + ' ед.';
     const minus = row.querySelector('.cart-qty-minus');
     const plus = row.querySelector('.cart-qty-plus');
-    if (minus) minus.disabled = item.quantity <= item.min;
-    if (plus) plus.disabled = item.quantity >= item.max;
+    if (minus) minus.disabled = !Q().canDecrease(item.quantity, item.min);
+    if (plus) plus.disabled = !Q().canIncrease(item.quantity, item.max);
   }
 
   function syncItems(animate) {
@@ -201,12 +206,12 @@
       }
 
       if (e.target.closest('.cart-qty-minus')) {
-        cart.update(sid, { quantity: item.quantity - 1 });
+        cart.update(sid, { quantity: Q().step(item.quantity, -1, item.min, item.max) });
         return;
       }
 
       if (e.target.closest('.cart-qty-plus')) {
-        cart.update(sid, { quantity: item.quantity + 1 });
+        cart.update(sid, { quantity: Q().step(item.quantity, 1, item.min, item.max) });
       }
     });
 
@@ -216,7 +221,7 @@
       const sid = +row.dataset.serviceId;
 
       if (e.target.classList.contains('cart-pro-item-qty')) {
-        cart.update(sid, { quantity: +e.target.value });
+        cart.update(sid, { quantity: Q().snap(+e.target.value, item.min, item.max) });
       }
     });
 
@@ -236,7 +241,7 @@
       }
 
       if (e.target.classList.contains('cart-pro-item-qty')) {
-        cart.update(sid, { quantity: +e.target.value });
+        cart.update(sid, { quantity: Q().snap(+e.target.value, item.min, item.max) });
       }
     });
   }
