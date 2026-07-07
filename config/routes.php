@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 use App\Controllers\Api\AdminController;
+use App\Controllers\Api\AuthController;
 use App\Controllers\Api\PaymentNotifyController;
-use App\Controllers\Api\PublicController;
+use App\Controllers\Api\ServiceController;
 use App\Controllers\Api\UserController;
 use App\Controllers\Web\PageController;
 use App\Core\Router;
@@ -33,21 +34,21 @@ return static function (Router $router): void {
     $router->get('/admin', [PageController::class, 'admin']);
 
     // Public API
-    $router->get('/api/v1/services', [PublicController\ServiceController::class, 'index']);
-    $router->get('/api/v1/services/{id}', [PublicController\ServiceController::class, 'show']);
+    $router->get('/api/v1/services', [ServiceController::class, 'index']);
+    $router->get('/api/v1/services/{id}', [ServiceController::class, 'show']);
 
-    $router->post('/api/v1/auth/register', [PublicController\AuthController::class, 'register'], [
+    $router->post('/api/v1/auth/register', [AuthController::class, 'register'], [
         $csrf, new RateLimitMiddleware('register'),
     ]);
-    $router->post('/api/v1/auth/login', [PublicController\AuthController::class, 'login'], [
+    $router->post('/api/v1/auth/login', [AuthController::class, 'login'], [
         $csrf, new RateLimitMiddleware('login'),
     ]);
-    $router->post('/api/v1/auth/logout', [PublicController\AuthController::class, 'logout'], [$csrf, $auth]);
-    $router->post('/api/v1/auth/forgot-password', [PublicController\AuthController::class, 'forgotPassword'], [
+    $router->post('/api/v1/auth/logout', [AuthController::class, 'logout'], [$csrf, $auth]);
+    $router->post('/api/v1/auth/forgot-password', [AuthController::class, 'forgotPassword'], [
         $csrf, new RateLimitMiddleware('forgot'),
     ]);
-    $router->post('/api/v1/auth/reset-password', [PublicController\AuthController::class, 'resetPassword'], [$csrf]);
-    $router->get('/api/v1/auth/verify-email', [PublicController\AuthController::class, 'verifyEmail']);
+    $router->post('/api/v1/auth/reset-password', [AuthController::class, 'resetPassword'], [$csrf]);
+    $router->get('/api/v1/auth/verify-email', [AuthController::class, 'verifyEmail']);
 
     // User API
     $router->get('/api/v1/user/profile', [UserController::class, 'profile'], [$auth]);

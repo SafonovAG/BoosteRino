@@ -1,6 +1,15 @@
 /vendor/
 /config/database.php
+/config/local.php
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
 .idea/
 *.log
 /storage/cache/*
 !/storage/cache/.gitkeep
+/deploy.local.*
+/secrets/
