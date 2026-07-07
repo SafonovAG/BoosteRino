@@ -8,6 +8,7 @@
 .githooks/
 SECURITY.md
 /api/info/
+/debug/
 *.log
 /storage/cache/*
 !/storage/cache/.gitkeep

@@ -64,11 +64,26 @@ JavaScript -> vanilla fetch, без фреймворков
 1. Загрузите файлы проекта на хостинг (FTP, PhpStorm Deployment и т.п.)
 2. Импортируйте схему: `mysql -u USER -p DB < database/schema.sql`
 3. Скопируйте `config/database.example.php` в `config/database.php` и укажите доступ к MySQL
-4. Создайте superadmin:
+4. Создайте superadmin через phpMyAdmin (SQL):
 
-```bash
-php bin/create_superadmin.php admin@example.com YourPassword123
+```sql
+-- Готовый вариант: admin@boosterino.ru / ChangeMe123!
+-- Полный файл: debug/sql/create_superadmin.sql (локально, не в git)
+
+INSERT INTO users (email, password_hash, role, email_verified_at)
+VALUES (
+    'admin@boosterino.ru',
+    '$2b$12$H5MFLDm.NeSeB2UoMf.QceJUS/TfO.5kwOneLLmTpqRdJ/Ux1ThRi',
+    'superadmin',
+    NOW()
+)
+ON DUPLICATE KEY UPDATE
+    password_hash = VALUES(password_hash),
+    role = 'superadmin',
+    email_verified_at = NOW();
 ```
+
+Свой email и пароль: локально `php debug/tools/generate_superadmin_sql.php email password` - скопируйте вывод в phpMyAdmin.
 
 5. В админке заполните: API-ключ Twiboost, кошелёк ЮMoney, SMTP, глобальную наценку
 6. Настройте cron (см. ниже)
@@ -89,7 +104,8 @@ config/         - маршруты, database.example.php
 database/       - schema.sql
 views/          - PHP-шаблоны
 cron/           - синхронизация услуг и статусов заказов
-bin/            - CLI-утилиты
+bin/            - CLI-утилиты (если есть SSH)
+debug/          - локальные SQL и тесты (не в git)
 storage/cache/  - кэш (не в git, кроме .gitkeep)
 ```
 
@@ -108,7 +124,7 @@ storage/cache/  - кэш (не в git, кроме .gitkeep)
 
 - Доступ к MySQL - **только** в `config/database.php` (локально, не в git)
 - API-ключ Twiboost, ЮMoney, SMTP - в таблице `settings` в MySQL
-- В публичный репозиторий не попадают: `config/database.php`, `.cursor/`, `.githooks/`, `api/info/`, `SECURITY.md`
+- В публичный репозиторий не попадают: `config/database.php`, `.cursor/`, `.githooks/`, `api/info/`, `debug/`, `SECURITY.md`
 
 ---
 
