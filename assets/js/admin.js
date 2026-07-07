@@ -9,6 +9,8 @@
 
   window.AdminNav = window.AdminNav || {};
   window.AdminNav.selectedUserId = null;
+
+  document.querySelectorAll('[data-panel]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.panel;
       document.querySelectorAll('[data-panel]').forEach((b) => b.classList.toggle('active', b === btn));
@@ -21,6 +23,11 @@
       if (id === 'settings' && isSuper) loadSettings();
     });
   });
+
+  const ORDER_STATUSES = [
+    'pending', 'pending_payment', 'Awaiting', 'In progress', 'Partial',
+    'Completed', 'Canceled', 'Cancelled', 'Fail', 'Failed', 'Error',
+  ];
 
   function escape(s) {
     const d = document.createElement('div');
@@ -46,30 +53,141 @@
     }
   }
 
+  function fmtMoney(amount, currency) {
+    if (amount == null || amount === '') return '—';
+    const n = Number(amount);
+    if (Number.isNaN(n)) return String(amount);
+    const cur = String(currency || 'RUB').toUpperCase();
+    const rounded = Math.round(n * 100) / 100;
+    const formatted = rounded.toLocaleString('ru-RU', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: rounded % 1 === 0 ? 0 : 2,
+    });
+    if (cur === 'RUB' || cur === 'RUR') return formatted + ' ₽';
+    return formatted + ' ' + cur;
+  }
+
+  function fmtRub(amount) {
+    return fmtMoney(amount, 'RUB');
+  }
+
+  function fmtNum(n) {
+    if (n == null) return '0';
+    return Number(n).toLocaleString('ru-RU');
+  }
+
   async function loadDashboard() {
     const el = document.getElementById('admin-stats');
     if (!el) return;
+    el.innerHTML = '<p class="muted">Загрузка дашборда...</p>';
     try {
       const data = await api('/api/v1/admin/dashboard');
       const s = data.stats || {};
+      const u = s.users || {};
+      const o = s.orders || {};
+      const r = s.revenue || {};
+      const svc = s.services || {};
       const tb = s.twiboost || {};
-      const tbLabel = s.twiboost_error
-        ? escape(s.twiboost_error)
-        : (tb.balance ?? '-') + (tb.currency ? ' ' + tb.currency : '');
-      el.innerHTML = '<div class="admin-shop-stats">' +
-        '<div class="card stat-card"><span class="stat-icon">👥</span><div class="value">' + (s.users ?? 0) + '</div><div class="label">Клиентов</div></div>' +
-        '<div class="card stat-card"><span class="stat-icon">🛒</span><div class="value">' + (s.orders_today ?? 0) + '</div><div class="label">Заказов сегодня</div></div>' +
-        '<div class="card stat-card"><span class="stat-icon">💎</span><div class="value">' + tbLabel + '</div><div class="label">Баланс поставщика</div></div>' +
+
+      const supplierValue = s.twiboost_error
+        ? '<span class="admin-dash-error">' + escape(s.twiboost_error) + '</span>'
+        : fmtMoney(tb.balance, tb.currency);
+
+      const statusRows = (s.orders_by_status || []).map((row) =>
+        '<span class="admin-dash-status"><span class="admin-status ' + statusClass(row.status) + '">' + escape(row.status) + '</span> ' + fmtNum(row.cnt) + '</span>'
+      ).join('');
+
+      const recentOrders = (s.recent_orders || []).map((ord) =>
+        '<tr class="admin-dash-row-click" data-dash-order="' + ord.id + '">' +
+          '<td>#' + ord.id + '</td>' +
+          '<td>' + fmtDate(ord.created_at) + '</td>' +
+          '<td><button type="button" class="admin-link-btn" data-open-user-inline="' + ord.user_id + '">' + escape(ord.email) + '</button></td>' +
+          '<td class="admin-order-service">' + escape(ord.service_name) + '</td>' +
+          '<td>' + fmtRub(ord.cost_rub) + '</td>' +
+          '<td><span class="admin-status ' + statusClass(ord.status) + '">' + escape(ord.status) + '</span></td>' +
+        '</tr>'
+      ).join('');
+
+      const recentUsers = (s.recent_users || []).map((usr) =>
+        '<tr class="admin-dash-row-click" data-dash-user="' + usr.id + '">' +
+          '<td>#' + usr.id + '</td>' +
+          '<td>' + escape(usr.email) + '</td>' +
+          '<td>' + fmtRub(usr.balance_rub) + '</td>' +
+          '<td>' + fmtDate(usr.created_at) + '</td>' +
+        '</tr>'
+      ).join('');
+
+      el.innerHTML =
+        '<div class="admin-dash">' +
+          '<div class="admin-dash-head">' +
+            '<h2><span class="panel-icon">📊</span> Обзор магазина</h2>' +
+            '<p class="muted">Сводка на ' + fmtDate(s.generated_at || new Date().toISOString()) + '</p>' +
+          '</div>' +
+
+          '<div class="admin-shop-stats admin-dash-stats">' +
+            '<div class="card stat-card"><span class="stat-icon">👥</span><div class="value">' + fmtNum(u.total) + '</div><div class="label">Клиентов</div><div class="stat-sub">+' + fmtNum(u.today) + ' сегодня</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">🛒</span><div class="value">' + fmtNum(o.today) + '</div><div class="label">Заказов сегодня</div><div class="stat-sub">' + fmtNum(o.week) + ' за 7 дней</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">💰</span><div class="value">' + fmtRub(r.today) + '</div><div class="label">Выручка сегодня</div><div class="stat-sub">' + fmtRub(r.week) + ' за неделю</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">📈</span><div class="value">' + fmtRub(r.total) + '</div><div class="label">Выручка всего</div><div class="stat-sub">' + fmtNum(o.total) + ' заказов</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">⏳</span><div class="value">' + fmtNum(o.active) + '</div><div class="label">В работе</div><div class="stat-sub">ожидают / выполняются</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">📦</span><div class="value">' + fmtNum(svc.active) + '</div><div class="label">Товаров активно</div><div class="stat-sub">из ' + fmtNum(svc.total) + '</div></div>' +
+            '<div class="card stat-card"><span class="stat-icon">💳</span><div class="value">' + fmtRub(s.balances?.users_total) + '</div><div class="label">Балансы клиентов</div><div class="stat-sub">' + fmtNum(u.active) + ' активных</div></div>' +
+            '<div class="card stat-card stat-card--supplier"><span class="stat-icon">💎</span><div class="value">' + supplierValue + '</div><div class="label">Баланс поставщика</div><div class="stat-sub">Twiboost</div></div>' +
+          '</div>' +
+
+          '<div class="admin-dash-grid">' +
+            '<section class="card panel-card admin-dash-panel">' +
+              '<h3>Заказы по статусам</h3>' +
+              (statusRows ? '<div class="admin-dash-statuses">' + statusRows + '</div>' : '<p class="muted">Нет заказов</p>') +
+            '</section>' +
+            '<section class="card panel-card admin-dash-panel">' +
+              '<div class="admin-dash-panel-head"><h3>Новые клиенты</h3><button type="button" class="btn btn-ghost btn-sm" data-dash-go="users">Все →</button></div>' +
+              (recentUsers
+                ? '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Email</th><th>Баланс</th><th>Регистрация</th></tr></thead><tbody>' + recentUsers + '</tbody></table></div>'
+                : '<p class="muted">Пока нет регистраций</p>') +
+            '</section>' +
+          '</div>' +
+
+          '<section class="card panel-card admin-dash-panel">' +
+            '<div class="admin-dash-panel-head"><h3>Последние заказы</h3><button type="button" class="btn btn-ghost btn-sm" data-dash-go="orders">Все →</button></div>' +
+            (recentOrders
+              ? '<div class="table-wrap admin-orders-table-wrap"><table><thead><tr><th>#</th><th>Дата</th><th>Клиент</th><th>Услуга</th><th>Сумма</th><th>Статус</th></tr></thead><tbody>' + recentOrders + '</tbody></table></div>'
+              : '<p class="muted">Заказов пока нет</p>') +
+          '</section>' +
         '</div>';
+
+      el.querySelectorAll('[data-dash-go]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelector('[data-panel="' + btn.dataset.dashGo + '"]')?.click();
+        });
+      });
+
+      el.querySelectorAll('[data-dash-order]').forEach((row) => {
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('[data-open-user-inline]')) return;
+          const id = +row.dataset.dashOrder;
+          if (window.AdminNav?.openOrder) window.AdminNav.openOrder(id);
+        });
+      });
+
+      el.querySelectorAll('[data-dash-user]').forEach((row) => {
+        row.addEventListener('click', () => {
+          const id = +row.dataset.dashUser;
+          if (window.AdminNav?.openUser) window.AdminNav.openUser(id);
+        });
+      });
+
+      el.querySelectorAll('[data-open-user-inline]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const uid = +btn.dataset.openUserInline;
+          if (uid && window.AdminNav?.openUser) window.AdminNav.openUser(uid);
+        });
+      });
     } catch (e) {
       el.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
     }
   }
-
-  async function loadOrderDetail(id) {
-    'pending', 'pending_payment', 'Awaiting', 'In progress', 'Partial',
-    'Completed', 'Canceled', 'Cancelled', 'Fail', 'Failed', 'Error',
-  ];
 
   function ensureOrderDrawer() {
     if (document.getElementById('admin-order-drawer')) return;

@@ -22,15 +22,59 @@ final class AdminApi
     public static function dashboard(Request $r): void
     {
         $pdo = Database::pdo();
+
+        $activeStatuses = "'pending','pending_payment','Awaiting','In progress','Partial'";
+
         $stats = [
-            'users' => (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-            'orders_today' => (int) $pdo->query('SELECT COUNT(*) FROM orders WHERE DATE(created_at)=CURDATE()')->fetchColumn(),
+            'generated_at' => date('c'),
+            'users' => [
+                'total' => (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role='user'")->fetchColumn(),
+                'active' => (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role='user' AND is_active=1")->fetchColumn(),
+                'today' => (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role='user' AND DATE(created_at)=CURDATE()")->fetchColumn(),
+            ],
+            'orders' => [
+                'total' => (int) $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn(),
+                'today' => (int) $pdo->query('SELECT COUNT(*) FROM orders WHERE DATE(created_at)=CURDATE()')->fetchColumn(),
+                'week' => (int) $pdo->query('SELECT COUNT(*) FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)')->fetchColumn(),
+                'active' => (int) $pdo->query("SELECT COUNT(*) FROM orders WHERE status IN ($activeStatuses)")->fetchColumn(),
+            ],
+            'revenue' => [
+                'today' => (float) $pdo->query("SELECT COALESCE(SUM(cost_rub),0) FROM orders WHERE DATE(created_at)=CURDATE() AND status NOT IN ('Canceled','Cancelled','Fail','Failed','Error')")->fetchColumn(),
+                'week' => (float) $pdo->query("SELECT COALESCE(SUM(cost_rub),0) FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND status NOT IN ('Canceled','Cancelled','Fail','Failed','Error')")->fetchColumn(),
+                'total' => (float) $pdo->query("SELECT COALESCE(SUM(cost_rub),0) FROM orders WHERE status NOT IN ('Canceled','Cancelled','Fail','Failed','Error')")->fetchColumn(),
+            ],
+            'services' => [
+                'total' => (int) $pdo->query('SELECT COUNT(*) FROM services')->fetchColumn(),
+                'active' => (int) $pdo->query('SELECT COUNT(*) FROM services WHERE is_active=1')->fetchColumn(),
+            ],
+            'balances' => [
+                'users_total' => (float) $pdo->query("SELECT COALESCE(SUM(balance_rub),0) FROM users WHERE role='user'")->fetchColumn(),
+            ],
+            'orders_by_status' => $pdo->query(
+                'SELECT status, COUNT(*) AS cnt FROM orders GROUP BY status ORDER BY cnt DESC'
+            )->fetchAll(),
+            'recent_orders' => $pdo->query(
+                'SELECT o.id, o.status, o.cost_rub, o.created_at, u.email, u.id AS user_id, s.name AS service_name
+                 FROM orders o
+                 JOIN users u ON u.id = o.user_id
+                 JOIN services s ON s.id = o.service_id
+                 ORDER BY o.id DESC LIMIT 8'
+            )->fetchAll(),
+            'recent_users' => $pdo->query(
+                "SELECT id, email, balance_rub, created_at FROM users WHERE role='user' ORDER BY id DESC LIMIT 6"
+            )->fetchAll(),
         ];
+
         try {
-            $stats['twiboost'] = (new TwiboostClient())->balance();
+            $tb = (new TwiboostClient())->balance();
+            if (isset($tb['balance'])) {
+                $tb['balance'] = round((float) $tb['balance'], 2);
+            }
+            $stats['twiboost'] = $tb;
         } catch (\Throwable $e) {
             $stats['twiboost_error'] = $e->getMessage();
         }
+
         Response::ok(['stats' => $stats]);
     }
 
