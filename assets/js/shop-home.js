@@ -44,12 +44,11 @@
       container.innerHTML = '<p class="muted">Каталог скоро наполнится. Загляните позже.</p>';
       return;
     }
-    container.innerHTML = services.map((s) =>
-      window.BoosterinoProductCard.render(s, { featured: true })
-    ).join('');
+    const render = window.BoosterinoProductCard?.renderHomeTile || window.BoosterinoProductCard?.render;
+    container.innerHTML = services.map((s) => render(s)).join('');
     const byId = new Map(services.map((s) => [s.id, s]));
     window.BoosterinoProductCard.bindQuickAdd(container, byId);
   }).catch(() => {
-    container.innerHTML = '';
+    container.innerHTML = '<p class="muted">Не удалось загрузить товары</p>';
   });
 })();

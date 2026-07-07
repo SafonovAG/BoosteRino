@@ -147,6 +147,10 @@
         refill: s.refill,
         cancel: s.cancel,
       });
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (window.BoosterinoCartFly && submitBtn) {
+        BoosterinoCartFly.flyToCart(submitBtn, s.logo);
+      }
       toast('Товар добавлен в корзину');
     });
 

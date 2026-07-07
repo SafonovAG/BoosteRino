@@ -5,104 +5,241 @@
   if (!root || !cart) return;
 
   const fmt = window.BoosterinoProductCard?.formatPrice || ((n) => n + ' ₽');
+  const fmtQty = window.BoosterinoProductCard?.formatQty || ((n) => String(n));
   const escape = window.BoosterinoProductCard?.escapeHtml || ((s) => s);
   const isLoggedIn = !!document.querySelector('.balance-pill');
 
-  function render() {
-    const items = cart.getItems();
+  let shellReady = false;
+  let checkoutBusy = false;
 
-    if (!items.length) {
-      root.innerHTML =
-        '<div class="cart-empty card">' +
-          '<div class="cart-empty-icon">🛒</div>' +
-          '<h2>Корзина пуста</h2>' +
-          '<p class="muted">Выберите услуги в каталоге и добавьте их сюда</p>' +
-          '<a href="/services" class="btn btn-primary">Открыть каталог</a>' +
-        '</div>';
-      return;
-    }
-
-    let rows = '';
-    items.forEach((item) => {
-      const total = cart.lineTotal(item);
-      rows +=
-        '<article class="cart-item card" data-service-id="' + item.service_id + '">' +
-          '<a href="/services/' + item.service_id + '" class="cart-item-logo">' +
-            '<img src="' + escape(item.logo) + '" alt="" width="48" height="48">' +
-          '</a>' +
-          '<div class="cart-item-body">' +
-            '<a href="/services/' + item.service_id + '" class="cart-item-title">' + escape(item.name) + '</a>' +
-            '<span class="cart-item-category">' + escape(item.category_label || item.platform_name) + '</span>' +
-            '<label class="cart-item-link-label">Ссылка' +
-              '<input type="url" class="cart-item-link" value="' + escape(item.link) + '" placeholder="https://...">' +
-            '</label>' +
-            '<div class="cart-item-row">' +
-              '<label>Кол-во' +
-                '<input type="number" class="cart-item-qty" min="' + item.min + '" max="' + item.max + '" value="' + item.quantity + '">' +
-              '</label>' +
-              '<div class="cart-item-price">' +
-                '<span class="muted">за 1000: ' + fmt(item.price_per_thousand_rub) + '</span>' +
-                '<strong class="cart-item-total">' + fmt(total) + '</strong>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-          '<button type="button" class="cart-item-remove" title="Удалить" aria-label="Удалить">×</button>' +
-        '</article>';
-    });
-
+  function renderEmpty() {
+    shellReady = false;
     root.innerHTML =
-      '<div class="cart-layout">' +
-        '<div class="cart-items-list">' + rows + '</div>' +
-        '<aside class="cart-summary card">' +
-          '<h2>Итого</h2>' +
-          '<div class="cart-summary-row">' +
-            '<span>Товаров</span><strong>' + cart.count() + ' ед.</strong>' +
-          '</div>' +
-          '<div class="cart-summary-total">' +
-            '<span>Сумма</span><strong id="cart-grand-total">' + fmt(cart.total()) + '</strong>' +
-          '</div>' +
-          (isLoggedIn
-            ? '<label>Способ оплаты<select id="cart-payment"><option value="balance">С баланса</option><option value="yoomoney">ЮMoney</option></select></label>' +
-              '<button type="button" class="btn btn-primary btn-block btn-lg" id="cart-checkout">Оформить заказ</button>'
-            : '<p class="muted">Войдите, чтобы оформить заказ</p>' +
-              '<a href="/login?next=/cart" class="btn btn-primary btn-block">Войти</a>' +
-              '<a href="/register" class="btn btn-secondary btn-block">Регистрация</a>') +
-          '<a href="/services" class="btn btn-ghost btn-block">Продолжить покупки</a>' +
-        '</aside>' +
+      '<div class="cart-pro-empty">' +
+        '<div class="cart-pro-empty-icon">🛒</div>' +
+        '<h2>Корзина пуста</h2>' +
+        '<p class="muted">Выберите услуги в каталоге и добавьте их сюда</p>' +
+        '<a href="/services" class="btn btn-primary">Открыть каталог</a>' +
       '</div>';
-
-    bindEvents();
   }
 
-  function bindEvents() {
-    root.querySelectorAll('.cart-item').forEach((row) => {
-      const sid = +row.dataset.serviceId;
+  function ensureShell() {
+    if (shellReady) return;
+    root.innerHTML =
+      '<div class="cart-pro">' +
+        '<div class="cart-pro-items" id="cart-pro-items"></div>' +
+        '<aside class="cart-pro-summary" id="cart-pro-summary">' +
+          '<h2>Ваш заказ</h2>' +
+          '<div class="cart-pro-summary-rows">' +
+            '<div class="cart-pro-summary-row"><span>Позиций</span><strong id="cart-pos-count">0</strong></div>' +
+            '<div class="cart-pro-summary-row"><span>Единиц</span><strong id="cart-units-count">0</strong></div>' +
+          '</div>' +
+          '<div class="cart-pro-summary-total"><span>Итого</span><strong id="cart-grand-total">0 ₽</strong></div>' +
+          '<div id="cart-checkout-block"></div>' +
+          '<a href="/services" class="btn btn-ghost btn-block">Продолжить покупки</a>' +
+          '<div class="cart-pro-progress" id="cart-progress" hidden><div class="cart-pro-progress-bar" id="cart-progress-bar"></div></div>' +
+        '</aside>' +
+      '</div>';
+    shellReady = true;
+    bindRootEvents();
+    updateCheckoutBlock();
+  }
 
-      row.querySelector('.cart-item-remove')?.addEventListener('click', () => {
-        cart.remove(sid);
-        render();
-      });
-
-      row.querySelector('.cart-item-qty')?.addEventListener('change', (e) => {
-        cart.update(sid, { quantity: +e.target.value });
-        render();
-      });
-
-      row.querySelector('.cart-item-link')?.addEventListener('change', (e) => {
-        cart.update(sid, { link: e.target.value.trim() });
-      });
-    });
-
+  function updateCheckoutBlock() {
+    const block = document.getElementById('cart-checkout-block');
+    if (!block) return;
+    block.innerHTML = isLoggedIn
+      ? '<label>Способ оплаты<select id="cart-payment"><option value="balance">С баланса</option><option value="yoomoney">ЮMoney</option></select></label>' +
+        '<button type="button" class="btn btn-primary btn-block btn-lg" id="cart-checkout">Оформить заказ</button>'
+      : '<p class="muted">Войдите, чтобы оформить заказ</p>' +
+        '<a href="/login?next=/cart" class="btn btn-primary btn-block">Войти</a>' +
+        '<a href="/register" class="btn btn-secondary btn-block">Регистрация</a>';
     document.getElementById('cart-checkout')?.addEventListener('click', checkout);
   }
 
+  function itemHtml(item, isNew) {
+    const total = cart.lineTotal(item);
+    return '<article class="cart-pro-item' + (isNew ? ' is-entering' : '') + '" data-service-id="' + item.service_id + '">' +
+      '<a href="/services/' + item.service_id + '" class="cart-pro-item-logo">' +
+        '<img src="' + escape(item.logo) + '" alt="" width="32" height="32">' +
+      '</a>' +
+      '<div class="cart-pro-item-main">' +
+        '<div class="cart-pro-item-head">' +
+          '<h3 class="cart-pro-item-title"><a href="/services/' + item.service_id + '">' + escape(item.name) + '</a></h3>' +
+          '<span class="cart-pro-item-cat">' + escape(item.category_label || item.platform_name) + '</span>' +
+        '</div>' +
+        '<label class="cart-pro-item-link">' +
+          '<span>Ссылка на профиль или пост</span>' +
+          '<input type="url" class="cart-pro-item-link-input" value="' + escape(item.link) + '" placeholder="https://...">' +
+        '</label>' +
+        '<div class="cart-pro-item-controls">' +
+          '<div class="cart-pro-stepper">' +
+            '<button type="button" class="cart-qty-minus" aria-label="Меньше">−</button>' +
+            '<input type="number" class="cart-pro-item-qty" min="' + item.min + '" max="' + item.max + '" value="' + item.quantity + '">' +
+            '<button type="button" class="cart-qty-plus" aria-label="Больше">+</button>' +
+          '</div>' +
+          '<div class="cart-pro-item-side">' +
+            '<div class="cart-pro-item-rate">за 1000: ' + fmt(item.price_per_thousand_rub) + '</div>' +
+            '<div class="cart-pro-item-total">' + fmt(total) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<button type="button" class="cart-pro-item-remove" title="Удалить" aria-label="Удалить">×</button>' +
+    '</article>';
+  }
+
+  function updateTotals(animate) {
+    const posEl = document.getElementById('cart-pos-count');
+    const unitsEl = document.getElementById('cart-units-count');
+    const grandEl = document.getElementById('cart-grand-total');
+    if (posEl) posEl.textContent = String(cart.getItems().length);
+    if (unitsEl) unitsEl.textContent = fmtQty(cart.count());
+    if (grandEl) {
+      grandEl.textContent = fmt(cart.total());
+      if (animate) {
+        grandEl.classList.add('is-pulse');
+        setTimeout(() => grandEl.classList.remove('is-pulse'), 300);
+      }
+    }
+  }
+
+  function updateItemRow(row, item, animatePrice) {
+    const qtyInput = row.querySelector('.cart-pro-item-qty');
+    if (qtyInput && document.activeElement !== qtyInput) {
+      qtyInput.value = item.quantity;
+    }
+    const linkInput = row.querySelector('.cart-pro-item-link-input');
+    if (linkInput && document.activeElement !== linkInput) {
+      linkInput.value = item.link;
+    }
+    const totalEl = row.querySelector('.cart-pro-item-total');
+    if (totalEl) {
+      totalEl.textContent = fmt(cart.lineTotal(item));
+      if (animatePrice) {
+        totalEl.classList.add('is-pulse');
+        setTimeout(() => totalEl.classList.remove('is-pulse'), 300);
+      }
+    }
+    const minus = row.querySelector('.cart-qty-minus');
+    const plus = row.querySelector('.cart-qty-plus');
+    if (minus) minus.disabled = item.quantity <= item.min;
+    if (plus) plus.disabled = item.quantity >= item.max;
+  }
+
+  function syncItems(animate) {
+    const list = document.getElementById('cart-pro-items');
+    if (!list) return;
+    const items = cart.getItems();
+    const existing = new Map();
+    list.querySelectorAll('.cart-pro-item').forEach((row) => {
+      existing.set(+row.dataset.serviceId, row);
+    });
+
+    items.forEach((item) => {
+      const sid = item.service_id;
+      if (existing.has(sid)) {
+        updateItemRow(existing.get(sid), item, animate);
+        existing.delete(sid);
+      } else {
+        list.insertAdjacentHTML('beforeend', itemHtml(item, true));
+      }
+    });
+
+    existing.forEach((row) => {
+      row.classList.add('is-leaving');
+      setTimeout(() => row.remove(), 250);
+    });
+
+    updateTotals(animate);
+  }
+
+  function render(isNew) {
+    const items = cart.getItems();
+    if (!items.length) {
+      renderEmpty();
+      return;
+    }
+    ensureShell();
+    if (!document.getElementById('cart-pro-items').children.length) {
+      document.getElementById('cart-pro-items').innerHTML = items.map((i) => itemHtml(i, isNew)).join('');
+      updateTotals(false);
+    } else {
+      syncItems(isNew);
+    }
+  }
+
+  function bindRootEvents() {
+    root.addEventListener('click', (e) => {
+      const row = e.target.closest('.cart-pro-item');
+      if (!row) return;
+      const sid = +row.dataset.serviceId;
+      const item = cart.getItems().find((i) => i.service_id === sid);
+      if (!item) return;
+
+      if (e.target.closest('.cart-pro-item-remove')) {
+        row.classList.add('is-leaving');
+        setTimeout(() => {
+          cart.remove(sid);
+        }, 200);
+        return;
+      }
+
+      if (e.target.closest('.cart-qty-minus')) {
+        cart.update(sid, { quantity: item.quantity - 1 });
+        return;
+      }
+
+      if (e.target.closest('.cart-qty-plus')) {
+        cart.update(sid, { quantity: item.quantity + 1 });
+      }
+    });
+
+    root.addEventListener('input', (e) => {
+      const row = e.target.closest('.cart-pro-item');
+      if (!row) return;
+      const sid = +row.dataset.serviceId;
+
+      if (e.target.classList.contains('cart-pro-item-qty')) {
+        cart.update(sid, { quantity: +e.target.value });
+      }
+    });
+
+    root.addEventListener('change', (e) => {
+      const row = e.target.closest('.cart-pro-item');
+      if (!row) return;
+      const sid = +row.dataset.serviceId;
+
+      if (e.target.classList.contains('cart-pro-item-link-input')) {
+        const val = e.target.value.trim();
+        e.target.classList.toggle('is-invalid', !val);
+        cart.update(sid, { link: val });
+      }
+
+      if (e.target.classList.contains('cart-pro-item-qty')) {
+        cart.update(sid, { quantity: +e.target.value });
+      }
+    });
+  }
+
+  function setProgress(pct) {
+    const wrap = document.getElementById('cart-progress');
+    const bar = document.getElementById('cart-progress-bar');
+    if (!wrap || !bar) return;
+    wrap.hidden = pct <= 0;
+    bar.style.width = pct + '%';
+  }
+
   async function checkout() {
+    if (checkoutBusy) return;
     const items = cart.getItems();
     const payment = document.getElementById('cart-payment')?.value || 'balance';
 
     for (const item of items) {
       if (!item.link) {
         toast('Укажите ссылку для: ' + item.name, 'error');
+        const row = root.querySelector('[data-service-id="' + item.service_id + '"] .cart-pro-item-link-input');
+        row?.classList.add('is-invalid');
+        row?.focus();
         return;
       }
     }
@@ -113,10 +250,12 @@
     }
 
     const btn = document.getElementById('cart-checkout');
+    checkoutBusy = true;
     if (btn) btn.disabled = true;
 
     try {
       for (let i = 0; i < items.length; i++) {
+        setProgress(((i) / items.length) * 100);
         const item = items[i];
         const result = await api('/api/v1/user/orders', {
           method: 'POST',
@@ -135,15 +274,24 @@
         }
       }
 
+      setProgress(100);
       cart.clear();
       toast('Заказы оформлены');
       location.href = '/cabinet';
     } catch (e) {
       toast(e.message, 'error');
+      setProgress(0);
+      checkoutBusy = false;
       if (btn) btn.disabled = false;
     }
   }
 
-  render();
-  window.addEventListener('cart:updated', render);
+  let lastCount = cart.getItems().length;
+  window.addEventListener('cart:updated', () => {
+    const isNew = cart.getItems().length > lastCount;
+    lastCount = cart.getItems().length;
+    render(isNew);
+  });
+
+  render(false);
 })();

@@ -74,10 +74,44 @@
     '</article>';
   }
 
+  function renderHomeTile(s) {
+    const label = s.category_label || s.platform_name || s.category || '';
+    const href = '/services/' + s.id;
+    const unit = parseDeliveryUnit(s.name);
+    const badges = [];
+    if (s.refill) badges.push('<span class="home-tile-badge home-tile-badge--refill">Р</span>');
+    if (s.cancel) badges.push('<span class="home-tile-badge home-tile-badge--cancel">О</span>');
+
+    return '<article class="home-tile" data-platform="' + escapeHtml(s.platform) + '">' +
+      '<a href="' + href + '" class="home-tile-media">' +
+        '<span class="home-tile-platform">' + escapeHtml(label) + '</span>' +
+        (badges.length ? '<div class="home-tile-badges">' + badges.join('') + '</div>' : '') +
+        '<img src="' + escapeHtml(s.logo) + '" alt="" width="52" height="52">' +
+      '</a>' +
+      '<div class="home-tile-body">' +
+        '<h3 class="home-tile-title"><a href="' + href + '">' + escapeHtml(s.name) + '</a></h3>' +
+        '<div class="home-tile-limits">' +
+          '<span class="home-tile-limit">от ' + formatQty(s.min) + '</span>' +
+          '<span class="home-tile-limit">' + formatQty(s.max) + ' ' + escapeHtml(unit) + '</span>' +
+        '</div>' +
+        '<div class="home-tile-foot">' +
+          '<div class="home-tile-price">' +
+            '<strong>' + formatPrice(s.price_per_thousand_rub) + '</strong>' +
+            '<span>за 1000</span>' +
+          '</div>' +
+          '<div class="home-tile-actions">' +
+            '<a href="' + href + '" class="home-tile-more" title="Подробнее">→</a>' +
+            '<button type="button" class="home-tile-add btn-add-cart" data-service-id="' + s.id + '">В корзину</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</article>';
+  }
+
   function bindQuickAdd(container, servicesById) {
     if (!container) return;
     container.addEventListener('click', (e) => {
-      const btn = e.target.closest('.btn-add-cart, .catalog-tile-add');
+      const btn = e.target.closest('.btn-add-cart, .catalog-tile-add, .home-tile-add');
       if (!btn) return;
       e.preventDefault();
       e.stopPropagation();
@@ -97,6 +131,9 @@
         refill: s.refill,
         cancel: s.cancel,
       });
+      if (window.BoosterinoCartFly) {
+        BoosterinoCartFly.flyToCart(btn, s.logo);
+      }
       btn.classList.add('is-added');
       const old = btn.textContent;
       btn.textContent = 'Добавлено';
@@ -148,6 +185,7 @@
 
   window.BoosterinoProductCard = {
     render: renderProductCard,
+    renderHomeTile,
     renderCatalogRow,
     bindQuickAdd,
     formatPrice,

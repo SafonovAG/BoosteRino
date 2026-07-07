@@ -109,55 +109,120 @@
     'Completed', 'Canceled', 'Cancelled', 'Fail', 'Failed', 'Error',
   ];
 
+  function ensureOrderDrawer() {
+    if (document.getElementById('admin-order-drawer')) return;
+    const wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div class="admin-order-backdrop" id="admin-order-backdrop" hidden></div>' +
+      '<div class="admin-order-drawer" id="admin-order-drawer" aria-hidden="true">' +
+        '<div class="admin-order-drawer-handle" aria-hidden="true"></div>' +
+        '<div id="admin-order-detail" class="admin-order-drawer-body"></div>' +
+      '</div>';
+    document.body.appendChild(wrap);
+    document.getElementById('admin-order-backdrop')?.addEventListener('click', closeOrderDrawer);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeOrderDrawer();
+    });
+  }
+
+  function openOrderDrawer() {
+    ensureOrderDrawer();
+    document.getElementById('admin-order-backdrop')?.removeAttribute('hidden');
+    const drawer = document.getElementById('admin-order-drawer');
+    drawer?.classList.add('is-open');
+    drawer?.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('admin-order-open');
+  }
+
+  function closeOrderDrawer() {
+    selectedOrderId = null;
+    document.getElementById('admin-order-backdrop')?.setAttribute('hidden', '');
+    const drawer = document.getElementById('admin-order-drawer');
+    drawer?.classList.remove('is-open');
+    drawer?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('admin-order-open');
+    document.querySelectorAll('.admin-order-row.is-selected').forEach((r) => r.classList.remove('is-selected'));
+    const panel = document.getElementById('admin-order-detail');
+    if (panel) panel.innerHTML = '';
+  }
+
   async function loadOrderDetail(id) {
+    ensureOrderDrawer();
     const panel = document.getElementById('admin-order-detail');
     if (!panel) return;
-    panel.innerHTML = '<p class="muted">Загрузка...</p>';
+    openOrderDrawer();
+    panel.innerHTML = '<div class="admin-order-drawer-loading"><p class="muted">Загрузка заказа...</p></div>';
     try {
       const data = await api('/api/v1/admin/orders/' + id);
       const o = data.order;
       if (!o) throw new Error('Не найден');
 
       panel.innerHTML =
-        '<div class="admin-order-detail-head">' +
-          '<h3>Заказ #' + o.id + '</h3>' +
-          '<button type="button" class="btn btn-sm btn-ghost" id="close-order-detail">×</button>' +
+        '<div class="admin-order-drawer-top">' +
+          '<div class="admin-order-drawer-title">' +
+            '<span class="admin-order-drawer-label">Заказ</span>' +
+            '<h3>#' + o.id + '</h3>' +
+            '<span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span>' +
+          '</div>' +
+          '<button type="button" class="btn btn-sm btn-ghost admin-order-drawer-close" id="close-order-detail" aria-label="Закрыть">×</button>' +
         '</div>' +
-        '<div class="admin-order-detail-grid">' +
-          '<div><span>Клиент</span><strong>' + escape(o.email) + '</strong></div>' +
-          '<div><span>Услуга</span><strong>' + escape(o.service_name) + '</strong></div>' +
-          '<div><span>Ссылка</span><a href="' + escape(o.link) + '" target="_blank" rel="noopener">' + escape(o.link) + '</a></div>' +
-          '<div><span>Количество</span><strong>' + o.quantity + '</strong></div>' +
-          '<div><span>Сумма</span><strong>' + o.cost_rub + ' ₽</strong></div>' +
-          '<div><span>Оплата</span><strong>' + escape(o.payment_method) + '</strong></div>' +
-          '<div><span>ID поставщика</span><strong>' + (o.twiboost_order_id || '—') + '</strong></div>' +
-          '<div><span>Осталось</span><strong>' + (o.remains ?? '—') + '</strong></div>' +
-          '<div><span>Старт</span><strong>' + (o.start_count ?? '—') + '</strong></div>' +
-          '<div><span>Списание</span><strong>' + (o.charge ?? '—') + '</strong></div>' +
-          '<div><span>Создан</span><strong>' + fmtDate(o.created_at) + '</strong></div>' +
-          '<div><span>Обновлён</span><strong>' + fmtDate(o.updated_at) + '</strong></div>' +
+        '<div class="admin-order-drawer-sections">' +
+          '<section class="admin-order-section">' +
+            '<h4>Клиент и услуга</h4>' +
+            '<div class="admin-order-fields admin-order-fields--3">' +
+              '<div class="admin-order-field"><span>Email</span><strong>' + escape(o.email) + '</strong></div>' +
+              '<div class="admin-order-field"><span>Услуга</span><strong>' + escape(o.service_name) + '</strong></div>' +
+              '<div class="admin-order-field"><span>Количество</span><strong>' + o.quantity + '</strong></div>' +
+            '</div>' +
+          '</section>' +
+          '<section class="admin-order-section">' +
+            '<h4>Оплата</h4>' +
+            '<div class="admin-order-fields admin-order-fields--3">' +
+              '<div class="admin-order-field"><span>Сумма</span><strong>' + o.cost_rub + ' ₽</strong></div>' +
+              '<div class="admin-order-field"><span>Способ</span><strong>' + escape(o.payment_method) + '</strong></div>' +
+              '<div class="admin-order-field"><span>ID поставщика</span><strong>' + (o.twiboost_order_id || '—') + '</strong></div>' +
+            '</div>' +
+          '</section>' +
+          '<section class="admin-order-section admin-order-section--wide">' +
+            '<h4>Ссылка</h4>' +
+            '<a href="' + escape(o.link) + '" target="_blank" rel="noopener" class="admin-order-link">' + escape(o.link) + '</a>' +
+          '</section>' +
+          '<section class="admin-order-section">' +
+            '<h4>Прогресс у поставщика</h4>' +
+            '<div class="admin-order-fields admin-order-fields--4">' +
+              '<div class="admin-order-field"><span>Осталось</span><strong>' + (o.remains ?? '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Старт</span><strong>' + (o.start_count ?? '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Списание</span><strong>' + (o.charge ?? '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Обновлён</span><strong>' + fmtDate(o.updated_at) + '</strong></div>' +
+            '</div>' +
+          '</section>' +
+          '<section class="admin-order-section">' +
+            '<h4>Даты</h4>' +
+            '<div class="admin-order-fields admin-order-fields--2">' +
+              '<div class="admin-order-field"><span>Создан</span><strong>' + fmtDate(o.created_at) + '</strong></div>' +
+              '<div class="admin-order-field"><span>Категория</span><strong>' + escape(o.category || '—') + '</strong></div>' +
+            '</div>' +
+          '</section>' +
         '</div>' +
-        '<div class="admin-order-status-row">' +
-          '<label>Статус' +
-            '<select id="admin-order-status">' +
-              ORDER_STATUSES.map((st) =>
-                '<option value="' + st + '"' + (o.status === st ? ' selected' : '') + '>' + st + '</option>'
-              ).join('') +
-            '</select>' +
-          '</label>' +
-          '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-save-status">Сохранить статус</button>' +
-        '</div>' +
-        '<div class="admin-order-actions">' +
-          '<button type="button" class="btn btn-primary btn-sm" id="admin-order-sync">Синхронизировать</button>' +
-          '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-refill">Рефилл</button>' +
-          '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-cancel">Отменить у поставщика</button>' +
+        '<div class="admin-order-drawer-footer">' +
+          '<div class="admin-order-status-row">' +
+            '<label>Статус вручную' +
+              '<select id="admin-order-status">' +
+                ORDER_STATUSES.map((st) =>
+                  '<option value="' + st + '"' + (o.status === st ? ' selected' : '') + '>' + st + '</option>'
+                ).join('') +
+              '</select>' +
+            '</label>' +
+            '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-save-status">Сохранить</button>' +
+          '</div>' +
+          '<div class="admin-order-actions">' +
+            '<button type="button" class="btn btn-primary btn-sm" id="admin-order-sync">Синхронизировать</button>' +
+            '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-refill">Рефилл</button>' +
+            '<button type="button" class="btn btn-secondary btn-sm" id="admin-order-cancel">Отменить заказ</button>' +
+          '</div>' +
         '</div>';
 
-      panel.querySelector('#close-order-detail')?.addEventListener('click', () => {
-        selectedOrderId = null;
-        panel.innerHTML = '<p class="muted admin-order-placeholder">Выберите заказ из списка</p>';
-        document.querySelectorAll('.admin-order-row.is-selected').forEach((r) => r.classList.remove('is-selected'));
-      });
+      panel.querySelector('#close-order-detail')?.addEventListener('click', closeOrderDrawer);
 
       panel.querySelector('#admin-order-save-status')?.addEventListener('click', async () => {
         const status = panel.querySelector('#admin-order-status')?.value;
@@ -188,10 +253,14 @@
       });
 
       panel.querySelector('#admin-order-cancel')?.addEventListener('click', async () => {
-        if (!confirm('Отменить заказ у поставщика?')) return;
+        if (!confirm('Отменить заказ? Статус будет изменён в системе.')) return;
         try {
-          await api('/api/v1/admin/orders/' + id + '/cancel', { method: 'POST', body: '{}' });
-          toast('Заказ отменён');
+          const r = await api('/api/v1/admin/orders/' + id + '/cancel', { method: 'POST', body: '{}' });
+          if (r.result?.supplier_error) {
+            toast('Отменено локально. Поставщик: ' + r.result.supplier_error, 'error');
+          } else {
+            toast('Заказ отменён');
+          }
           loadOrderDetail(id);
           loadAdminOrders(false);
         } catch (e) {
@@ -204,7 +273,7 @@
   }
 
   async function loadAdminOrders(resetDetail) {
-    if (resetDetail !== false) selectedOrderId = null;
+    if (resetDetail !== false) closeOrderDrawer();
     const el = document.getElementById('admin-orders');
     if (!el) return;
 
@@ -216,45 +285,38 @@
     const rows = data.orders || [];
 
     el.innerHTML =
-      '<div class="admin-orders-layout">' +
-        '<div class="admin-orders-list card panel-card">' +
-          '<div class="admin-orders-toolbar">' +
-            '<h2><span class="panel-icon">🛒</span> Заказы</h2>' +
-            '<div class="admin-orders-filters">' +
-              '<select id="admin-orders-status-filter">' +
-                '<option value="all">Все статусы</option>' +
-                ORDER_STATUSES.map((st) =>
-                  '<option value="' + st + '"' + (ordersFilter.status === st ? ' selected' : '') + '>' + st + '</option>'
-                ).join('') +
-              '</select>' +
-              '<input type="search" id="admin-orders-search" placeholder="ID, email, ссылка..." value="' + escape(ordersFilter.q) + '">' +
-              '<button type="button" class="btn btn-secondary btn-sm" id="admin-orders-refresh">Обновить</button>' +
-              '<button type="button" class="btn btn-primary btn-sm" id="admin-orders-sync-all">Синхр. все</button>' +
-            '</div>' +
-          '</div>' +
-          (rows.length
-            ? '<div class="table-wrap admin-orders-table-wrap"><table><thead><tr>' +
-              '<th>#</th><th>Дата</th><th>Email</th><th>Услуга</th><th>Кол-во</th><th>Сумма</th><th>Статус</th>' +
-              '</tr></thead><tbody>' +
-              rows.map((o) =>
-                '<tr class="admin-order-row' + (selectedOrderId === o.id ? ' is-selected' : '') + '" data-order-id="' + o.id + '">' +
-                  '<td>' + o.id + '</td>' +
-                  '<td>' + fmtDate(o.created_at) + '</td>' +
-                  '<td>' + escape(o.email) + '</td>' +
-                  '<td class="admin-order-service">' + escape(o.service_name) + '</td>' +
-                  '<td>' + o.quantity + '</td>' +
-                  '<td>' + o.cost_rub + ' ₽</td>' +
-                  '<td><span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
-                '</tr>'
+      '<div class="admin-orders-list card panel-card">' +
+        '<div class="admin-orders-toolbar">' +
+          '<h2><span class="panel-icon">🛒</span> Заказы</h2>' +
+          '<div class="admin-orders-filters">' +
+            '<select id="admin-orders-status-filter">' +
+              '<option value="all">Все статусы</option>' +
+              ORDER_STATUSES.map((st) =>
+                '<option value="' + st + '"' + (ordersFilter.status === st ? ' selected' : '') + '>' + st + '</option>'
               ).join('') +
-              '</tbody></table></div>'
-            : '<p class="muted">📭 Нет заказов</p>') +
+            '</select>' +
+            '<input type="search" id="admin-orders-search" placeholder="ID, email, ссылка..." value="' + escape(ordersFilter.q) + '">' +
+            '<button type="button" class="btn btn-secondary btn-sm" id="admin-orders-refresh">Обновить</button>' +
+            '<button type="button" class="btn btn-primary btn-sm" id="admin-orders-sync-all">Синхр. все</button>' +
+          '</div>' +
         '</div>' +
-        '<div id="admin-order-detail" class="card panel-card admin-order-detail">' +
-          (selectedOrderId
-            ? '<p class="muted">Загрузка...</p>'
-            : '<p class="muted admin-order-placeholder">Выберите заказ из списка для проверки и управления</p>') +
-        '</div>' +
+        (rows.length
+          ? '<div class="table-wrap admin-orders-table-wrap"><table><thead><tr>' +
+            '<th>#</th><th>Дата</th><th>Email</th><th>Услуга</th><th>Кол-во</th><th>Сумма</th><th>Статус</th>' +
+            '</tr></thead><tbody>' +
+            rows.map((o) =>
+              '<tr class="admin-order-row' + (selectedOrderId === o.id ? ' is-selected' : '') + '" data-order-id="' + o.id + '">' +
+                '<td>' + o.id + '</td>' +
+                '<td>' + fmtDate(o.created_at) + '</td>' +
+                '<td>' + escape(o.email) + '</td>' +
+                '<td class="admin-order-service">' + escape(o.service_name) + '</td>' +
+                '<td>' + o.quantity + '</td>' +
+                '<td>' + o.cost_rub + ' ₽</td>' +
+                '<td><span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
+              '</tr>'
+            ).join('') +
+            '</tbody></table></div>'
+          : '<p class="muted">📭 Нет заказов</p>') +
       '</div>';
 
     el.querySelector('#admin-orders-status-filter')?.addEventListener('change', (e) => {
@@ -289,8 +351,6 @@
         loadOrderDetail(selectedOrderId);
       });
     });
-
-    if (selectedOrderId) loadOrderDetail(selectedOrderId);
   }
 
   async function loadUsers() {

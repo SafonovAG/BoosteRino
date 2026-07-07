@@ -267,11 +267,18 @@ final class OrderService
     public function adminCancel(int $id): array
     {
         $o = $this->adminGet($id);
-        if (!$o || !$o['twiboost_order_id']) {
-            throw new \InvalidArgumentException('Отмена недоступна.');
+        if (!$o) {
+            throw new \InvalidArgumentException('Заказ не найден.');
         }
-        $r = $this->tb->cancel((int) $o['twiboost_order_id']);
+        $result = ['canceled_locally' => true];
+        if ($o['twiboost_order_id']) {
+            try {
+                $result['supplier'] = $this->tb->cancel((int) $o['twiboost_order_id']);
+            } catch (\Throwable $e) {
+                $result['supplier_error'] = $e->getMessage();
+            }
+        }
         Database::pdo()->prepare('UPDATE orders SET status=\'Canceled\', updated_at=NOW() WHERE id=:id')->execute(['id' => $id]);
-        return $r;
+        return $result;
     }
 }

@@ -46,8 +46,6 @@ $platforms = \App\Services\ServiceLogo::platforms();
                 <a href="/" class="<?= ($page ?? '') === 'home' ? 'active' : '' ?>">Главная</a>
                 <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>">Каталог</a>
                 <a href="/cart" class="<?= ($page ?? '') === 'cart' ? 'active' : '' ?>">Корзина</a>
-                <a href="/#how">Как заказать</a>
-                <a href="/#faq">FAQ</a>
                 <?php if ($authUser): ?>
                     <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>">Мой кабинет</a>
                     <?php if (in_array($authUser['role'], ['admin', 'superadmin'], true)): ?>
@@ -135,6 +133,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/ui.js"></script>
     <script src="/assets/js/cart.js"></script>
+    <script src="/assets/js/cart-fly.js"></script>
     <script src="/assets/js/product-cards.js"></script>
     <script>
     document.getElementById('topbar-close')?.addEventListener('click', () => {

@@ -21,5 +21,7 @@ ob_start();
 </section>
 <?php
 $content = ob_get_clean();
+$bodyClass = 'cart-pro-page';
+$styles = ['/assets/css/cart-pro.css'];
 $scripts = ['/assets/js/cart-page.js'];
 include dirname(__DIR__) . '/layouts/main.php';
