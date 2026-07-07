@@ -63,13 +63,13 @@
     );
   }
 
-  function pluralGoods(n) {
+  function pluralServices(n) {
     const m = n % 10;
     const m2 = n % 100;
-    if (m2 >= 11 && m2 <= 14) return 'товаров';
-    if (m === 1) return 'товар';
-    if (m >= 2 && m <= 4) return 'товара';
-    return 'товаров';
+    if (m2 >= 11 && m2 <= 14) return 'услуг';
+    if (m === 1) return 'услуга';
+    if (m >= 2 && m <= 4) return 'услуги';
+    return 'услуг';
   }
 
   function updateUrl() {
@@ -206,7 +206,7 @@
 
     html += '<button type="button" class="catalog-page-btn" data-page="' + (page + 1) + '"' +
       (page >= totalPages ? ' disabled' : '') + '>→</button></div>';
-    html += '<p class="catalog-page-info muted">' + page + ' / ' + totalPages + ' · ' + total + ' ' + pluralGoods(total) + '</p>';
+    html += '<p class="catalog-page-info muted">' + page + ' / ' + totalPages + ' · ' + total + ' ' + pluralServices(total) + '</p>';
 
     paginationEl.innerHTML = html;
 
@@ -227,7 +227,7 @@
     if (page > totalPages) page = totalPages;
 
     if (countEl) {
-      countEl.textContent = filtered.length + ' ' + pluralGoods(filtered.length);
+      countEl.textContent = filtered.length + ' ' + pluralServices(filtered.length);
     }
 
     container.classList.remove('is-loading');
