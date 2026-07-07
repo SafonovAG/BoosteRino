@@ -13,7 +13,7 @@
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-header);
   padding: 0.65rem 0 0.5rem;
 }
 
@@ -167,7 +167,7 @@
 }
 
 .catalog-pro-chip.is-active .catalog-pro-chip-icon {
-  background: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .catalog-pro-chip-icon img {
@@ -305,7 +305,7 @@
 .catalog-tile:hover {
   transform: translateY(-3px);
   border-color: var(--border-glow);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .catalog-tile:hover .catalog-tile-glow { opacity: 1; }

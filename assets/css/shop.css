@@ -8,7 +8,7 @@
    -------------------------------------------------------------------------- */
 
 .shop-page {
-  --shop-white: #ffffff;
+  --shop-white: var(--bg-elevated);
   --shop-surface: var(--bg-elevated);
   --shop-border-soft: color-mix(in srgb, var(--border) 80%, transparent);
   --shop-header-h: 76px;
@@ -134,16 +134,11 @@
   position: sticky;
   top: 0;
   z-index: 200;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--bg-glass);
   backdrop-filter: blur(20px) saturate(1.5);
   -webkit-backdrop-filter: blur(20px) saturate(1.5);
   border-bottom: 1px solid var(--shop-border-soft);
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.04);
-}
-
-[data-theme="dark"] .store-header,
-[data-theme="auto"] .store-header {
-  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  box-shadow: var(--shadow-header);
 }
 
 .store-header.has-topbar {
@@ -768,7 +763,7 @@
   border-radius: 999px;
   background: var(--shop-white);
   border: 1px solid var(--border);
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-xs);
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--text);
@@ -861,7 +856,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-card);
   transition: transform var(--shop-transition), box-shadow var(--shop-transition), border-color var(--shop-transition);
 }
 
@@ -2068,7 +2063,7 @@
   background: var(--shop-white);
   color: var(--text);
   border: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-xs);
 }
 
 [data-theme="dark"] .shop-page .btn-secondary {
@@ -2216,7 +2211,7 @@
   padding: 0.85rem 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--bg);
+  background: var(--bg-elevated);
   color: var(--text);
   font: inherit;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
@@ -2228,12 +2223,6 @@
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 4px var(--accent-soft);
-  background: var(--shop-white);
-}
-
-[data-theme="dark"] .shop-page .form input:focus,
-[data-theme="dark"] .shop-page .form select:focus,
-[data-theme="dark"] .shop-page .form textarea:focus {
   background: var(--bg-elevated);
 }
 

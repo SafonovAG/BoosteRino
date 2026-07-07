@@ -3,6 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+    (function () {
+      var pref = localStorage.getItem('theme') || 'auto';
+      var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var resolved = pref === 'auto' ? (dark ? 'dark' : 'light') : pref;
+      document.documentElement.setAttribute('data-theme-pref', pref);
+      document.documentElement.setAttribute('data-theme', resolved);
+      document.documentElement.style.colorScheme = resolved;
+    })();
+    </script>
     <title><?= \App\Core\View::e($title ?? 'Boosterino - магазин SMM-услуг') ?></title>
     <meta name="description" content="Boosterino - интернет-магазин накрутки и продвижения в соцсетях. Telegram, VK, YouTube, TikTok. Оплата в рублях.">
     <link rel="preconnect" href="https://fonts.googleapis.com">

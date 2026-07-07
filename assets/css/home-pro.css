@@ -37,7 +37,7 @@
 .home-tile:hover {
   transform: translateY(-4px);
   border-color: var(--border-glow);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .home-tile-media {
@@ -68,13 +68,9 @@
   letter-spacing: 0.06em;
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--bg-glass);
   color: var(--accent);
   border: 1px solid var(--border);
-}
-
-[data-theme="dark"] .home-tile-platform {
-  background: rgba(15, 23, 42, 0.75);
 }
 
 .home-tile-badges {
@@ -91,7 +87,8 @@
   text-transform: uppercase;
   padding: 0.12rem 0.35rem;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
 }
 
 .home-tile-badge--refill { color: var(--success); }

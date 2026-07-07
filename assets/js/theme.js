@@ -6,22 +6,34 @@
   const nav = document.getElementById('store-nav') || document.getElementById('main-nav');
 
   const themes = ['auto', 'light', 'dark'];
-  let current = localStorage.getItem(KEY) || 'auto';
+  let preference = localStorage.getItem(KEY) || 'auto';
 
-  function apply(theme) {
-    root.setAttribute('data-theme', theme);
-    localStorage.setItem(KEY, theme);
-    current = theme;
+  function systemDark() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function resolve(pref) {
+    if (pref === 'auto') return systemDark() ? 'dark' : 'light';
+    return pref;
+  }
+
+  function apply(pref) {
+    preference = pref;
+    const resolved = resolve(pref);
+    root.setAttribute('data-theme-pref', pref);
+    root.setAttribute('data-theme', resolved);
+    root.style.colorScheme = resolved;
+    localStorage.setItem(KEY, pref);
     if (btn) {
       const labels = { auto: '🌓', light: '☀️', dark: '🌙' };
-      btn.textContent = labels[theme] || '🌓';
-      btn.title = 'Тема: ' + theme;
+      btn.textContent = labels[pref] || '🌓';
+      btn.title = 'Тема: ' + (pref === 'auto' ? 'авто' : pref);
     }
   }
 
   if (btn) {
     btn.addEventListener('click', () => {
-      const idx = themes.indexOf(current);
+      const idx = themes.indexOf(preference);
       apply(themes[(idx + 1) % themes.length]);
     });
   }
@@ -30,5 +42,9 @@
     navToggle.addEventListener('click', () => nav.classList.toggle('open'));
   }
 
-  apply(current);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (preference === 'auto') apply('auto');
+  });
+
+  apply(preference);
 })();
