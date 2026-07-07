@@ -325,9 +325,9 @@
 
       html += '<div class="catalog-group">' +
         '<header class="catalog-group-head">' +
-          '<img src="' + escapeHtml(catLogo) + '" alt="" width="22" height="22">' +
-          '<span>' + escapeHtml(catLabel) + '</span>' +
-          '<span class="catalog-group-count">' + items.length + '</span>' +
+          '<img src="' + escapeHtml(catLogo) + '" alt="" width="36" height="36">' +
+          '<span class="catalog-group-title">' + escapeHtml(catLabel) + '</span>' +
+          '<span class="catalog-group-count">' + items.length + ' ' + pluralServices(items.length) + '</span>' +
         '</header>' +
         '<div class="catalog-group-rows catalog-group-tiles">';
 
