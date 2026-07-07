@@ -234,6 +234,18 @@
   box-shadow: none;
 }
 
+.catalog-pro-chip--cat.is-active .catalog-pro-chip-icon {
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg-elevated));
+}
+
+.catalog-pro-cats-wrap {
+  margin-top: 0.1rem;
+}
+
+.catalog-pro-cats-wrap .catalog-pro-scroll {
+  gap: 0.35rem;
+}
+
 .catalog-pro-active {
   display: flex;
   flex-wrap: wrap;

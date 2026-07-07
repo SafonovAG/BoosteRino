@@ -67,22 +67,34 @@
   }
 
   function initScrollRails() {
+    refreshScrollRails(false);
+  }
+
+  function refreshScrollRails(forceReinit) {
     document.querySelectorAll('[data-catalog-scroll]').forEach((root) => {
+      if (forceReinit) delete root._scrollRail;
       if (!root._scrollRail) {
         root._scrollRail = setupScrollRail(root);
       } else {
         root._scrollRail.refresh?.();
       }
     });
-  }
-
-  function refreshScrollRails() {
-    initScrollRails();
     requestAnimationFrame(() => {
       document.querySelectorAll('[data-catalog-scroll]').forEach((root) => {
         root._scrollRail?.refresh?.();
       });
     });
+  }
+
+  function renderCategoryChip(cat, label, logo, active) {
+    return '<button type="button" class="catalog-pro-chip catalog-pro-chip--cat' +
+      (active ? ' is-active' : '') + '" data-category="' + escapeHtml(cat) + '" role="tab"' +
+      ' aria-selected="' + (active ? 'true' : 'false') + '">' +
+      '<span class="catalog-pro-chip-icon">' +
+        '<img src="' + escapeHtml(logo) + '" alt="" width="22" height="22">' +
+      '</span>' +
+      '<span class="catalog-pro-chip-label">' + escapeHtml(label) + '</span>' +
+    '</button>';
   }
 
   function escapeHtml(str) {
@@ -210,15 +222,18 @@
 
     categoryRailWrap?.classList.remove('hidden');
 
-    let html = '<button type="button" class="catalog-pro-chip catalog-pro-chip--cat' +
-      (category === 'all' ? ' is-active' : '') + '" data-category="all">Все</button>';
+    const meta = platformMeta();
+    const allLogo = platform !== 'all'
+      ? (meta[platform]?.logo || '/assets/images/logo/default.svg')
+      : '/assets/images/logo/default.svg';
+
+    let html = renderCategoryChip('all', 'Все', allLogo, category === 'all');
 
     sorted.forEach((cat) => {
       const sample = allServices.find((s) => s.category === cat);
       const label = sample?.category_label || cat;
-      html += '<button type="button" class="catalog-pro-chip catalog-pro-chip--cat' +
-        (category === cat ? ' is-active' : '') + '" data-category="' + escapeHtml(cat) + '">' +
-        escapeHtml(label) + '</button>';
+      const logo = sample?.logo || '/assets/images/logo/default.svg';
+      html += renderCategoryChip(cat, label, logo, category === cat);
     });
 
     categoryFiltersEl.innerHTML = html;
@@ -228,10 +243,13 @@
         category = btn.dataset.category;
         page = 1;
         render();
+        btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       });
     });
 
-    refreshScrollRails();
+    const catScroll = categoryRailWrap?.querySelector('[data-catalog-scroll]');
+    if (catScroll) delete catScroll._scrollRail;
+    refreshScrollRails(true);
   }
 
   function scrollToCatalogTop() {

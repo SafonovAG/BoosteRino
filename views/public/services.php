@@ -52,7 +52,7 @@ ob_start();
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
                     </button>
                     <div class="catalog-pro-rail-wrap">
-                        <div class="catalog-pro-cats" id="category-filters"></div>
+                        <div class="catalog-pro-cats" id="category-filters" role="tablist"></div>
                     </div>
                     <button type="button" class="catalog-pro-scroll-btn" data-scroll-next aria-label="Прокрутить категории вправо">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
