@@ -21,7 +21,9 @@ return static function (Router $r): void {
     $ver = VerifiedMiddleware::class;
 
     $r->get('/', [Pages::class, 'home']);
+    $r->get('/services/{id}', [Pages::class, 'product']);
     $r->get('/services', [Pages::class, 'services']);
+    $r->get('/cart', [Pages::class, 'cart']);
     $r->get('/login', [Pages::class, 'login']);
     $r->get('/register', [Pages::class, 'register']);
     $r->get('/forgot-password', [Pages::class, 'forgot']);

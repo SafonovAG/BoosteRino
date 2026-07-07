@@ -40,6 +40,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
             <nav class="store-nav" id="store-nav">
                 <a href="/" class="<?= ($page ?? '') === 'home' ? 'active' : '' ?>">Главная</a>
                 <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>">Каталог</a>
+                <a href="/cart" class="<?= ($page ?? '') === 'cart' ? 'active' : '' ?>">Корзина</a>
                 <a href="/#how">Как заказать</a>
                 <a href="/#faq">FAQ</a>
                 <?php if ($authUser): ?>
@@ -51,6 +52,10 @@ $platforms = \App\Services\ServiceLogo::platforms();
             </nav>
 
             <div class="store-header-actions">
+                <a href="/cart" class="cart-pill" id="cart-link" title="Корзина">
+                    <span class="cart-pill-icon">🛒</span>
+                    <span class="cart-pill-count" id="cart-count">0</span>
+                </a>
                 <?php if ($authUser): ?>
                     <a href="/cabinet" class="balance-pill">
                         <span class="balance-pill-label">Баланс</span>
@@ -91,6 +96,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
                     <h4>Магазин</h4>
                     <ul>
                         <li><a href="/services">Каталог услуг</a></li>
+                        <li><a href="/cart">Корзина</a></li>
                         <li><a href="/register">Регистрация</a></li>
                         <li><a href="/cabinet">Личный кабинет</a></li>
                     </ul>
@@ -123,6 +129,8 @@ $platforms = \App\Services\ServiceLogo::platforms();
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/cart.js"></script>
+    <script src="/assets/js/product-cards.js"></script>
     <script>
     document.getElementById('topbar-close')?.addEventListener('click', () => {
         document.getElementById('shop-topbar')?.remove();

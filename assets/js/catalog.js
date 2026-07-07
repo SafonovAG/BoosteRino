@@ -71,33 +71,7 @@
   }
 
   function renderCard(s) {
-    const badges = [];
-    if (s.refill) badges.push('<span class="badge badge-refill">Рефилл</span>');
-    if (s.cancel) badges.push('<span class="badge badge-cancel">Отмена</span>');
-    const buyHref = document.querySelector('.balance-pill') ? '/cabinet' : '/register';
-    const buyLabel = document.querySelector('.balance-pill') ? '🛒 Купить' : '🛒 Заказать';
-
-    return '<article class="product-card" data-platform="' + escapeHtml(s.platform) + '">' +
-      '<div class="product-card-top">' +
-        '<div class="product-card-logo"><img src="' + escapeHtml(s.logo) + '" alt="" width="40" height="40"></div>' +
-        '<div class="product-card-meta">' +
-          '<span class="product-card-category">' + escapeHtml(s.category_label || s.platform_name || s.category) + '</span>' +
-          '<h3 class="product-card-title">' + escapeHtml(s.name) + '</h3>' +
-        '</div>' +
-      '</div>' +
-      '<div class="product-card-badges">' + badges.join('') + '</div>' +
-      '<div class="product-card-body">' +
-        '<div class="product-card-price-row">' +
-          '<span class="product-card-price">' + formatPrice(s.price_per_thousand_rub) + '</span>' +
-          '<span class="product-card-price-unit">/ 1000</span>' +
-        '</div>' +
-        '<div class="product-card-stats">' +
-          '<span>мин. ' + s.min + '</span>' +
-          '<span>макс. ' + s.max + '</span>' +
-        '</div>' +
-        '<a href="' + buyHref + '" class="btn btn-primary btn-buy btn-block">' + buyLabel + '</a>' +
-      '</div>' +
-    '</article>';
+    return window.BoosterinoProductCard.render(s);
   }
 
   function renderPagination(total, totalPages) {
@@ -345,6 +319,8 @@
 
   api('/api/v1/services').then((data) => {
     allServices = data.services || [];
+    const byId = new Map(allServices.map((s) => [s.id, s]));
+    window.BoosterinoProductCard.bindQuickAdd(container, byId);
     buildCategoryFilters();
     setActiveCategory(category);
     render();

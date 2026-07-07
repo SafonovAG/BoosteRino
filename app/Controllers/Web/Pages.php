@@ -9,6 +9,7 @@ use App\Core\Response;
 use App\Core\Session;
 use App\Core\View;
 use App\Services\AuthService;
+use App\Services\ServiceCatalog;
 
 final class Pages
 {
@@ -20,6 +21,26 @@ final class Pages
     public static function services(Request $r): void
     {
         Response::html(View::render('public/services', ['title' => 'Услуги - Boosterino', 'page' => 'services']));
+    }
+
+    public static function product(Request $r, array $par): void
+    {
+        $id = (int) ($par['id'] ?? 0);
+        $s = ServiceCatalog::find($id);
+        if (!$s || !$s['is_active']) {
+            Response::html(View::render('errors/404', ['title' => '404 - Boosterino']), 404);
+            return;
+        }
+        Response::html(View::render('public/product', [
+            'title' => $s['name'] . ' - Boosterino',
+            'page' => 'services',
+            'serviceId' => $id,
+        ]));
+    }
+
+    public static function cart(Request $r): void
+    {
+        Response::html(View::render('public/cart', ['title' => 'Корзина - Boosterino', 'page' => 'cart']));
     }
 
     public static function login(Request $r): void

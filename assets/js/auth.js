@@ -27,7 +27,8 @@
       }),
     });
     toast('Добро пожаловать!');
-    location.href = '/cabinet';
+    const next = new URLSearchParams(location.search).get('next');
+    location.href = next && next.startsWith('/') ? next : '/cabinet';
   });
 
   bindForm('register-form', async (fd) => {
