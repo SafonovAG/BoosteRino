@@ -46,6 +46,9 @@ final class OrderService
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$row) {
             $row['status_label'] = OrderStatus::label((string) $row['status']);
+            $supplierId = !empty($row['twiboost_order_id']) ? (int) $row['twiboost_order_id'] : null;
+            $row['display_order_id'] = $supplierId ?? (int) $row['id'];
+            $row['internal_order_id'] = (int) $row['id'];
         }
         return $rows;
     }
@@ -108,7 +111,11 @@ final class OrderService
                  FROM orders o JOIN services s ON s.id = o.service_id WHERE o.id = :id'
             );
             $st->execute(['id' => $orderId]);
-            return $st->fetch(PDO::FETCH_ASSOC) ?: $local;
+            $row = $st->fetch(PDO::FETCH_ASSOC) ?: $local;
+            if (isset($stat['currency'])) {
+                $row['supplier_currency'] = (string) $stat['currency'];
+            }
+            return $row;
         } catch (\Throwable) {
             return $local;
         }
@@ -125,6 +132,38 @@ final class OrderService
             'category' => (string) ($o['service_category'] ?? ''),
             'type' => (string) ($o['service_type'] ?? ''),
         ]);
+
+        $internalId = (int) ($o['id'] ?? 0);
+        $supplierOrderId = !empty($o['twiboost_order_id']) ? (int) $o['twiboost_order_id'] : null;
+        $o['internal_order_id'] = $internalId;
+        $o['display_order_id'] = $supplierOrderId ?? $internalId;
+        $o['uses_supplier_order_number'] = $supplierOrderId !== null;
+
+        $unit = DeliveryUnit::fromName((string) ($o['service_name'] ?? ''));
+        $o['quantity_unit'] = $unit;
+        $qty = (int) ($o['quantity'] ?? 0);
+        $remains = ($o['remains'] !== null && $o['remains'] !== '') ? max(0, (int) $o['remains']) : null;
+        $delivered = ($remains !== null && $qty > 0) ? max(0, $qty - $remains) : null;
+        $startCount = ($o['start_count'] !== null && $o['start_count'] !== '') ? (int) $o['start_count'] : null;
+
+        $o['delivery'] = [
+            'unit' => $unit,
+            'ordered' => $qty,
+            'delivered' => $delivered,
+            'remains' => $remains,
+            'start_count' => $startCount,
+            'start_count_label' => 'Показатель на странице до старта (' . $unit . ')',
+        ];
+
+        $currency = (string) ($o['supplier_currency'] ?? 'USD');
+        if ($o['charge'] !== null && $o['charge'] !== '') {
+            $charge = (float) $o['charge'];
+            $formatted = rtrim(rtrim(number_format($charge, 4, '.', ' '), '0'), '.');
+            $o['supplier_charge_formatted'] = $formatted . ' ' . $currency;
+        } else {
+            $o['supplier_charge_formatted'] = null;
+        }
+
         $o['progress'] = $this->buildProgress($o);
         $o['supplier_synced'] = !empty($o['twiboost_order_id']);
         $o['synced_at'] = date('c');

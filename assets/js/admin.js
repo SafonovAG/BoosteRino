@@ -240,8 +240,11 @@
       panel.innerHTML =
         '<div class="admin-order-drawer-top">' +
           '<div class="admin-order-drawer-title">' +
-            '<span class="admin-order-drawer-label">Заказ</span>' +
-            '<h3>#' + o.id + '</h3>' +
+              '<span class="admin-order-drawer-label">Заказ</span>' +
+              '<h3>№' + (o.twiboost_order_id || o.id) + '</h3>' +
+              (o.twiboost_order_id && o.twiboost_order_id != o.id
+                ? '<span class="admin-order-drawer-label">Boosterino #' + o.id + '</span>'
+                : '') +
             '<span class="admin-status ' + statusClass(o.status) + '">' + escape(o.status) + '</span>' +
           '</div>' +
           '<button type="button" class="btn btn-sm btn-ghost admin-order-drawer-close" id="close-order-detail" aria-label="Закрыть">×</button>' +
@@ -264,7 +267,7 @@
             '<div class="admin-order-fields admin-order-fields--3">' +
               '<div class="admin-order-field"><span>Сумма</span><strong>' + o.cost_rub + ' ₽</strong></div>' +
               '<div class="admin-order-field"><span>Способ</span><strong>' + escape(o.payment_method) + '</strong></div>' +
-              '<div class="admin-order-field"><span>ID поставщика</span><strong>' + (o.twiboost_order_id || '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Внутренний №</span><strong>#' + o.id + '</strong></div>' +
             '</div>' +
           '</section>' +
           '<section class="admin-order-section admin-order-section--wide">' +
@@ -272,13 +275,14 @@
             '<a href="' + escape(o.link) + '" target="_blank" rel="noopener" class="admin-order-link">' + escape(o.link) + '</a>' +
           '</section>' +
           '<section class="admin-order-section">' +
-            '<h4>Прогресс у поставщика</h4>' +
+            '<h4>Прогресс у поставщика (Twiboost)</h4>' +
             '<div class="admin-order-fields admin-order-fields--4">' +
-              '<div class="admin-order-field"><span>Осталось</span><strong>' + (o.remains ?? '—') + '</strong></div>' +
-              '<div class="admin-order-field"><span>Старт</span><strong>' + (o.start_count ?? '—') + '</strong></div>' +
-              '<div class="admin-order-field"><span>Списание</span><strong>' + (o.charge ?? '—') + '</strong></div>' +
-              '<div class="admin-order-field"><span>Обновлён</span><strong>' + fmtDate(o.updated_at) + '</strong></div>' +
+              '<div class="admin-order-field"><span>Номер у Twiboost</span><strong>' + (o.twiboost_order_id || '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Было до старта</span><strong>' + (o.start_count ?? '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Осталось доставить</span><strong>' + (o.remains ?? '—') + '</strong></div>' +
+              '<div class="admin-order-field"><span>Себестоимость Twiboost</span><strong>' + (o.charge != null ? o.charge + ' USD' : '—') + '</strong></div>' +
             '</div>' +
+            '<p class="muted" style="margin:0.5rem 0 0;font-size:0.78rem">Себестоимость — списание с баланса Twiboost в USD, не сумма клиента. «Было до старта» — показатель на странице до накрутки. «Осталось» — единиц заказа, которые ещё не доставлены.</p>' +
           '</section>' +
           '<section class="admin-order-section">' +
             '<h4>Даты</h4>' +

@@ -95,7 +95,49 @@
   function render(o) {
     const prog = o.progress;
     const label = statusLabel(o);
+    const d = o.delivery || {};
+    const unit = d.unit || o.quantity_unit || 'единиц';
+    const displayId = o.display_order_id || o.id;
+    const internalNote = o.uses_supplier_order_number
+      ? '<p class="order-v2-internal-id muted">Внутренний номер Boosterino: #' + o.internal_order_id + '</p>'
+      : '';
     lastSynced = o.synced_at || o.updated_at || new Date().toISOString();
+
+    function fmtUnits(val) {
+      if (val === null || val === undefined || val === '') return '—';
+      return '<strong>' + val + '</strong> ' + unit;
+    }
+
+    const supplierBlock = o.supplier_synced
+      ? '<div class="order-v2-supplier-metrics">' +
+          '<div class="order-v2-supplier-metric order-v2-supplier-metric--highlight">' +
+            '<span class="order-v2-supplier-label">Номер заказа у поставщика (Twiboost)</span>' +
+            '<strong class="order-v2-supplier-value">' + o.twiboost_order_id + '</strong>' +
+            '<p class="order-v2-supplier-hint">Это номер для отслеживания у поставщика. Мы показываем его как основной номер заказа.</p>' +
+          '</div>' +
+          '<div class="order-v2-supplier-metric">' +
+            '<span class="order-v2-supplier-label">Заказано</span>' +
+            '<span class="order-v2-supplier-value">' + fmtUnits(d.ordered ?? o.quantity) + '</span>' +
+          '</div>' +
+          '<div class="order-v2-supplier-metric">' +
+            '<span class="order-v2-supplier-label">Уже доставлено</span>' +
+            '<span class="order-v2-supplier-value">' + fmtUnits(d.delivered) + '</span>' +
+            '<p class="order-v2-supplier-hint">Сколько ' + unit + ' уже начислено поставщиком.</p>' +
+          '</div>' +
+          '<div class="order-v2-supplier-metric">' +
+            '<span class="order-v2-supplier-label">Осталось доставить</span>' +
+            '<span class="order-v2-supplier-value">' + fmtUnits(d.remains) + '</span>' +
+            '<p class="order-v2-supplier-hint">Сколько ' + unit + ' ещё не начислено. 0 — заказ выполнен полностью.</p>' +
+          '</div>' +
+          (d.start_count !== null && d.start_count !== undefined
+            ? '<div class="order-v2-supplier-metric">' +
+                '<span class="order-v2-supplier-label">Было до старта накрутки</span>' +
+                '<span class="order-v2-supplier-value">' + fmtUnits(d.start_count) + '</span>' +
+                '<p class="order-v2-supplier-hint">Показатель на странице/канале до начала выполнения (например, было подписчиков). 0 — поставщик ещё не передал значение.</p>' +
+              '</div>'
+            : '') +
+        '</div>'
+      : '<p class="muted">Заказ ещё не отправлен поставщику или ожидает оплаты.</p>';
 
     root.innerHTML =
       '<div class="order-v2">' +
@@ -103,12 +145,13 @@
           '<div class="order-v2-hero-grid">' +
             '<div class="order-v2-hero-visual">' + renderRing(o) + '</div>' +
             '<div class="order-v2-hero-info">' +
-              '<span class="order-v2-kicker">Заказ #' + o.id + '</span>' +
+              '<span class="order-v2-kicker">Заказ №' + displayId + '</span>' +
+              internalNote +
               '<h1 class="order-v2-title">' + escape(o.service_name) + '</h1>' +
               '<span class="order-status-badge ' + statusClass(o.status) + '">' + escape(label) + '</span>' +
               '<p class="order-v2-hint">' + escape(statusHint(o)) + '</p>' +
               (prog
-                ? '<p class="order-v2-progress-text"><strong>' + prog.done + '</strong> из <strong>' + prog.total + '</strong> выполнено' +
+                ? '<p class="order-v2-progress-text">Доставлено <strong>' + prog.done + '</strong> из <strong>' + prog.total + '</strong> ' + unit +
                   (prog.remains != null ? ' · осталось <strong>' + prog.remains + '</strong>' : '') +
                   '</p>'
                 : '') +
@@ -116,14 +159,22 @@
             '</div>' +
           '</div>' +
           '<div class="order-v2-metrics">' +
-            '<div class="order-v2-metric"><span>Количество</span><strong>' + o.quantity + '</strong></div>' +
-            '<div class="order-v2-metric"><span>Сумма</span><strong>' + fmtRub(o.cost_rub) + '</strong></div>' +
-            '<div class="order-v2-metric"><span>Оплата</span><strong>' + escape(o.payment_method === 'balance' ? 'Баланс' : 'ЮMoney') + '</strong></div>' +
-            '<div class="order-v2-metric"><span>Осталось</span><strong>' + (o.remains ?? (prog ? prog.remains : '—')) + '</strong></div>' +
+            '<div class="order-v2-metric"><span>Заказано</span><strong>' + (d.ordered ?? o.quantity) + ' ' + unit + '</strong></div>' +
+            '<div class="order-v2-metric"><span>Доставлено</span><strong>' + (d.delivered ?? '—') + '</strong></div>' +
+            '<div class="order-v2-metric"><span>Оплачено вами</span><strong>' + fmtRub(o.cost_rub) + '</strong></div>' +
+            '<div class="order-v2-metric"><span>Осталось</span><strong>' + (d.remains ?? '—') + '</strong></div>' +
           '</div>' +
         '</section>' +
 
         '<div class="order-v2-body">' +
+          '<section class="card order-v2-panel order-v2-panel--supplier">' +
+            '<div class="order-v2-panel-head">' +
+              '<h2>Выполнение у поставщика</h2>' +
+              (o.supplier_synced ? '<span class="order-v2-live-badge">● обновляется автоматически</span>' : '') +
+            '</div>' +
+            supplierBlock +
+          '</section>' +
+
           '<section class="card order-v2-panel">' +
             '<h2>Ссылка на объект</h2>' +
             '<a href="' + escape(o.link) + '" target="_blank" rel="noopener" class="order-v2-link">' + escape(o.link) + '</a>' +
@@ -133,25 +184,10 @@
             '<h2>Детали услуги</h2>' +
             '<ul class="order-v2-facts">' +
               '<li><span>Категория</span><strong>' + escape(o.service_category || '—') + '</strong></li>' +
-              '<li><span>Тип</span><strong>' + escape(o.service_type || '—') + '</strong></li>' +
+              '<li><span>Способ оплаты</span><strong>' + escape(o.payment_method === 'balance' ? 'С баланса' : 'ЮMoney') + '</strong></li>' +
               '<li><span>Создан</span><strong>' + fmtDate(o.created_at) + '</strong></li>' +
               '<li><span>Обновлён</span><strong>' + fmtDate(o.updated_at) + '</strong></li>' +
             '</ul>' +
-          '</section>' +
-
-          '<section class="card order-v2-panel order-v2-panel--supplier">' +
-            '<div class="order-v2-panel-head">' +
-              '<h2>Данные поставщика</h2>' +
-              (o.supplier_synced ? '<span class="order-v2-live-badge">● LIVE</span>' : '') +
-            '</div>' +
-            (o.supplier_synced
-              ? '<ul class="order-v2-facts order-v2-facts--cols">' +
-                  '<li><span>ID у поставщика</span><strong>' + o.twiboost_order_id + '</strong></li>' +
-                  '<li><span>Стартовое значение</span><strong>' + (o.start_count ?? '—') + '</strong></li>' +
-                  '<li><span>Осталось</span><strong>' + (o.remains ?? '—') + '</strong></li>' +
-                  '<li><span>Списание</span><strong>' + (o.charge ?? '—') + '</strong></li>' +
-                '</ul>'
-              : '<p class="muted">Заказ ещё не отправлен поставщику или ожидает оплаты.</p>') +
           '</section>' +
         '</div>' +
 
