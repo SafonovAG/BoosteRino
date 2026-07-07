@@ -7,8 +7,15 @@
 *.pem
 *.key
 *.p12
+
+# IDE и локальные настройки Cursor
 .idea/
-.cursor/rules/git-auto-commit.mdc
+.cursor/
+
+# Git-хуки и локальная документация по безопасности
+.githooks/
+SECURITY.md
+
 *.log
 /storage/cache/*
 !/storage/cache/.gitkeep
