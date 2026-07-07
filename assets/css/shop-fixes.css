@@ -1561,6 +1561,7 @@ body.admin-order-open { overflow: hidden; }
 }
 
 .admin-svc-toolbar h2 { margin: 0 0 0.25rem; }
+.admin-svc-sync-hint { margin: -0.35rem 0 1rem; font-size: 0.82rem; line-height: 1.45; }
 .admin-svc-toolbar-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .admin-svc-toolbar-actions input {
   min-width: 220px;

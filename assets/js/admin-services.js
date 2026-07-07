@@ -154,6 +154,7 @@
               '<button type="button" class="btn btn-primary btn-sm" id="sync-services">🔄 Синхронизировать</button>' +
             '</div>' +
           '</div>' +
+          '<p class="muted admin-svc-sync-hint">Новые товары импортируются полностью. У уже добавленных обновляется только цена (rate) от поставщика - название, видимость и остальные настройки сохраняются.</p>' +
           '<div class="admin-svc-layout">' +
             '<aside class="admin-svc-sidebar">' +
               '<h3>Категории</h3>' +
@@ -172,7 +173,7 @@
       el.querySelector('#sync-services')?.addEventListener('click', async () => {
         try {
           const r = await api('/api/v1/admin/services/sync', { method: 'POST', body: '{}' });
-          toast('Синхронизировано: ' + (r.synced ?? 0));
+          toast('Обновлено позиций: ' + (r.synced ?? 0) + '. У существующих товаров изменена только цена.');
           await loadAdminServices();
         } catch (e) {
           toast(e.message, 'error');

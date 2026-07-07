@@ -144,8 +144,7 @@ final class ServiceCatalog
         $up = $pdo->prepare(
             'INSERT INTO services (external_id,name,type,category,rate,min_qty,max_qty,refill,cancel,synced_at)
              VALUES (:e,:n,:t,:c,:r,:mi,:ma,:rf,:cn,NOW())
-             ON DUPLICATE KEY UPDATE name=VALUES(name),type=VALUES(type),category=VALUES(category),
-             rate=VALUES(rate),min_qty=VALUES(min_qty),max_qty=VALUES(max_qty),refill=VALUES(refill),cancel=VALUES(cancel),synced_at=NOW()'
+             ON DUPLICATE KEY UPDATE rate=VALUES(rate), synced_at=NOW()'
         );
         $n = 0;
         foreach ($list as $item) {
