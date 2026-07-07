@@ -58,7 +58,7 @@
             '<article class="order-result-item">' +
               '<div class="order-result-item-top">' +
                 '<span class="order-result-id">#' + o.id + '</span>' +
-                '<span class="order-status-badge ' + statusClass(o.status) + '">' + escape(o.status) + '</span>' +
+                '<span class="order-status-badge ' + statusClass(o.status) + '">' + escape(o.status_label || o.status) + '</span>' +
               '</div>' +
               '<h3>' + escape(o.service_name) + '</h3>' +
               '<p class="muted order-result-meta">' + o.quantity + ' ед. · ' + fmtRub(o.cost_rub) + '</p>' +

@@ -71,7 +71,7 @@
         '<td>' + escape(o.service_name || o.service_id) + '</td>' +
         '<td>' + o.quantity + '</td>' +
         '<td>' + fmt(o.cost_rub) + '</td>' +
-        '<td><span class="status-badge ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
+        '<td><span class="status-badge ' + statusClass(o.status) + '">' + escape(o.status_label || o.status) + '</span></td>' +
         '<td class="order-actions-cell">' +
         '<a href="/orders/' + o.id + '" class="btn btn-sm btn-primary">Статус</a> ' +
         '<button class="btn btn-sm btn-secondary" data-refill="' + o.id + '" type="button">Рефилл</button> ' +

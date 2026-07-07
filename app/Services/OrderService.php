@@ -43,7 +43,11 @@ final class OrderService
             'SELECT o.*, s.name service_name FROM orders o JOIN services s ON s.id=o.service_id WHERE o.user_id=:u ORDER BY o.id DESC LIMIT 100'
         );
         $st->execute(['u' => $uid]);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$row) {
+            $row['status_label'] = OrderStatus::label((string) $row['status']);
+        }
+        return $rows;
     }
 
     public function getDetailForUser(int $uid, int $oid, bool $syncSupplier = true): ?array
@@ -114,8 +118,16 @@ final class OrderService
     {
         $o['service_refill'] = (bool) ($o['service_refill'] ?? false);
         $o['service_cancel'] = (bool) ($o['service_cancel'] ?? false);
+        $o['status_label'] = OrderStatus::label((string) ($o['status'] ?? ''));
+        $o['status_active'] = OrderStatus::isActive((string) ($o['status'] ?? ''));
+        $o['service_logo'] = ServiceLogo::forService([
+            'name' => (string) ($o['service_name'] ?? ''),
+            'category' => (string) ($o['service_category'] ?? ''),
+            'type' => (string) ($o['service_type'] ?? ''),
+        ]);
         $o['progress'] = $this->buildProgress($o);
         $o['supplier_synced'] = !empty($o['twiboost_order_id']);
+        $o['synced_at'] = date('c');
         return $o;
     }
 
@@ -126,13 +138,17 @@ final class OrderService
         if ($qty <= 0) {
             return null;
         }
-        if ($o['remains'] === null || $o['remains'] === '') {
-            return null;
+        if ($o['remains'] !== null && $o['remains'] !== '') {
+            $rem = max(0, (int) $o['remains']);
+            $done = max(0, $qty - $rem);
+            $pct = min(100, round(($done / $qty) * 100, 1));
+            return ['percent' => $pct, 'done' => $done, 'total' => $qty, 'remains' => $rem];
         }
-        $rem = max(0, (int) $o['remains']);
-        $done = max(0, $qty - $rem);
-        $pct = min(100, round(($done / $qty) * 100, 1));
-        return ['percent' => $pct, 'done' => $done, 'total' => $qty, 'remains' => $rem];
+        $status = (string) ($o['status'] ?? '');
+        if (in_array($status, ['Completed'], true) || str_contains(strtolower($status), 'complet')) {
+            return ['percent' => 100, 'done' => $qty, 'total' => $qty, 'remains' => 0];
+        }
+        return null;
     }
 
     public function refill(int $uid, int $oid): array
