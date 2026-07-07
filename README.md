@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://gitviews.com/repo/SafonovAG/BoosteRino.svg?style=flat&color=blue&label-color=1a1a2e&label=Просмотры+репозитория" alt="Просмотры репозитория"/>
+
 # BoosteRino
 
 **Премиальная SMM-платформа для продвижения в социальных сетях**
