@@ -6,8 +6,7 @@
   document.querySelectorAll('[data-panel-jump]').forEach((link) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      const id = link.dataset.panelJump;
-      const btn = document.querySelector('[data-panel="' + id + '"]');
+      const btn = document.querySelector('[data-panel="' + link.dataset.panelJump + '"]');
       btn?.click();
     });
   });
@@ -23,10 +22,6 @@
   const balanceEl = document.getElementById('user-balance');
   const ordersEl = document.getElementById('orders-list');
   const txEl = document.getElementById('transactions-list');
-  const serviceSelect = document.getElementById('order-service');
-  const orderForm = document.getElementById('order-form');
-
-  let services = [];
 
   function statusClass(s) {
     const v = (s || '').toLowerCase();
@@ -38,6 +33,18 @@
 
   function fmt(n) {
     return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(n);
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    try {
+      return new Date(d).toLocaleString('ru-RU', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      });
+    } catch {
+      return d;
+    }
   }
 
   function escape(s) {
@@ -61,40 +68,40 @@
     const data = await api('/api/v1/user/orders');
     const orders = data.orders || [];
     if (!orders.length) {
-      ordersEl.innerHTML = '<p class="muted">Заказов пока нет</p>';
+      ordersEl.innerHTML =
+        '<div class="cabinet-orders-empty">' +
+          '<p class="muted">Заказов пока нет. Оформите первый заказ в каталоге.</p>' +
+          '<a href="/services" class="btn btn-primary">Перейти в каталог</a>' +
+        '</div>';
       return;
     }
-    ordersEl.innerHTML = '<div class="table-wrap"><table>' +
-      '<thead><tr><th>#</th><th>Услуга</th><th>Кол-во</th><th>Сумма</th><th>Статус</th><th></th></tr></thead><tbody>' +
-      orders.map((o) => '<tr>' +
-        '<td><a href="/orders/' + o.id + '" class="order-id-link">№' + o.id + '</a></td>' +
-        '<td>' + escape(o.service_name || o.service_id) + '</td>' +
-        '<td>' + o.quantity + '</td>' +
-        '<td>' + fmt(o.cost_rub) + '</td>' +
-        '<td><span class="status-badge ' + statusClass(o.status) + '">' + escape(o.status_label || o.status) + '</span></td>' +
-        '<td class="order-actions-cell">' +
-        '<a href="/orders/' + o.id + '" class="btn btn-sm btn-primary">Статус</a> ' +
-        '<button class="btn btn-sm btn-secondary" data-refill="' + o.id + '" type="button">Рефилл</button> ' +
-        '<button class="btn btn-sm btn-danger" data-cancel="' + o.id + '" type="button">Отмена</button>' +
-        '</td></tr>').join('') +
-      '</tbody></table></div>';
 
-    ordersEl.querySelectorAll('[data-refill]').forEach((b) => {
-      b.addEventListener('click', () => orderAction(b.dataset.refill, 'refill'));
-    });
-    ordersEl.querySelectorAll('[data-cancel]').forEach((b) => {
-      b.addEventListener('click', () => orderAction(b.dataset.cancel, 'cancel'));
-    });
-  }
-
-  async function orderAction(id, action) {
-    try {
-      await api('/api/v1/user/orders/' + id + '/' + action, { method: 'POST', body: '{}' });
-      toast(action === 'refill' ? 'Рефилл запрошен' : 'Отмена запрошена');
-      loadOrders();
-    } catch (e) {
-      toast(e.message, 'error');
-    }
+    ordersEl.innerHTML =
+      '<div class="cabinet-orders-list">' +
+        orders.map((o) => {
+          const num = o.order_number || o.id;
+          const unit = o.quantity_unit || 'ед.';
+          return (
+            '<article class="cabinet-order-card">' +
+              '<div class="cabinet-order-card-body">' +
+                '<div class="cabinet-order-card-top">' +
+                  '<span class="cabinet-order-number">№' + num + '</span>' +
+                  '<span class="status-badge ' + statusClass(o.status) + '">' + escape(o.status_label || o.status) + '</span>' +
+                '</div>' +
+                '<h3 class="cabinet-order-title">' + escape(o.service_name || 'Услуга') + '</h3>' +
+                '<ul class="cabinet-order-facts">' +
+                  '<li><span>Количество</span><strong>' + o.quantity + ' ' + escape(unit) + '</strong></li>' +
+                  '<li><span>Сумма</span><strong>' + fmt(o.cost_rub) + '</strong></li>' +
+                  '<li><span>Дата</span><strong>' + fmtDate(o.created_at) + '</strong></li>' +
+                '</ul>' +
+              '</div>' +
+              '<div class="cabinet-order-card-action">' +
+                '<a href="/orders/' + o.id + '" class="btn btn-secondary">Посмотреть заказ</a>' +
+              '</div>' +
+            '</article>'
+          );
+        }).join('') +
+      '</div>';
   }
 
   async function loadTransactions() {
@@ -114,173 +121,6 @@
         '<td>' + fmt(t.balance_after) + '</td>' +
         '</tr>').join('') +
       '</tbody></table></div>';
-  }
-
-  async function loadServices() {
-    if (!serviceSelect) return;
-    const data = await api('/api/v1/services');
-    services = data.services || [];
-    serviceSelect.innerHTML = services.map((s) =>
-      '<option value="' + s.id + '">' + escape(s.name) + ' - ' + fmt(s.price_per_thousand_rub) + ' (' + escape(s.price_unit_label || 'за 1000') + ')</option>'
-    ).join('');
-    updateServiceLogo();
-    updatePrice();
-    updateLinkHint();
-    bindOrderQtyStepper();
-  }
-
-  function updateServiceLogo() {
-    const img = document.getElementById('order-service-logo');
-    if (!img || !serviceSelect) return;
-    const svc = services.find((s) => s.id === +serviceSelect.value);
-    img.src = svc?.logo || '/assets/images/logo/default.svg';
-  }
-
-  const Q = () => window.BoosterinoQty || {
-    snap: (q, min, max) => Math.max(min, Math.min(max, +q)),
-    step: (q, d, min, max) => Math.max(min, Math.min(max, (+q || min) + d)),
-    calcPrice: (price, q) => (price / 1000) * q,
-    hintText: (min, max, label) => 'от ' + min + ' до ' + max + ' · ' + (label || 'за 1000'),
-  };
-
-  function updatePrice() {
-    const preview = document.getElementById('order-price');
-    if (!preview || !serviceSelect) return;
-    const sid = +serviceSelect.value;
-    const qty = +(document.getElementById('order-quantity')?.value || 0);
-    const svc = services.find((s) => s.id === sid);
-    if (!svc || !qty) {
-      preview.textContent = '-';
-      return;
-    }
-    preview.textContent = fmt(Q().calcPrice(svc.price_per_thousand_rub, qty));
-  }
-
-  function updateLinkHint() {
-    const linkLabel = orderForm?.querySelector('label:has([name="link"])');
-    const linkInput = orderForm?.querySelector('[name="link"]');
-    const svc = services.find((s) => s.id === +serviceSelect?.value);
-    if (!svc || !linkInput) return;
-    const h = window.BoosterinoLinkValidator?.hint(
-      svc.platform, svc.type, svc.platform_name, svc.name, svc.category
-    );
-    if (h && linkLabel) {
-      const text = linkLabel.childNodes[0];
-      if (text?.nodeType === 3) text.textContent = h.label;
-    }
-    if (h) linkInput.placeholder = h.placeholder;
-    const qty = document.getElementById('order-quantity');
-    const qtyLabel = document.getElementById('order-qty-label');
-    const qtyHint = document.getElementById('order-qty-hint');
-    const unit = svc.delivery_unit || window.BoosterinoProductCard?.parseDeliveryUnit(svc.name) || 'ед.';
-    if (qtyLabel) {
-      qtyLabel.textContent = 'Сколько получите (' + unit + ')';
-    }
-    if (qty && svc.min) {
-      qty.min = svc.min;
-      qty.max = svc.max;
-      qty.step = 1;
-      qty.value = Q().snap(+qty.value || svc.min, svc.min, svc.max);
-    }
-    if (qtyHint) {
-      qtyHint.textContent = Q().hintText(svc.min, svc.max, svc.price_unit_label);
-    }
-  }
-
-  let orderQtyBound = false;
-  function bindOrderQtyStepper() {
-    if (orderQtyBound || !orderForm) return;
-    orderQtyBound = true;
-    const qtyInput = document.getElementById('order-quantity');
-    const wrap = qtyInput?.closest('label');
-    if (wrap && !document.getElementById('order-qty-minus')) {
-      const row = document.createElement('div');
-      row.className = 'order-qty-stepper';
-      row.innerHTML =
-        '<button type="button" id="order-qty-minus" aria-label="Меньше">−</button>' +
-        '<span class="order-qty-input-wrap"></span>' +
-        '<button type="button" id="order-qty-plus" aria-label="Больше">+</button>';
-      const holder = row.querySelector('.order-qty-input-wrap');
-      holder?.appendChild(qtyInput);
-      wrap.appendChild(row);
-    }
-    document.getElementById('order-qty-minus')?.addEventListener('click', () => {
-      const svc = services.find((s) => s.id === +serviceSelect?.value);
-      if (!svc || !qtyInput) return;
-      qtyInput.value = Q().step(+qtyInput.value, -1, svc.min, svc.max);
-      updatePrice();
-    });
-    document.getElementById('order-qty-plus')?.addEventListener('click', () => {
-      const svc = services.find((s) => s.id === +serviceSelect?.value);
-      if (!svc || !qtyInput) return;
-      qtyInput.value = Q().step(+qtyInput.value, 1, svc.min, svc.max);
-      updatePrice();
-    });
-    qtyInput?.addEventListener('change', () => {
-      const svc = services.find((s) => s.id === +serviceSelect?.value);
-      if (!svc || !qtyInput) return;
-      qtyInput.value = Q().snap(+qtyInput.value, svc.min, svc.max);
-      updatePrice();
-    });
-  }
-
-  if (serviceSelect) {
-    serviceSelect.addEventListener('change', () => {
-      updateServiceLogo();
-      updatePrice();
-      updateLinkHint();
-      bindOrderQtyStepper();
-    });
-    document.getElementById('order-quantity')?.addEventListener('input', updatePrice);
-  }
-
-  if (orderForm) {
-    orderForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(orderForm);
-      let quantity = +fd.get('quantity');
-      const svc = services.find((s) => s.id === +fd.get('service_id'));
-      if (svc) quantity = Q().snap(quantity, svc.min, svc.max);
-      let link = String(fd.get('link') || '').trim();
-      const linkInput = orderForm.querySelector('[name="link"]');
-      if (svc && window.BoosterinoLinkValidator) {
-        const r = BoosterinoLinkValidator.validate(
-          link, svc.platform, svc.type, svc.platform_name, svc.name, svc.category
-        );
-        if (!r.ok) {
-          toast(r.message, 'error');
-          linkInput?.classList.add('is-invalid');
-          return;
-        }
-        link = r.normalized || link;
-        linkInput?.classList.remove('is-invalid');
-      }
-      try {
-        const result = await api('/api/v1/user/orders', {
-          method: 'POST',
-          body: JSON.stringify({
-            service_id: +fd.get('service_id'),
-            link,
-            quantity,
-            payment_method: fd.get('payment_method'),
-          }),
-        });
-        if (result.payment_url) {
-          location.href = result.payment_url;
-          return;
-        }
-        const order = result.order || result;
-        if (order?.id) {
-          location.href = '/orders/success?ids=' + order.id;
-          return;
-        }
-        toast('Заказ создан');
-        loadProfile();
-        loadOrders();
-      } catch (err) {
-        toast(err.message, 'error');
-      }
-    });
   }
 
   document.getElementById('topup-form')?.addEventListener('submit', async (e) => {
@@ -320,7 +160,7 @@
     location.href = '/';
   });
 
-  Promise.all([loadProfile(), loadOrders(), loadTransactions(), loadServices()]).catch((e) => toast(e.message, 'error'));
+  Promise.all([loadProfile(), loadOrders(), loadTransactions()]).catch((e) => toast(e.message, 'error'));
 
   const paymentStatus = new URLSearchParams(location.search).get('payment');
   if (paymentStatus === 'ok' || paymentStatus === 'success') {

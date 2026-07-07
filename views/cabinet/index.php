@@ -20,7 +20,6 @@ ob_start();
                 </div>
                 <nav class="admin-shop-nav cabinet-nav">
                     <button type="button" class="active" data-panel="overview"><span class="nav-icon">📊</span> Обзор</button>
-                    <button type="button" data-panel="order"><span class="nav-icon">🛒</span> Новый заказ</button>
                     <button type="button" data-panel="orders"><span class="nav-icon">📦</span> Мои заказы</button>
                     <button type="button" data-panel="topup"><span class="nav-icon">💰</span> Пополнение</button>
                     <button type="button" data-panel="history"><span class="nav-icon">📜</span> История</button>
@@ -45,39 +44,12 @@ ob_start();
                     </div>
                 </div>
 
-                <div id="panel-order" class="panel">
-                    <div class="card panel-card">
-                        <h2>🛒 Оформление заказа</h2>
-                        <form id="order-form" class="form">
-                            <label class="order-service-label">Товар (услуга)
-                                <div class="order-service-row">
-                                    <img id="order-service-logo" src="/assets/images/logo/default.svg" alt="" width="36" height="36" class="order-service-logo">
-                                    <select name="service_id" id="order-service" class="shop-select" required></select>
-                                </div>
-                            </label>
-                            <label>🔗 Ссылка на профиль/пост<input type="url" name="link" required placeholder="https://..."></label>
-                            <label><span id="order-qty-label">Сколько получите</span>
-                                <input type="number" name="quantity" id="order-quantity" min="1" step="1" required value="100">
-                            </label>
-                            <p class="muted" id="order-qty-hint"></p>
-                            <div class="order-total-box">
-                                <span>Итого к оплате</span>
-                                <strong id="order-price">-</strong>
-                            </div>
-                            <label>Способ оплаты
-                                <select name="payment_method" class="shop-select">
-                                    <option value="balance">💰 С баланса</option>
-                                    <option value="yoomoney">💳 ЮMoney</option>
-                                </select>
-                            </label>
-                            <button type="submit" class="btn btn-primary btn-block">Оформить заказ</button>
-                        </form>
-                    </div>
-                </div>
-
                 <div id="panel-orders" class="panel">
-                    <div class="card panel-card">
-                        <h2>📦 История заказов</h2>
+                    <div class="card panel-card cabinet-orders-panel">
+                        <div class="cabinet-orders-head">
+                            <h2>📦 История заказов</h2>
+                            <a href="/services" class="btn btn-primary btn-sm">Каталог</a>
+                        </div>
                         <div id="orders-list">Загрузка...</div>
                     </div>
                 </div>
@@ -106,4 +78,5 @@ ob_start();
 <?php
 $content = ob_get_clean();
 $scripts = ['/assets/js/cabinet.js'];
+$styles = ['/assets/css/cabinet-orders.css'];
 include dirname(__DIR__) . '/layouts/main.php';

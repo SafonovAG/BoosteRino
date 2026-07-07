@@ -105,7 +105,7 @@
           '<div class="order-v2-hero-grid">' +
             '<div class="order-v2-hero-visual">' + renderRing(o) + '</div>' +
             '<div class="order-v2-hero-info">' +
-              '<span class="order-v2-kicker">Заказ №' + o.id + '</span>' +
+              '<span class="order-v2-kicker">Заказ №' + (o.order_number || o.id) + '</span>' +
               '<h1 class="order-v2-title">' + escape(o.service_name) + '</h1>' +
               '<span class="order-status-badge ' + statusClass(o.status) + '">' + escape(label) + '</span>' +
               '<p class="order-v2-hint">' + escape(statusHint(o)) + '</p>' +
@@ -148,7 +148,6 @@
           '<div class="order-v2-actions">' +
             '<button type="button" class="btn btn-primary btn-sm" id="order-refresh">Обновить сейчас</button>' +
             (o.service_refill ? '<button type="button" class="btn btn-secondary btn-sm" id="order-refill">Рефилл</button>' : '') +
-            (o.service_cancel ? '<button type="button" class="btn btn-danger btn-sm" id="order-cancel">Отменить</button>' : '') +
           '</div>' +
           '<div class="order-v2-nav">' +
             '<a href="/cabinet" class="btn btn-secondary">← Кабинет</a>' +
@@ -162,16 +161,6 @@
       try {
         await api('/api/v1/user/orders/' + orderId + '/refill', { method: 'POST', body: '{}' });
         toast('Рефилл запрошен');
-        load(true);
-      } catch (e) {
-        toast(e.message, 'error');
-      }
-    });
-    document.getElementById('order-cancel')?.addEventListener('click', async () => {
-      if (!confirm('Отменить заказ?')) return;
-      try {
-        await api('/api/v1/user/orders/' + orderId + '/cancel', { method: 'POST', body: '{}' });
-        toast('Запрос на отмену отправлен');
         load(true);
       } catch (e) {
         toast(e.message, 'error');

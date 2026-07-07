@@ -16,7 +16,7 @@ ob_start();
             </div>
             <div class="shop-hero-perks">
                 <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Цены за 1000 ед.</span>
-                <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Рефилл и отмена</span>
+                <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Рефилл</span>
                 <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Статус в кабинете</span>
             </div>
         </div>

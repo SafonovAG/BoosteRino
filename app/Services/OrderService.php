@@ -123,7 +123,6 @@ final class OrderService
     private function enrichForUser(array $o): array
     {
         $o['service_refill'] = (bool) ($o['service_refill'] ?? false);
-        $o['service_cancel'] = (bool) ($o['service_cancel'] ?? false);
         $o['status_label'] = OrderStatus::label((string) ($o['status'] ?? ''));
         $o['status_active'] = OrderStatus::isActive((string) ($o['status'] ?? ''));
         $o['service_logo'] = ServiceLogo::forService([
@@ -154,6 +153,10 @@ final class OrderService
     /** Убирает служебные поля поставщика из ответа для клиента. */
     private function sanitizeForClient(array $o): array
     {
+        $internalId = (int) ($o['id'] ?? 0);
+        $supplierId = !empty($o['twiboost_order_id']) ? (int) $o['twiboost_order_id'] : null;
+        $o['order_number'] = $supplierId ?? $internalId;
+
         unset(
             $o['twiboost_order_id'],
             $o['charge'],
@@ -164,6 +167,7 @@ final class OrderService
             $o['uses_supplier_order_number'],
             $o['internal_order_id'],
             $o['display_order_id'],
+            $o['service_cancel'],
         );
         return $o;
     }

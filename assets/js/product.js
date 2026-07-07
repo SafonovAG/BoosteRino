@@ -57,7 +57,6 @@
 
     const badges = [];
     if (s.refill) badges.push('<span class="badge badge-refill">Рефилл</span>');
-    if (s.cancel) badges.push('<span class="badge badge-cancel">Отмена</span>');
     const unit = s.delivery_unit || parseUnit(s.name);
     const unitPriceLabel = s.price_unit_label || priceUnitLabel(s);
     const label = s.category_label || s.platform_name || s.category || '';

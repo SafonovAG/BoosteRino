@@ -47,7 +47,6 @@
     options = options || {};
     const badges = [];
     if (s.refill) badges.push('<span class="badge badge-refill">Рефилл</span>');
-    if (s.cancel) badges.push('<span class="badge badge-cancel">Отмена</span>');
     const label = s.category_label || s.platform_name || s.category || '';
     const href = '/services/' + s.id;
     const featured = options.featured ? ' product-card-featured' : '';
@@ -86,7 +85,6 @@
     const unit = s.delivery_unit || parseDeliveryUnit(s.name);
     const badges = [];
     if (s.refill) badges.push('<span class="home-tile-badge home-tile-badge--refill">Р</span>');
-    if (s.cancel) badges.push('<span class="home-tile-badge home-tile-badge--cancel">О</span>');
 
     return '<article class="home-tile" data-platform="' + escapeHtml(s.platform) + '">' +
       '<a href="' + href + '" class="home-tile-media">' +
@@ -164,7 +162,6 @@
     const unit = s.delivery_unit || parseDeliveryUnit(s.name);
     const badges = [];
     if (s.refill) badges.push('<span class="catalog-tile-badge catalog-tile-badge--refill">Рефилл</span>');
-    if (s.cancel) badges.push('<span class="catalog-tile-badge catalog-tile-badge--cancel">Отмена</span>');
 
     return '<article class="catalog-tile" data-platform="' + escapeHtml(s.platform) + '">' +
       '<div class="catalog-tile-glow" aria-hidden="true"></div>' +

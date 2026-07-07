@@ -38,7 +38,6 @@ final class PricingService
             'min' => (int) $s['min_qty'],
             'max' => (int) $s['max_qty'],
             'refill' => (bool) $s['refill'],
-            'cancel' => (bool) $s['cancel'],
             'logo' => ServiceLogo::forService($s),
             'platform' => ServiceLogo::platformSlug($s),
             'platform_name' => ServiceLogo::platformName($s),
