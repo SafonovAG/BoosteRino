@@ -24,37 +24,46 @@ ob_start();
                 <button type="button" class="filter-close" id="filter-close" aria-label="Закрыть">×</button>
             </div>
 
-            <div class="filter-block">
-                <h4>Платформа</h4>
-                <ul class="filter-list" id="platform-filters">
-                    <?php foreach ($platforms as $p): ?>
-                        <li>
-                            <button type="button"
-                                class="filter-item <?= $activePlatform === $p['slug'] ? 'active' : '' ?>"
-                                data-platform="<?= \App\Core\View::e($p['slug']) ?>">
-                                <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="" width="24" height="24">
-                                <span><?= \App\Core\View::e($p['name']) ?></span>
-                            </button>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-
-            <div class="filter-block">
-                <h4>Поиск</h4>
-                <input type="search" id="catalog-search" class="filter-search" placeholder="Название услуги...">
-            </div>
-
-            <?php
-            $catalogUser = null;
-            try { $catalogUser = (new \App\Services\AuthService())->user(); } catch (\Throwable) {}
-            if (!$catalogUser):
-            ?>
-                <div class="filter-promo card">
-                    <p><strong>Нужен аккаунт</strong> для оформления заказа</p>
-                    <a href="/register" class="btn btn-primary btn-block btn-sm">Регистрация</a>
+            <div class="filter-sidebar-scroll">
+                <div class="filter-block">
+                    <h4>Платформа</h4>
+                    <ul class="filter-list filter-list-compact" id="platform-filters">
+                        <?php foreach ($platforms as $p): ?>
+                            <li>
+                                <button type="button"
+                                    class="filter-item <?= $activePlatform === $p['slug'] ? 'active' : '' ?>"
+                                    data-platform="<?= \App\Core\View::e($p['slug']) ?>">
+                                    <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="" width="24" height="24">
+                                    <span><?= \App\Core\View::e($p['name']) ?></span>
+                                </button>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
                 </div>
-            <?php endif; ?>
+
+                <div class="filter-block" id="category-filters-block">
+                    <h4>Категории</h4>
+                    <div id="category-filters" class="filter-category-tree">
+                        <p class="filter-placeholder muted">Загрузка категорий...</p>
+                    </div>
+                </div>
+
+                <div class="filter-block">
+                    <h4>Поиск</h4>
+                    <input type="search" id="catalog-search" class="filter-search" placeholder="Название услуги...">
+                </div>
+
+                <?php
+                $catalogUser = null;
+                try { $catalogUser = (new \App\Services\AuthService())->user(); } catch (\Throwable) {}
+                if (!$catalogUser):
+                ?>
+                    <div class="filter-promo card">
+                        <p><strong>Нужен аккаунт</strong> для оформления заказа</p>
+                        <a href="/register" class="btn btn-primary btn-block btn-sm">Регистрация</a>
+                    </div>
+                <?php endif; ?>
+            </div>
         </aside>
 
         <div class="catalog-main">
@@ -68,6 +77,7 @@ ob_start();
                 <div class="product-card skeleton"></div>
                 <div class="product-card skeleton"></div>
             </div>
+            <nav id="catalog-pagination" class="catalog-pagination" aria-label="Страницы каталога"></nav>
         </div>
     </div>
 </section>

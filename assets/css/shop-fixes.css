@@ -506,3 +506,210 @@ h1, h2, h3, h4, p { margin-top: 0; }
   .trust-strip-inner,
   .trust-strip-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* Hero по центру */
+.shop-hero-centered .shop-hero-grid {
+  grid-template-columns: 1fr;
+  text-align: center;
+  justify-items: center;
+}
+
+.shop-hero-centered .shop-hero-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.shop-hero-centered .shop-hero-actions,
+.shop-hero-centered .shop-hero-perks {
+  justify-content: center;
+}
+
+/* Sticky фильтр каталога */
+.catalog-layout {
+  align-items: start;
+}
+
+.filter-sidebar {
+  position: sticky;
+  top: calc(var(--shop-header-h) + 12px);
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--shop-header-h) - 24px);
+  overflow: hidden;
+  z-index: 50;
+}
+
+.filter-sidebar-header {
+  flex-shrink: 0;
+}
+
+.filter-sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.filter-list-compact .filter-item {
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+.filter-placeholder {
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.filter-category-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-category-all {
+  margin-bottom: 0.25rem;
+}
+
+.filter-category-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  overflow: hidden;
+}
+
+.filter-category-group.is-hidden {
+  display: none;
+}
+
+.filter-category-group-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.filter-category-group-head::-webkit-details-marker { display: none; }
+
+.filter-category-group-head img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.filter-category-count {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.filter-category-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0.35rem 0.45rem;
+  border-top: 1px solid var(--border);
+}
+
+.filter-category-list .filter-item {
+  padding: 0.4rem 0.55rem;
+  font-size: 0.78rem;
+  border-radius: 6px;
+}
+
+.filter-category-list .filter-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-search { margin-bottom: 0; }
+
+.catalog-pagination {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.catalog-pagination-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.catalog-page-list {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.catalog-page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.catalog-page-btn:hover:not(:disabled):not(.active) {
+  border-color: var(--border-glow);
+  background: var(--accent-soft);
+}
+
+.catalog-page-btn.active {
+  background: var(--gradient);
+  color: #fff;
+  border-color: transparent;
+}
+
+.catalog-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.catalog-page-ellipsis {
+  padding: 0 0.25rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.catalog-page-info {
+  text-align: center;
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1024px) {
+  .filter-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    max-height: none;
+    width: min(320px, 88vw);
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+}

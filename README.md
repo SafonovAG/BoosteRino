@@ -34,7 +34,7 @@
 
 ## О проекте
 
-**BoosteRino** - веб-приложение для заказа услуг продвижения и накрутки. Интеграция с API поставщика Twiboost, личный кабинет покупателя, админ-панель с наценкой и приём платежей через ЮMoney.
+**BoosteRino** - интернет-магазин услуг продвижения и накрутки в соцсетях. Личный кабинет покупателя, админ-панель с наценкой и приём платежей через ЮMoney.
 
 Создано с помощью [Cursor](https://cursor.com).
 
@@ -42,7 +42,7 @@
 
 | Модуль | Описание |
 |--------|----------|
-| Каталог услуг | Синхронизация с Twiboost, цены в ₽ с наценкой |
+| Каталог услуг | Актуальный каталог, цены в ₽ с наценкой |
 | Личный кабинет | Баланс, заказы, refill и отмена |
 | Оплата | Предоплата на баланс или оплата заказа через ЮMoney |
 | Админ-панель | Роли superadmin/admin, настройки из БД |
@@ -51,7 +51,7 @@
 ### Стек
 
 ```
-PHP 8.3   ->  REST API + серверные шаблоны, без фреймворков
+PHP 8.3   ->  серверные шаблоны + JSON-эндпоинты, без фреймворков
 MySQL 8   ->  данные и настройки (без .env)
 Apache    ->  mod_rewrite, document root: корень проекта
 JavaScript -> vanilla fetch, без фреймворков
@@ -87,7 +87,7 @@ ON DUPLICATE KEY UPDATE
 
 Свой email и пароль: локально `php debug/tools/generate_superadmin_sql.php email password` - скопируйте вывод в phpMyAdmin.
 
-5. В админке заполните: API-ключ Twiboost, кошелёк ЮMoney, SMTP, глобальную наценку
+5. В админке заполните: ключ поставщика, кошелёк ЮMoney, SMTP, глобальную наценку
 6. В кошельке ЮMoney укажите URL HTTP-уведомлений:
 
 ```
@@ -107,7 +107,7 @@ https://boosterino.ru/api/v1/payments/yoomoney/notify
 ```
 index.php       - точка входа (front controller)
 .htaccess       - маршрутизация, защита служебных папок
-app/            - ядро, API, сервисы, middleware
+app/            - ядро, контроллеры, сервисы, middleware
 assets/         - CSS и JavaScript
 bootstrap/      - PSR-4 autoload без Composer
 config/         - маршруты, database.example.php
@@ -133,7 +133,7 @@ storage/cache/  - кэш (не в git, кроме .gitkeep)
 ## Безопасность
 
 - Доступ к MySQL - **только** в `config/database.php` (локально, не в git)
-- API-ключ Twiboost, ЮMoney, SMTP - в таблице `settings` в MySQL
+- Ключ поставщика, ЮMoney, SMTP - в таблице `settings` в MySQL
 - В публичный репозиторий не попадают: `config/database.php`, `.cursor/`, `.githooks/`, `api/info/`, `debug/`, `SECURITY.md`
 
 ---

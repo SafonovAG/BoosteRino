@@ -50,7 +50,7 @@ $isSuper = !empty($super);
                             <div class="grid-2">
                                 <label>URL сайта<input name="app_url" type="url"></label>
                                 <label>Наценка, %<input name="global_markup_percent" type="number" step="0.1"></label>
-                                <label>API Twiboost<input name="twiboost_api_key" type="password" placeholder="новый ключ"></label>
+                                <label>Ключ поставщика<input name="twiboost_api_key" type="password" placeholder="новый ключ"></label>
                                 <label>Кошелёк ЮMoney<input name="yoomoney_wallet"></label>
                                 <label>Секрет ЮMoney<input name="yoomoney_secret" type="password" placeholder="новый секрет"></label>
                                 <label>SMTP-сервер<input name="mail_host"></label>

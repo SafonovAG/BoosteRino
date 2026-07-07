@@ -35,7 +35,7 @@
       el.innerHTML = '<div class="admin-shop-stats">' +
         '<div class="card stat-card"><span class="stat-icon">👥</span><div class="value">' + (s.users ?? 0) + '</div><div class="label">Клиентов</div></div>' +
         '<div class="card stat-card"><span class="stat-icon">🛒</span><div class="value">' + (s.orders_today ?? 0) + '</div><div class="label">Заказов сегодня</div></div>' +
-        '<div class="card stat-card"><span class="stat-icon">💎</span><div class="value">' + tbLabel + '</div><div class="label">Баланс Twiboost</div></div>' +
+        '<div class="card stat-card"><span class="stat-icon">💎</span><div class="value">' + tbLabel + '</div><div class="label">Баланс поставщика</div></div>' +
         '</div>';
     } catch (e) {
       el.innerHTML = '<p class="muted">' + escape(e.message) + '</p>';
@@ -58,7 +58,7 @@
         '<td><button class="btn btn-sm btn-secondary" data-save="' + s.id + '" type="button">Сохранить</button></td>' +
         '</tr>').join('') +
       '</tbody></table></div>' +
-      '<p style="margin-top:1.25rem"><button class="btn btn-primary" id="sync-services" type="button">🔄 Синхронизировать с Twiboost</button></p>';
+      '<p style="margin-top:1.25rem"><button class="btn btn-primary" id="sync-services" type="button">🔄 Синхронизировать каталог</button></p>';
 
     el.querySelector('#sync-services')?.addEventListener('click', async () => {
       const r = await api('/api/v1/admin/services/sync', { method: 'POST', body: '{}' });

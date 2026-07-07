@@ -12,6 +12,7 @@ ob_start();
                     <img src="/assets/images/logo/vk.svg" alt="VK" width="32" height="32">
                     <img src="/assets/images/logo/youtube.svg" alt="YouTube" width="32" height="32">
                     <img src="/assets/images/logo/tiktok.svg" alt="TikTok" width="32" height="32">
+                    <img src="/assets/images/logo/instagram.svg" alt="Instagram" width="32" height="32">
                 </div>
             </div>
             <div class="auth-checkout-form card reveal">

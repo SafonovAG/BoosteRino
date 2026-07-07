@@ -18,7 +18,7 @@ final class ServiceLogo
         'facebook' => '/assets/images/logo/facebook.svg',
         'twitch' => '/assets/images/logo/twitch.svg',
         'twitter' => '/assets/images/logo/twitter.png',
-        'instagram' => '/assets/images/logo/default.svg',
+        'instagram' => '/assets/images/logo/instagram.svg',
         'discord' => '/assets/images/logo/discord.png',
         'dzen' => '/assets/images/logo/dzen.png',
         'rutube' => '/assets/images/logo/rutube.png',
@@ -138,9 +138,6 @@ final class ServiceLogo
         }
 
         foreach (self::LOGOS as $slug => $path) {
-            if ($slug === 'instagram') {
-                continue;
-            }
             $needle = str_replace('-', ' ', $slug);
             if (str_contains($hay, $needle) || str_contains($hay, $slug)) {
                 return $path;

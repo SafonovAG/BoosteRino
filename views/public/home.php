@@ -3,7 +3,7 @@ use App\Services\ServiceLogo;
 $platforms = ServiceLogo::platforms();
 ob_start();
 ?>
-<section class="shop-hero shop-section">
+<section class="shop-hero shop-section shop-hero-centered">
     <div class="container shop-hero-grid">
         <div class="shop-hero-content reveal">
             <span class="shop-hero-badge">⚡ Прямой поставщик SMM-услуг</span>
@@ -22,31 +22,6 @@ ob_start();
                 <span class="shop-hero-perk"><span class="shop-hero-perk-icon">✓</span> Статус в кабинете</span>
             </div>
         </div>
-        <div class="shop-hero-visual reveal">
-            <div class="shop-order-card">
-                <div class="shop-order-card-header">
-                    <span>Ваш заказ</span>
-                    <span class="shop-order-status">Выполняется</span>
-                </div>
-                <div class="shop-order-item">
-                    <img src="/assets/images/logo/telegram.svg" alt="Telegram" width="40" height="40">
-                    <div>
-                        <strong>Telegram Подписчики</strong>
-                        <div class="shop-order-progress"><div style="width:45%"></div></div>
-                        <small>450 из 1000</small>
-                    </div>
-                </div>
-                <div class="shop-order-price">
-                    <span class="shop-order-price-old">320 ₽</span>
-                    <span class="shop-order-price-new">199 ₽</span>
-                    <span class="shop-order-discount">-38%</span>
-                </div>
-                <div class="shop-order-actions">
-                    <button type="button" class="btn btn-secondary btn-sm" disabled>Повторить</button>
-                    <button type="button" class="btn btn-ghost btn-sm" disabled>Отменить</button>
-                </div>
-            </div>
-        </div>
     </div>
 </section>
 
@@ -54,7 +29,7 @@ ob_start();
     <div class="container trust-strip-grid">
         <div class="trust-stat reveal"><strong>24/7</strong><span>работа сервиса</span></div>
         <div class="trust-stat reveal"><strong>₽</strong><span>только рубли</span></div>
-        <div class="trust-stat reveal"><strong>API</strong><span>поставщик Twiboost</span></div>
+        <div class="trust-stat reveal"><strong>⚡</strong><span>быстрый запуск</span></div>
         <div class="trust-stat reveal"><strong>100+</strong><span>видов услуг</span></div>
     </div>
 </section>
@@ -133,7 +108,7 @@ ob_start();
                 </thead>
                 <tbody>
                     <tr><td>Цены</td><td class="compare-highlight">✅ Прямой поставщик</td><td>❌ Высокая наценка</td></tr>
-                    <tr><td>Каталог</td><td class="compare-highlight">✅ Актуальный API</td><td>❌ Устаревшие прайсы</td></tr>
+                    <tr><td>Каталог</td><td class="compare-highlight">✅ Актуальные цены</td><td>❌ Устаревшие прайсы</td></tr>
                     <tr><td>Оплата</td><td class="compare-highlight">✅ ЮMoney + баланс</td><td>❌ Сложные схемы</td></tr>
                     <tr><td>Кабинет</td><td class="compare-highlight">✅ Заказы и история</td><td>❌ Минимум функций</td></tr>
                     <tr><td>Мобильная версия</td><td class="compare-highlight">✅ Адаптивный магазин</td><td>❌ Неудобно с телефона</td></tr>
@@ -176,7 +151,7 @@ ob_start();
         <div class="shop-faq reveal">
             <details class="shop-faq-item">
                 <summary>Когда начнётся выполнение заказа?</summary>
-                <p>После оплаты заказ автоматически отправляется поставщику. Скорость зависит от типа услуги и нагрузки - статус виден в кабинете.</p>
+                <p>После оплаты заказ автоматически отправляется в работу. Скорость зависит от типа услуги и нагрузки - статус виден в кабинете.</p>
             </details>
             <details class="shop-faq-item">
                 <summary>Какие способы оплаты?</summary>
