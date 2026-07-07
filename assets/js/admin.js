@@ -429,8 +429,6 @@
     }
   }
 
-  let diagnosticsBound = false;
-
   function buildApiProbes() {
     const sid = sampleServiceId || 1;
     const oid = selectedOrderId || 1;
@@ -499,7 +497,6 @@
     }
   }
 
-  let diagnosticsBound = false;
   let activeDiagTab = 'system';
 
   function renderDiagResults(serverResults, apiResults, targetId) {
