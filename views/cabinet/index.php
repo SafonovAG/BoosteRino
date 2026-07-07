@@ -23,6 +23,14 @@ ob_start();
                         <div class="muted">Ваш баланс</div>
                         <div class="amount" id="user-balance">...</div>
                     </div>
+                    <div class="card" style="margin-top:1rem">
+                        <h2>Смена пароля</h2>
+                        <form id="password-form" class="form">
+                            <label>Текущий пароль<input type="password" name="current_password" required autocomplete="current-password"></label>
+                            <label>Новый пароль<input type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
+                            <button type="submit" class="btn btn-secondary">Сменить пароль</button>
+                        </form>
+                    </div>
                 </div>
 
                 <div id="panel-order" class="panel">

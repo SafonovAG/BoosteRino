@@ -37,4 +37,10 @@ final class Response
         header('Location: ' . $url);
         exit;
     }
+
+    public static function okEmpty(): void
+    {
+        http_response_code(200);
+        exit;
+    }
 }

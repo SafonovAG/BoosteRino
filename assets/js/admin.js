@@ -98,33 +98,86 @@
     if (!el) return;
     const data = await api('/api/v1/admin/users');
     const rows = data.users || [];
+    const roleLabel = { user: 'Пользователь', admin: 'Админ', superadmin: 'Superadmin' };
     el.innerHTML = '<div class="table-wrap"><table>' +
-      '<thead><tr><th>ID</th><th>Email</th><th>Роль</th><th>Баланс</th></tr></thead><tbody>' +
-      rows.map((u) => '<tr><td>' + u.id + '</td><td>' + escape(u.email) + '</td><td>' + u.role + '</td><td>' + u.balance_rub + '</td></tr>').join('') +
+      '<thead><tr><th>ID</th><th>Email</th><th>Роль</th><th>Баланс</th>' + (isSuper ? '<th></th>' : '') + '</tr></thead><tbody>' +
+      rows.map((u) => {
+        let roleCell = roleLabel[u.role] || u.role;
+        if (isSuper) {
+          roleCell = '<select data-role-user="' + u.id + '">' +
+            ['user', 'admin', 'superadmin'].map((r) =>
+              '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' + (roleLabel[r] || r) + '</option>'
+            ).join('') +
+            '</select>';
+        }
+        return '<tr><td>' + u.id + '</td><td>' + escape(u.email) + '</td><td>' + roleCell + '</td><td>' + u.balance_rub + '</td>' +
+          (isSuper ? '<td><button type="button" class="btn btn-sm btn-secondary" data-save-role="' + u.id + '">Сохранить</button></td>' : '') +
+          '</tr>';
+      }).join('') +
       '</tbody></table></div>';
+
+    if (isSuper) {
+      el.querySelectorAll('[data-save-role]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.saveRole;
+          const role = el.querySelector('[data-role-user="' + id + '"]')?.value;
+          await api('/api/v1/admin/users/' + id, { method: 'PUT', body: JSON.stringify({ role }) });
+          toast('Роль обновлена');
+          loadUsers();
+        });
+      });
+    }
   }
+
+  function setNotifyUrl(url) {
+    const inp = document.getElementById('yoomoney-notify-url');
+    if (inp && url) inp.value = url;
+  }
+
+  let settingsBound = false;
 
   async function loadSettings() {
     const form = document.getElementById('settings-form');
     if (!form) return;
     const data = await api('/api/v1/admin/settings');
     const s = data.settings || {};
+    setNotifyUrl(data.yoomoney_notify_url);
     Object.keys(s).forEach((key) => {
       const input = form.querySelector('[name="' + key + '"]');
       if (input && !s[key].is_sensitive) {
         input.value = s[key].value;
       }
     });
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const payload = Object.fromEntries(new FormData(form));
-      Object.keys(payload).forEach((k) => {
-        if (payload[k] === '') delete payload[k];
+    if (!settingsBound) {
+      settingsBound = true;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = Object.fromEntries(new FormData(form));
+        Object.keys(payload).forEach((k) => {
+          if (payload[k] === '') delete payload[k];
+        });
+        await api('/api/v1/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
+        if (payload.app_url) {
+          setNotifyUrl((payload.app_url.replace(/\/$/, '')) + '/api/v1/payments/yoomoney/notify');
+        }
+        toast('Настройки сохранены');
       });
-      await api('/api/v1/admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
-      toast('Настройки сохранены');
-    }, { once: true });
+      form.querySelector('[name="app_url"]')?.addEventListener('input', (e) => {
+        const base = (e.target.value || '').replace(/\/$/, '');
+        if (base) setNotifyUrl(base + '/api/v1/payments/yoomoney/notify');
+      });
+    }
   }
+
+  document.getElementById('copy-notify-url')?.addEventListener('click', () => {
+    const inp = document.getElementById('yoomoney-notify-url');
+    if (!inp) return;
+    navigator.clipboard.writeText(inp.value).then(() => toast('URL скопирован')).catch(() => {
+      inp.select();
+      document.execCommand('copy');
+      toast('URL скопирован');
+    });
+  });
 
   loadDashboard();
 })();

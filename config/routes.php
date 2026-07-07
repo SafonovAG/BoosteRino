@@ -41,6 +41,7 @@ return static function (Router $r): void {
     $r->get('/api/v1/auth/verify-email', [AuthApi::class, 'verifyEmail']);
 
     $r->get('/api/v1/user/profile', [UserApi::class, 'profile'], [$auth]);
+    $r->post('/api/v1/user/change-password', [UserApi::class, 'changePassword'], [$csrf, $auth]);
     $r->get('/api/v1/user/orders', [UserApi::class, 'orders'], [$auth]);
     $r->post('/api/v1/user/orders', [UserApi::class, 'createOrder'], [$csrf, $auth, $ver]);
     $r->post('/api/v1/user/orders/{id}/refill', [UserApi::class, 'refill'], [$csrf, $auth, $ver]);
@@ -55,6 +56,7 @@ return static function (Router $r): void {
     $r->put('/api/v1/admin/services', [AdminApi::class, 'servicesPut'], [$csrf, $auth, new AdminMiddleware()]);
     $r->post('/api/v1/admin/services/sync', [AdminApi::class, 'sync'], [$csrf, $auth, new AdminMiddleware()]);
     $r->get('/api/v1/admin/users', [AdminApi::class, 'users'], [$auth, new AdminMiddleware()]);
+    $r->put('/api/v1/admin/users/{id}', [AdminApi::class, 'setUserRole'], [$csrf, $auth, new AdminMiddleware(true)]);
     $r->get('/api/v1/admin/orders', [AdminApi::class, 'orders'], [$auth, new AdminMiddleware()]);
 
     $r->post('/api/v1/payments/yoomoney/notify', [NotifyApi::class, 'yoomoney']);

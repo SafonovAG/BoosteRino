@@ -24,12 +24,21 @@ final class PaymentService
         return $p;
     }
 
+    public function notifyUrl(): string
+    {
+        $base = rtrim((new SettingsService())->get('app_url', 'https://boosterino.ru'), '/');
+        return $base . '/api/v1/payments/yoomoney/notify';
+    }
+
     public function notify(array $data): bool
     {
         if (!$this->verify($data)) {
             return false;
         }
         $label = (string) ($data['label'] ?? '');
+        if ($label === '') {
+            return false;
+        }
         $pdo = Database::pdo();
         $st = $pdo->prepare('SELECT * FROM payments WHERE label=:l');
         $st->execute(['l' => $label]);
@@ -96,12 +105,42 @@ final class PaymentService
         if ($secret === '') {
             return false;
         }
+        if (!empty($d['sign'])) {
+            return $this->verifySign($d, $secret);
+        }
+        if (!empty($d['sha1_hash'])) {
+            return $this->verifySha1($d, $secret);
+        }
+        return false;
+    }
+
+    private function verifySign(array $d, string $secret): bool
+    {
+        $params = $d;
+        unset($params['sign']);
+        ksort($params, SORT_STRING);
+        $parts = [];
+        foreach ($params as $k => $v) {
+            $parts[] = $k . '=' . rawurlencode((string) $v);
+        }
+        $hash = hash_hmac('sha256', implode('&', $parts), $secret);
+        return hash_equals($hash, (string) $d['sign']);
+    }
+
+    private function verifySha1(array $d, string $secret): bool
+    {
         $str = implode('&', [
-            $d['notification_type'] ?? '', $d['operation_id'] ?? '', $d['amount'] ?? '',
-            $d['currency'] ?? '', $d['datetime'] ?? '', $d['sender'] ?? '',
-            $d['codepro'] ?? '', $secret, $d['label'] ?? '',
+            $d['notification_type'] ?? '',
+            $d['operation_id'] ?? '',
+            $d['amount'] ?? '',
+            $d['currency'] ?? '',
+            $d['datetime'] ?? '',
+            $d['sender'] ?? '',
+            $d['codepro'] ?? '',
+            $secret,
+            $d['label'] ?? '',
         ]);
-        return isset($d['sha1_hash']) && hash_equals(sha1($str), (string) $d['sha1_hash']);
+        return hash_equals(sha1($str), (string) $d['sha1_hash']);
     }
 
     private function credit(PDO $pdo, int $uid, float $sum, string $ref, int $refId): void

@@ -18,6 +18,21 @@ final class UserApi
         Response::ok(['user' => (new AuthService())->user()]);
     }
 
+    public static function changePassword(Request $r): void
+    {
+        $u = (new AuthService())->user();
+        try {
+            (new AuthService())->changePassword(
+                (int) $u['id'],
+                (string) $r->input('current_password', ''),
+                (string) $r->input('new_password', '')
+            );
+            Response::ok();
+        } catch (\InvalidArgumentException $e) {
+            Response::fail('validation', $e->getMessage(), 422);
+        }
+    }
+
     public static function orders(Request $r): void
     {
         $u = (new AuthService())->user();

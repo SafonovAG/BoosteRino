@@ -25,6 +25,17 @@ $isSuper = !empty($super);
                     <div class="card">
                         <h2>Настройки системы</h2>
                         <p class="muted">Доступно только superadmin. Секреты не отображаются - оставьте поле пустым, чтобы не менять.</p>
+
+                        <div class="settings-block">
+                            <h3>ЮMoney - HTTP-уведомления</h3>
+                            <p class="muted">Укажите этот URL в настройках кошелька ЮMoney (раздел «HTTP-уведомления»). Секрет из кошелька вставьте в поле «Секрет ЮMoney» ниже - он должен совпадать.</p>
+                            <div class="notify-url-row">
+                                <input type="text" id="yoomoney-notify-url" readonly value="https://boosterino.ru/api/v1/payments/yoomoney/notify">
+                                <button type="button" class="btn btn-secondary" id="copy-notify-url">Копировать</button>
+                            </div>
+                            <p class="muted"><a href="https://yoomoney.ru/docs/wallet/using-api/notification-p2p-incoming" target="_blank" rel="noopener">Документация ЮMoney</a></p>
+                        </div>
+
                         <form id="settings-form" class="form">
                             <div class="grid-2">
                                 <label>URL сайта<input name="app_url" type="url"></label>

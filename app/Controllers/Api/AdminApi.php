@@ -7,6 +7,7 @@ namespace App\Controllers\Api;
 use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
+use App\Services\PaymentService;
 use App\Services\ServiceCatalog;
 use App\Services\SettingsService;
 use App\Services\TwiboostClient;
@@ -30,7 +31,10 @@ final class AdminApi
 
     public static function settingsGet(Request $r): void
     {
-        Response::ok(['settings' => (new SettingsService())->forAdmin()]);
+        Response::ok([
+            'settings' => (new SettingsService())->forAdmin(),
+            'yoomoney_notify_url' => (new PaymentService())->notifyUrl(),
+        ]);
     }
 
     public static function settingsPut(Request $r): void
@@ -76,6 +80,24 @@ final class AdminApi
     public static function users(Request $r): void
     {
         Response::ok(['users' => Database::pdo()->query('SELECT id,email,role,balance_rub,email_verified_at,created_at FROM users ORDER BY id DESC LIMIT 200')->fetchAll()]);
+    }
+
+    public static function setUserRole(Request $r, array $par): void
+    {
+        $role = (string) $r->input('role', '');
+        if (!in_array($role, ['user', 'admin', 'superadmin'], true)) {
+            Response::fail('validation', 'Неверная роль.', 422);
+        }
+        $id = (int) $par['id'];
+        $pdo = Database::pdo();
+        $st = $pdo->prepare('SELECT id,role FROM users WHERE id=:id');
+        $st->execute(['id' => $id]);
+        $u = $st->fetch();
+        if (!$u) {
+            Response::fail('not_found', 'Пользователь не найден.', 404);
+        }
+        $pdo->prepare('UPDATE users SET role=:r WHERE id=:id')->execute(['r' => $role, 'id' => $id]);
+        Response::ok();
     }
 
     public static function orders(Request $r): void

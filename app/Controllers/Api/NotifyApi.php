@@ -12,10 +12,11 @@ final class NotifyApi
 {
     public static function yoomoney(Request $r): void
     {
-        $d = $r->all() ?: $_POST;
-        if (!(new PaymentService())->notify($d)) {
-            Response::fail('notify', 'Invalid.', 400);
+        $data = $_POST !== [] ? $_POST : $r->all();
+        if (!(new PaymentService())->notify($data)) {
+            http_response_code(400);
+            exit;
         }
-        Response::ok();
+        Response::okEmpty();
     }
 }

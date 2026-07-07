@@ -222,3 +222,29 @@
 }
 
 .hidden { display: none !important; }
+
+.settings-block {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+}
+
+.settings-block h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.notify-url-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  margin: 0.75rem 0;
+}
+
+.notify-url-row input {
+  flex: 1;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}

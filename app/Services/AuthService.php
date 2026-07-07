@@ -110,4 +110,19 @@ final class AuthService
         $pdo->prepare('DELETE FROM password_resets WHERE email=:e')->execute(['e' => $r['email']]);
         return true;
     }
+
+    public function changePassword(int $uid, string $current, string $new): void
+    {
+        if (!Validator::minLen($new, 8)) {
+            throw new \InvalidArgumentException('Новый пароль минимум 8 символов.');
+        }
+        $st = Database::pdo()->prepare('SELECT password_hash FROM users WHERE id=:id');
+        $st->execute(['id' => $uid]);
+        $hash = $st->fetchColumn();
+        if (!$hash || !password_verify($current, (string) $hash)) {
+            throw new \InvalidArgumentException('Неверный текущий пароль.');
+        }
+        $newHash = password_hash($new, PASSWORD_BCRYPT, ['cost' => 12]);
+        Database::pdo()->prepare('UPDATE users SET password_hash=:h WHERE id=:id')->execute(['h' => $newHash, 'id' => $uid]);
+    }
 }

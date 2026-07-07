@@ -88,7 +88,15 @@ ON DUPLICATE KEY UPDATE
 Свой email и пароль: локально `php debug/tools/generate_superadmin_sql.php email password` - скопируйте вывод в phpMyAdmin.
 
 5. В админке заполните: API-ключ Twiboost, кошелёк ЮMoney, SMTP, глобальную наценку
-6. Настройте cron (см. ниже)
+6. В кошельке ЮMoney укажите URL HTTP-уведомлений:
+
+```
+https://boosterino.ru/api/v1/payments/yoomoney/notify
+```
+
+Секрет из кошелька - в поле «Секрет ЮMoney» в админке. URL также отображается на вкладке «Настройки».
+
+7. Настройте cron (см. ниже)
 
 Требования: PHP 8.3+, MySQL 8, Apache с `mod_rewrite`.
 

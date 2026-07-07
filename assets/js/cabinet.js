@@ -64,7 +64,7 @@
         '<td>' + fmt(o.cost_rub) + '</td>' +
         '<td><span class="status-badge ' + statusClass(o.status) + '">' + escape(o.status) + '</span></td>' +
         '<td>' +
-        '<button class="btn btn-sm btn-secondary" data-refill="' + o.id + '" type="button">Refill</button> ' +
+        '<button class="btn btn-sm btn-secondary" data-refill="' + o.id + '" type="button">Рефилл</button> ' +
         '<button class="btn btn-sm btn-danger" data-cancel="' + o.id + '" type="button">Отмена</button>' +
         '</td></tr>').join('') +
       '</tbody></table></div>';
@@ -176,6 +176,24 @@
     }
   });
 
+  document.getElementById('password-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await api('/api/v1/user/change-password', {
+        method: 'POST',
+        body: JSON.stringify({
+          current_password: fd.get('current_password'),
+          new_password: fd.get('new_password'),
+        }),
+      });
+      toast('Пароль изменён');
+      e.target.reset();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
+
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     await api('/api/v1/auth/logout', { method: 'POST', body: '{}' });
     location.href = '/';
@@ -183,7 +201,8 @@
 
   Promise.all([loadProfile(), loadOrders(), loadTransactions(), loadServices()]).catch((e) => toast(e.message, 'error'));
 
-  if (new URLSearchParams(location.search).get('payment') === 'success') {
-    toast('Оплата прошла успешно');
+  const paymentStatus = new URLSearchParams(location.search).get('payment');
+  if (paymentStatus === 'ok' || paymentStatus === 'success') {
+    toast('Оплата принята. Баланс обновится после подтверждения ЮMoney.');
   }
 })();
