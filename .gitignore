@@ -8,6 +8,7 @@
 *.key
 *.p12
 .idea/
+.cursor/rules/git-auto-commit.mdc
 *.log
 /storage/cache/*
 !/storage/cache/.gitkeep
