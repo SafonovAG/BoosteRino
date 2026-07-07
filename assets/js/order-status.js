@@ -49,6 +49,8 @@
     const s = String(o?.status || '').toLowerCase();
     return s.includes('complet') || s.includes('cancel') || s.includes('fail') || s.includes('error');
   }
+
+  function statusHint(o) {
     const s = String(o.status || '').toLowerCase();
     if (s.includes('complet')) return 'Заказ полностью выполнен.';
     if (s.includes('progress')) return 'Услуга выполняется. Статус обновляется автоматически.';
