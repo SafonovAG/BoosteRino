@@ -70,9 +70,9 @@ final class ServiceLogo
         'dtf' => ['dtf.ru', ' dtf'],
         'yandexmusic' => ['yandex music', 'yandexmusic', 'яндекс муз', 'яндекс.музы'],
         'medium' => ['medium', 'медиум', 'medium.com'],
-        'yappi' => ['yappi', 'яппи'],
+        'yappi' => ['yappi', 'яппи', 'yappi.ru', 'яппи.ру'],
         'wibes' => ['wibes', 'вайбс'],
-        'max' => ['vk max', 'мессенджер max', ' max messenger'],
+        'max' => ['vk max', 'мессенджер max', ' max messenger', 'макс мессенджер'],
         'trafficnasayt' => ['трафик на сайт', 'traffic website', 'веб трафик', 'website traffic', 'посещения сайт'],
     ];
 
@@ -181,6 +181,54 @@ final class ServiceLogo
         return $category !== '' ? $category : self::platformName($service);
     }
 
+    public static function categoryLogo(array $service): string
+    {
+        $category = trim($service['category'] ?? '');
+        $platformSlug = self::platformSlug($service);
+
+        if ($category !== '' && !self::isGenericCategory($category)) {
+            $fromCategory = self::forCategory($category);
+            if ($fromCategory !== self::DEFAULT) {
+                return $fromCategory;
+            }
+        }
+
+        if ($platformSlug !== 'other' && isset(self::LOGOS[$platformSlug])) {
+            return self::LOGOS[$platformSlug];
+        }
+
+        return self::forService($service);
+    }
+
+    private static function detectPlatformSlug(string $hay): string
+    {
+        $hay = mb_strtolower(trim($hay));
+        if ($hay === '') {
+            return 'other';
+        }
+
+        foreach (self::KEYWORDS as $platform => $words) {
+            foreach ($words as $w) {
+                if (str_contains($hay, $w)) {
+                    return $platform;
+                }
+            }
+        }
+
+        if (preg_match('/\bvk\b/u', $hay)) {
+            return 'vk';
+        }
+
+        foreach (self::LOGOS as $slug => $path) {
+            $needle = str_replace('-', ' ', $slug);
+            if (str_contains($hay, $needle) || str_contains($hay, $slug)) {
+                return $slug;
+            }
+        }
+
+        return 'other';
+    }
+
     private static function matchText(string $hay): string
     {
         foreach (self::KEYWORDS as $platform => $words) {
@@ -231,12 +279,10 @@ final class ServiceLogo
 
     public static function platformSlug(array $service): string
     {
-        $logo = self::forService($service);
-        foreach (self::LOGOS as $slug => $path) {
-            if ($path === $logo) {
-                return $slug;
-            }
-        }
-        return 'other';
+        return self::detectPlatformSlug(implode(' ', [
+            $service['name'] ?? '',
+            $service['category'] ?? '',
+            $service['type'] ?? '',
+        ]));
     }
 }

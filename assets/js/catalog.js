@@ -114,6 +114,37 @@
     return meta;
   }
 
+  function findCategorySample(cat) {
+    return allServices.find((s) =>
+      matchesPlatform(s, platform) && (s.category || 'Прочее') === cat
+    );
+  }
+
+  function categoryGroupKey(s) {
+    if (platform === 'all') {
+      return (s.platform || 'other') + '\x00' + (s.category || 'Прочее');
+    }
+    return s.category || 'Прочее';
+  }
+
+  function defaultLogo() {
+    return '/assets/images/logo/default.svg';
+  }
+
+  function logoForCategory(cat, sample) {
+    const item = sample || findCategorySample(cat);
+    if (item?.category_logo) return item.category_logo;
+    if (item?.logo) return item.logo;
+    if (platform !== 'all') {
+      return platformMeta()[platform]?.logo || defaultLogo();
+    }
+    return defaultLogo();
+  }
+
+  function resetCategoryRailScroll() {
+    if (categoryFiltersEl) categoryFiltersEl.scrollLeft = 0;
+  }
+
   function matchesPlatform(s, slug) {
     if (!slug || slug === 'all') return true;
     return s.platform === slug;
@@ -176,7 +207,8 @@
         ' <button type="button" data-clear="platform">×</button></span>';
     }
     if (category !== 'all') {
-      const label = allServices.find((s) => s.category === category)?.category_label || category;
+      const sample = findCategorySample(category);
+      const label = sample?.category_label || category;
       html += '<span class="catalog-pro-tag">' + escapeHtml(label) +
         ' <button type="button" data-clear="category">×</button></span>';
     }
@@ -221,6 +253,7 @@
     }
 
     categoryRailWrap?.classList.remove('hidden');
+    resetCategoryRailScroll();
 
     const meta = platformMeta();
     const allLogo = platform !== 'all'
@@ -230,9 +263,9 @@
     let html = renderCategoryChip('all', 'Все', allLogo, category === 'all');
 
     sorted.forEach((cat) => {
-      const sample = allServices.find((s) => s.category === cat);
+      const sample = findCategorySample(cat);
       const label = sample?.category_label || cat;
-      const logo = sample?.logo || '/assets/images/logo/default.svg';
+      const logo = logoForCategory(cat, sample);
       html += renderCategoryChip(cat, label, logo, category === cat);
     });
 
@@ -259,7 +292,7 @@
       getComputedStyle(document.documentElement).getPropertyValue('--shop-header-h') || '64',
       10
     ) || 64;
-    const top = deck.getBoundingClientRect().top + window.scrollY - headerH;
+    const top = deck.offsetTop - headerH;
     window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   }
 
@@ -274,13 +307,15 @@
       page = next;
       updateUrl();
       renderProducts(getFiltered(), { pageChange: true });
-      scrollToCatalogTop();
 
       requestAnimationFrame(() => {
-        listStage?.classList.remove('is-page-changing');
-        paginationEl?.classList.remove('is-busy');
-        container.classList.add('is-animating');
-        setTimeout(() => container.classList.remove('is-animating'), 460);
+        requestAnimationFrame(() => {
+          scrollToCatalogTop();
+          listStage?.classList.remove('is-page-changing');
+          paginationEl?.classList.remove('is-busy');
+          container.classList.add('is-animating');
+          setTimeout(() => container.classList.remove('is-animating'), 460);
+        });
       });
     }, PAGE_TRANSITION_MS);
   }
@@ -361,16 +396,21 @@
 
     const byCategory = {};
     pageItems.forEach((s) => {
-      const cat = s.category || 'Прочее';
-      if (!byCategory[cat]) byCategory[cat] = [];
-      byCategory[cat].push(s);
+      const key = categoryGroupKey(s);
+      if (!byCategory[key]) byCategory[key] = [];
+      byCategory[key].push(s);
     });
 
     let html = '';
-    Object.keys(byCategory).sort((a, b) => a.localeCompare(b, 'ru')).forEach((cat) => {
-      const items = byCategory[cat];
-      const catLogo = items[0].logo || '/assets/images/logo/default.svg';
-      const catLabel = items[0].category_label || cat;
+    Object.keys(byCategory).sort((a, b) => a.localeCompare(b, 'ru')).forEach((key) => {
+      const items = byCategory[key];
+      const cat = platform === 'all' ? (key.split('\x00')[1] || key) : key;
+      const catLabel = platform === 'all'
+        ? items[0].platform_name + ' · ' + (items[0].category_label || cat)
+        : (items[0].category_label || cat);
+      const catLogo = platform === 'all'
+        ? (platformMeta()[items[0].platform]?.logo || items[0].category_logo || items[0].logo || defaultLogo())
+        : logoForCategory(cat, items[0]);
 
       html += '<div class="catalog-group">' +
         '<header class="catalog-group-head">' +

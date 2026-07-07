@@ -39,6 +39,7 @@ final class PricingService
             'max' => (int) $s['max_qty'],
             'refill' => (bool) $s['refill'],
             'logo' => ServiceLogo::forService($s),
+            'category_logo' => ServiceLogo::categoryLogo($s),
             'platform' => ServiceLogo::platformSlug($s),
             'platform_name' => ServiceLogo::platformName($s),
             'category_label' => ServiceLogo::categoryLabel($s),
