@@ -16,14 +16,21 @@ final class TwiboostClient
         }
         $params['key'] = $key;
         $url = self::URL . '?' . http_build_query($params);
-        $ctx = stream_context_create(['http' => ['timeout' => 30, 'header' => "Accept: application/json\r\n"]]);
+        $ctx = stream_context_create([
+            'http' => [
+                'timeout' => 30,
+                'ignore_errors' => true,
+                'header' => "Accept: application/json\r\n",
+            ],
+        ]);
         $raw = @file_get_contents($url, false, $ctx);
         if ($raw === false) {
             throw new \RuntimeException('Ошибка запроса к Twiboost.');
         }
         $data = json_decode($raw, true);
         if (!is_array($data)) {
-            throw new \RuntimeException('Некорректный ответ Twiboost.');
+            $snippet = mb_substr(trim($raw), 0, 200);
+            throw new \RuntimeException('Некорректный ответ Twiboost' . ($snippet !== '' ? ': ' . $snippet : '.'));
         }
         return $data;
     }
@@ -40,5 +47,5 @@ final class TwiboostClient
         return $this->call(['action' => 'status', 'orders' => implode(',', $ids)]);
     }
     public function refill(int $id): array { return $this->call(['action' => 'refill', 'order' => $id]); }
-    public function cancel(int $id): array { return $this->call(['action' => 'cancel', 'order' => $id]); }
+    public function cancel(int $id): array { return $this->call(['action' => 'cancel', 'orders' => (string) $id]); }
 }

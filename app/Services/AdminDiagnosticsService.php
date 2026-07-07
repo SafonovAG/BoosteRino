@@ -193,22 +193,39 @@ final class AdminDiagnosticsService
     private function checkSupplierActionRefillProbe(): array
     {
         $r = (new TwiboostClient())->call(['action' => 'refill', 'order' => 0]);
-        if (isset($r['refill'])) {
-            return ['ok' => true, 'message' => 'Эндпоинт отвечает'];
-        }
-        $msg = $r['error'] ?? json_encode($r, JSON_UNESCAPED_UNICODE);
-        return ['ok' => true, 'message' => 'Ответ API: ' . (is_string($msg) ? $msg : 'получен')];
+        return $this->probeSupplierActionResult($r, 'refill');
     }
 
     /** @return array{ok: bool, message: string} */
     private function checkSupplierActionCancelProbe(): array
     {
-        $r = (new TwiboostClient())->call(['action' => 'cancel', 'order' => 0]);
-        if (isset($r['ok'])) {
+        $r = (new TwiboostClient())->call(['action' => 'cancel', 'orders' => '0']);
+        return $this->probeSupplierActionResult($r, 'cancel');
+    }
+
+    /** @return array{ok: bool, message: string} */
+    private function probeSupplierActionResult(array $response, string $action): array
+    {
+        if (isset($response['error']) && is_string($response['error'])) {
+            return ['ok' => true, 'message' => 'Эндпоинт отвечает: ' . $response['error']];
+        }
+        if (isset($response[$action])) {
             return ['ok' => true, 'message' => 'Эндпоинт отвечает'];
         }
-        $msg = $r['error'] ?? json_encode($r, JSON_UNESCAPED_UNICODE);
-        return ['ok' => true, 'message' => 'Ответ API: ' . (is_string($msg) ? $msg : 'получен')];
+        if (isset($response['ok'])) {
+            return ['ok' => true, 'message' => 'Эндпоинт отвечает'];
+        }
+        if ($response !== [] && array_is_list($response)) {
+            $first = $response[0] ?? null;
+            if (is_array($first) && isset($first[$action])) {
+                $payload = $first[$action];
+                if (is_array($payload) && isset($payload['error'])) {
+                    return ['ok' => true, 'message' => 'Эндпоинт отвечает: ' . $payload['error']];
+                }
+                return ['ok' => true, 'message' => 'Эндпоинт отвечает'];
+            }
+        }
+        return ['ok' => true, 'message' => 'Ответ API: ' . json_encode($response, JSON_UNESCAPED_UNICODE)];
     }
 
     /** @return array{ok: bool, message: string} */
