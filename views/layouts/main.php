@@ -41,7 +41,7 @@ $platforms = \App\Services\ServiceLogo::platforms();
 ?>
     <div class="shop-topbar" id="shop-topbar">
         <div class="shop-topbar-inner">
-            <span>🎁 Прямые цены поставщика - оплата в рублях, мгновенный запуск заказов</span>
+            <span>🎁 Выгодные цены - оплата в рублях, мгновенный запуск заказов</span>
             <button type="button" class="shop-topbar-close" id="topbar-close" aria-label="Закрыть">×</button>
         </div>
     </div>

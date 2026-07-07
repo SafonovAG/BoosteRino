@@ -4,7 +4,7 @@ ob_start();
 <section class="shop-hero shop-section shop-hero-centered">
     <div class="container shop-hero-grid">
         <div class="shop-hero-content reveal">
-            <span class="shop-hero-badge">⚡ Прямой поставщик SMM-услуг</span>
+            <span class="shop-hero-badge">⚡ Быстрое продвижение в соцсетях</span>
             <h1 class="shop-hero-title">
                 Быстрая накрутка<br>
                 <span class="gradient-text">в социальных сетях</span>

@@ -67,7 +67,7 @@
     ordersEl.innerHTML = '<div class="table-wrap"><table>' +
       '<thead><tr><th>#</th><th>Услуга</th><th>Кол-во</th><th>Сумма</th><th>Статус</th><th></th></tr></thead><tbody>' +
       orders.map((o) => '<tr>' +
-        '<td><a href="/orders/' + o.id + '" class="order-id-link">№' + (o.display_order_id || o.id) + '</a></td>' +
+        '<td><a href="/orders/' + o.id + '" class="order-id-link">№' + o.id + '</a></td>' +
         '<td>' + escape(o.service_name || o.service_id) + '</td>' +
         '<td>' + o.quantity + '</td>' +
         '<td>' + fmt(o.cost_rub) + '</td>' +

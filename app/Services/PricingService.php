@@ -28,7 +28,6 @@ final class PricingService
         $deliveryUnit = DeliveryUnit::fromName((string) $s['name']);
         return [
             'id' => (int) $s['id'],
-            'external_id' => (int) $s['external_id'],
             'name' => $s['name'],
             'type' => $s['type'],
             'category' => $s['category'],

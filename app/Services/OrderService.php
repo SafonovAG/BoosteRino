@@ -46,9 +46,8 @@ final class OrderService
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$row) {
             $row['status_label'] = OrderStatus::label((string) $row['status']);
-            $supplierId = !empty($row['twiboost_order_id']) ? (int) $row['twiboost_order_id'] : null;
-            $row['display_order_id'] = $supplierId ?? (int) $row['id'];
-            $row['internal_order_id'] = (int) $row['id'];
+            $row['quantity_unit'] = DeliveryUnit::fromName((string) ($row['service_name'] ?? ''));
+            $row = $this->sanitizeForClient($row);
         }
         return $rows;
     }
@@ -133,40 +132,39 @@ final class OrderService
             'type' => (string) ($o['service_type'] ?? ''),
         ]);
 
-        $internalId = (int) ($o['id'] ?? 0);
-        $supplierOrderId = !empty($o['twiboost_order_id']) ? (int) $o['twiboost_order_id'] : null;
-        $o['internal_order_id'] = $internalId;
-        $o['display_order_id'] = $supplierOrderId ?? $internalId;
-        $o['uses_supplier_order_number'] = $supplierOrderId !== null;
 
         $unit = DeliveryUnit::fromName((string) ($o['service_name'] ?? ''));
         $o['quantity_unit'] = $unit;
         $qty = (int) ($o['quantity'] ?? 0);
         $remains = ($o['remains'] !== null && $o['remains'] !== '') ? max(0, (int) $o['remains']) : null;
         $delivered = ($remains !== null && $qty > 0) ? max(0, $qty - $remains) : null;
-        $startCount = ($o['start_count'] !== null && $o['start_count'] !== '') ? (int) $o['start_count'] : null;
 
         $o['delivery'] = [
             'unit' => $unit,
             'ordered' => $qty,
             'delivered' => $delivered,
             'remains' => $remains,
-            'start_count' => $startCount,
-            'start_count_label' => 'Показатель на странице до старта (' . $unit . ')',
         ];
 
-        $currency = (string) ($o['supplier_currency'] ?? 'USD');
-        if ($o['charge'] !== null && $o['charge'] !== '') {
-            $charge = (float) $o['charge'];
-            $formatted = rtrim(rtrim(number_format($charge, 4, '.', ' '), '0'), '.');
-            $o['supplier_charge_formatted'] = $formatted . ' ' . $currency;
-        } else {
-            $o['supplier_charge_formatted'] = null;
-        }
-
         $o['progress'] = $this->buildProgress($o);
-        $o['supplier_synced'] = !empty($o['twiboost_order_id']);
         $o['synced_at'] = date('c');
+        return $this->sanitizeForClient($o);
+    }
+
+    /** Убирает служебные поля поставщика из ответа для клиента. */
+    private function sanitizeForClient(array $o): array
+    {
+        unset(
+            $o['twiboost_order_id'],
+            $o['charge'],
+            $o['start_count'],
+            $o['supplier_currency'],
+            $o['supplier_charge_formatted'],
+            $o['supplier_synced'],
+            $o['uses_supplier_order_number'],
+            $o['internal_order_id'],
+            $o['display_order_id'],
+        );
         return $o;
     }
 
@@ -197,7 +195,8 @@ final class OrderService
         if (!$s || !$s['refill'] || !$o['twiboost_order_id']) {
             throw new \InvalidArgumentException('Рефилл недоступен.');
         }
-        return $this->tb->refill((int) $o['twiboost_order_id']);
+        $this->tb->refill((int) $o['twiboost_order_id']);
+        return ['ok' => true];
     }
 
     public function cancel(int $uid, int $oid): array
@@ -207,9 +206,9 @@ final class OrderService
         if (!$s || !$s['cancel'] || !$o['twiboost_order_id']) {
             throw new \InvalidArgumentException('Отмена недоступна.');
         }
-        $r = $this->tb->cancel((int) $o['twiboost_order_id']);
+        $this->tb->cancel((int) $o['twiboost_order_id']);
         Database::pdo()->prepare('UPDATE orders SET status=\'Canceled\' WHERE id=:id')->execute(['id' => $oid]);
-        return $r;
+        return ['ok' => true];
     }
 
     public function sync(): int
@@ -273,7 +272,7 @@ final class OrderService
             $o = $this->get($pdo, $oid);
             $this->sendTb($pdo, $o, $svc);
             $pdo->commit();
-            return $this->get($pdo, $oid);
+            return $this->sanitizeForClient($this->get($pdo, $oid));
         } catch (\Throwable $e) {
             $pdo->rollBack();
             throw $e;
@@ -286,7 +285,7 @@ final class OrderService
         $oid = $this->insert($pdo, $uid, $svc, $link, $qty, $cost, 'yoomoney', 'pending_payment');
         $pay = (new PaymentService())->forOrder($uid, $oid, $cost);
         $pdo->prepare('UPDATE orders SET payment_id=:p WHERE id=:id')->execute(['p' => $pay['id'], 'id' => $oid]);
-        return ['order' => $this->get($pdo, $oid), 'payment_url' => $pay['payment_url']];
+        return ['order' => $this->sanitizeForClient($this->get($pdo, $oid)), 'payment_url' => $pay['payment_url']];
     }
 
     private function insert(PDO $pdo, int $uid, array $svc, string $link, int $qty, float $cost, string $pay, string $status = 'pending'): int
@@ -300,7 +299,7 @@ final class OrderService
     {
         $r = $this->tb->add((int) $svc['external_id'], $o['link'], (int) $o['quantity']);
         if (!isset($r['order'])) {
-            throw new \RuntimeException('Ошибка создания заказа у поставщика.');
+            throw new \RuntimeException('Не удалось создать заказ. Попробуйте позже.');
         }
         $pdo->prepare('UPDATE orders SET twiboost_order_id=:t,status=\'Awaiting\' WHERE id=:id')
             ->execute(['t' => (int) $r['order'], 'id' => $o['id']]);
