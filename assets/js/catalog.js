@@ -21,6 +21,67 @@
   let page = Math.max(1, parseInt(params.get('page') || '1', 10) || 1);
   let searchTimer = null;
 
+  function setupScrollRail(root) {
+    const track = root.querySelector('.catalog-pro-rail, .catalog-pro-cats');
+    const prev = root.querySelector('[data-scroll-prev]');
+    const next = root.querySelector('[data-scroll-next]');
+    if (!track || !prev || !next) return null;
+
+    const STEP = 240;
+
+    function update() {
+      const max = Math.max(0, track.scrollWidth - track.clientWidth);
+      const sl = track.scrollLeft;
+      const overflow = max > 4;
+      prev.classList.toggle('is-hidden', !overflow);
+      next.classList.toggle('is-hidden', !overflow);
+      prev.disabled = !overflow || sl <= 2;
+      next.disabled = !overflow || sl >= max - 2;
+    }
+
+    prev.addEventListener('click', () => {
+      track.scrollBy({ left: -STEP, behavior: 'smooth' });
+    });
+    next.addEventListener('click', () => {
+      track.scrollBy({ left: STEP, behavior: 'smooth' });
+    });
+
+    track.addEventListener('scroll', update, { passive: true });
+    track.addEventListener('wheel', (e) => {
+      if (track.scrollWidth <= track.clientWidth) return;
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      e.preventDefault();
+      track.scrollLeft += e.deltaY;
+    }, { passive: false });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(update).observe(track);
+    }
+    window.addEventListener('resize', update, { passive: true });
+    update();
+
+    return { refresh: update, track };
+  }
+
+  function initScrollRails() {
+    document.querySelectorAll('[data-catalog-scroll]').forEach((root) => {
+      if (!root._scrollRail) {
+        root._scrollRail = setupScrollRail(root);
+      } else {
+        root._scrollRail.refresh?.();
+      }
+    });
+  }
+
+  function refreshScrollRails() {
+    initScrollRails();
+    requestAnimationFrame(() => {
+      document.querySelectorAll('[data-catalog-scroll]').forEach((root) => {
+        root._scrollRail?.refresh?.();
+      });
+    });
+  }
+
   function escapeHtml(str) {
     const d = document.createElement('div');
     d.textContent = str ?? '';
@@ -166,6 +227,8 @@
         render();
       });
     });
+
+    refreshScrollRails();
   }
 
   function buildPageList(current, total) {
@@ -338,6 +401,7 @@
   }
 
   setActivePlatform(platform);
+  initScrollRails();
 
   api('/api/v1/services').then((data) => {
     allServices = data.services || [];
@@ -345,6 +409,7 @@
     window.BoosterinoProductCard.bindQuickAdd(container, byId);
     buildCategoryFilters();
     render();
+    refreshScrollRails();
   }).catch(() => {
     container.classList.remove('is-loading');
     container.innerHTML = '<div class="catalog-pro-empty"><p>Не удалось загрузить каталог</p></div>';

@@ -21,8 +21,12 @@ ob_start();
                 </div>
             </div>
 
-            <div class="catalog-pro-rail-wrap">
-                <div class="catalog-pro-rail" id="platform-filters" role="tablist">
+            <div class="catalog-pro-scroll" data-catalog-scroll>
+                <button type="button" class="catalog-pro-scroll-btn" data-scroll-prev aria-label="Прокрутить платформы влево">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div class="catalog-pro-rail-wrap">
+                    <div class="catalog-pro-rail" id="platform-filters" role="tablist">
                     <?php foreach ($platforms as $p): ?>
                         <button type="button"
                             class="catalog-pro-chip <?= $activePlatform === $p['slug'] ? 'is-active' : '' ?>"
@@ -35,11 +39,25 @@ ob_start();
                             <span class="catalog-pro-chip-label"><?= \App\Core\View::e($p['name']) ?></span>
                         </button>
                     <?php endforeach; ?>
+                    </div>
                 </div>
+                <button type="button" class="catalog-pro-scroll-btn" data-scroll-next aria-label="Прокрутить платформы вправо">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
             </div>
 
             <div class="catalog-pro-cats-wrap hidden" id="category-rail-wrap">
-                <div class="catalog-pro-cats" id="category-filters"></div>
+                <div class="catalog-pro-scroll" data-catalog-scroll>
+                    <button type="button" class="catalog-pro-scroll-btn" data-scroll-prev aria-label="Прокрутить категории влево">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <div class="catalog-pro-rail-wrap">
+                        <div class="catalog-pro-cats" id="category-filters"></div>
+                    </div>
+                    <button type="button" class="catalog-pro-scroll-btn" data-scroll-next aria-label="Прокрутить категории вправо">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
             </div>
 
             <div class="catalog-pro-active" id="active-filters"></div>

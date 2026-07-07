@@ -103,6 +103,54 @@
   cursor: pointer;
 }
 
+.catalog-pro-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.catalog-pro-scroll-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: opacity 0.2s, border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.catalog-pro-scroll-btn:hover:not(:disabled) {
+  border-color: var(--border-glow);
+  background: var(--bg-muted);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.catalog-pro-scroll-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  box-shadow: none;
+}
+
+.catalog-pro-scroll-btn.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.catalog-pro-scroll .catalog-pro-rail-wrap,
+.catalog-pro-scroll .catalog-pro-cats-wrap {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
 .catalog-pro-rail-wrap,
 .catalog-pro-cats-wrap {
   margin: 0 -0.25rem;
@@ -118,6 +166,9 @@
   padding: 0.15rem 0.25rem 0.35rem;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
 }
 
 .catalog-pro-rail::-webkit-scrollbar,
@@ -540,6 +591,16 @@
 }
 
 @media (max-width: 599px) {
+  .catalog-pro-scroll-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .catalog-pro-scroll-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
   .catalog-pro-chip-label {
     max-width: 72px;
     overflow: hidden;
