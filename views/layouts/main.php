@@ -55,15 +55,20 @@ $platforms = \App\Services\ServiceLogo::platforms();
                 <span>Booste<strong>Rino</strong></span>
             </a>
 
+            <div class="store-nav-overlay" id="store-nav-overlay"></div>
+
             <nav class="store-nav" id="store-nav">
-                <a href="/" class="<?= ($page ?? '') === 'home' ? 'active' : '' ?>"><i class="bi bi-house-door app-icon app-icon--inline" aria-hidden="true"></i> Главная</a>
-                <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>"><i class="bi bi-grid-3x3-gap app-icon app-icon--inline" aria-hidden="true"></i> Каталог</a>
-                <a href="/cart" class="<?= ($page ?? '') === 'cart' ? 'active' : '' ?>"><i class="bi bi-cart3 app-icon app-icon--inline" aria-hidden="true"></i> Корзина</a>
+                <a href="/" class="<?= ($page ?? '') === 'home' ? 'active' : '' ?>"><i class="bi bi-house-door" aria-hidden="true"></i> Главная</a>
+                <a href="/services" class="<?= ($page ?? '') === 'services' ? 'active' : '' ?>"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Каталог</a>
+                <a href="/cart" class="<?= ($page ?? '') === 'cart' ? 'active' : '' ?>"><i class="bi bi-cart3" aria-hidden="true"></i> Корзина</a>
                 <?php if ($authUser): ?>
-                    <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>"><i class="bi bi-person-circle app-icon app-icon--inline" aria-hidden="true"></i> Мой кабинет</a>
+                    <a href="/cabinet" class="<?= ($page ?? '') === 'cabinet' ? 'active' : '' ?>"><i class="bi bi-person-circle" aria-hidden="true"></i> Мой кабинет</a>
                     <?php if (in_array($authUser['role'], ['admin', 'superadmin'], true)): ?>
-                        <a href="/admin" class="<?= ($page ?? '') === 'admin' ? 'active' : '' ?>">Админ</a>
+                        <a href="/admin" class="<?= ($page ?? '') === 'admin' ? 'active' : '' ?>"><i class="bi bi-gear" aria-hidden="true"></i> Админ</a>
                     <?php endif; ?>
+                <?php else: ?>
+                    <a href="/login" class="<?= ($page ?? '') === 'login' ? 'active' : '' ?>"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Вход</a>
+                    <a href="/register" class="<?= ($page ?? '') === 'register' ? 'active' : '' ?>"><i class="bi bi-person-plus" aria-hidden="true"></i> Регистрация</a>
                 <?php endif; ?>
             </nav>
 
@@ -100,12 +105,15 @@ $platforms = \App\Services\ServiceLogo::platforms();
                         <span>Booste<strong>Rino</strong></span>
                     </a>
                     <p class="store-footer-desc">Интернет-магазин SMM-услуг: подписчики, лайки, просмотры и активность для популярных соцсетей.</p>
-                    <div class="platforms-row platforms-row-compact">
+                    <div class="platforms-row platforms-row-compact" id="footer-platforms-row">
                         <?php foreach (array_slice($platforms, 1) as $p): ?>
-                            <span class="platform-chip" title="<?= \App\Core\View::e($p['name']) ?>">
+                            <a href="/services?platform=<?= \App\Core\View::e($p['slug']) ?>" class="platform-chip" title="<?= \App\Core\View::e($p['name']) ?>">
                                 <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="<?= \App\Core\View::e($p['name']) ?>" width="28" height="28">
-                            </span>
+                            </a>
                         <?php endforeach; ?>
+                        <button type="button" class="platforms-show-more" id="platforms-show-more">
+                            Показать все <i class="bi bi-chevron-down"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="store-footer-col">
@@ -155,8 +163,48 @@ $platforms = \App\Services\ServiceLogo::platforms();
     document.getElementById('topbar-close')?.addEventListener('click', () => {
         document.getElementById('shop-topbar')?.remove();
     });
-    document.getElementById('nav-toggle')?.addEventListener('click', () => {
-        document.getElementById('store-nav')?.classList.toggle('open');
+    
+    const navToggle = document.getElementById('nav-toggle');
+    const storeNav = document.getElementById('store-nav');
+    const navOverlay = document.getElementById('store-nav-overlay');
+    
+    function toggleNav() {
+        const isOpen = storeNav.classList.toggle('is-open');
+        navOverlay.classList.toggle('is-visible', isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+    
+    function closeNav() {
+        storeNav.classList.remove('is-open');
+        navOverlay.classList.remove('is-visible');
+        document.body.style.overflow = '';
+    }
+    
+    navToggle?.addEventListener('click', toggleNav);
+    navOverlay?.addEventListener('click', closeNav);
+    
+    // Close nav on link click
+    storeNav?.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', closeNav);
+    });
+    
+    // Close nav on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && storeNav?.classList.contains('is-open')) {
+            closeNav();
+        }
+    });
+
+    // Platforms show more button
+    const platformsShowMore = document.getElementById('platforms-show-more');
+    const platformsRow = document.getElementById('footer-platforms-row');
+    
+    platformsShowMore?.addEventListener('click', () => {
+        const isExpanded = platformsRow.classList.toggle('is-expanded');
+        platformsShowMore.classList.toggle('is-expanded', isExpanded);
+        platformsShowMore.innerHTML = isExpanded 
+            ? 'Свернуть <i class="bi bi-chevron-up"></i>' 
+            : 'Показать все <i class="bi bi-chevron-down"></i>';
     });
     </script>
     <?php if (!empty($scripts)): ?>

@@ -417,6 +417,7 @@ a:hover { color: var(--accent-hover); }
   overflow-x: auto;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -429,6 +430,82 @@ th, td {
   padding: 0.9rem 1.15rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .table-wrap {
+    border-radius: var(--radius-sm);
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+
+  table {
+    font-size: 0.85rem;
+    min-width: 600px;
+  }
+
+  th, td {
+    padding: 0.75rem 0.85rem;
+  }
+
+  th {
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  table {
+    font-size: 0.8rem;
+    min-width: 500px;
+  }
+
+  th, td {
+    padding: 0.65rem 0.75rem;
+  }
+
+  /* Card-based table layout for mobile */
+  .table-card-view {
+    display: block;
+  }
+
+  .table-card-view table,
+  .table-card-view thead,
+  .table-card-view tbody,
+  .table-card-view th,
+  .table-card-view td,
+  .table-card-view tr {
+    display: block;
+  }
+
+  .table-card-view thead {
+    display: none;
+  }
+
+  .table-card-view tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    background: var(--bg-elevated);
+  }
+
+  .table-card-view td {
+    border: none;
+    padding: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+  }
+
+  .table-card-view td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-right: 1rem;
+    text-align: left;
+  }
 }
 
 th {

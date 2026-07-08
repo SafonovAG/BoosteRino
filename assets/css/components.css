@@ -93,9 +93,24 @@
   transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s, background 0.2s, filter 0.2s;
   text-decoration: none;
   font-family: inherit;
+  min-height: 48px;
 }
 
 .btn:active { transform: scale(0.97); }
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.9rem 1.25rem;
+    font-size: 0.95rem;
+    min-height: 50px;
+  }
+
+  .btn-sm {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    min-height: 42px;
+  }
+}
 
 .btn-primary {
   background: var(--gradient);
@@ -150,12 +165,36 @@
   justify-content: center;
   transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
   backdrop-filter: blur(8px);
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .btn-icon:hover {
   border-color: var(--border-glow);
   background: var(--accent-soft);
   transform: scale(1.05);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+@media (hover: none) {
+  .btn-icon:hover {
+    transform: none;
+  }
+
+  .btn:hover {
+    transform: none;
+  }
+
+  .product-card:hover {
+    transform: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
 }
 
 .form label {
@@ -179,6 +218,22 @@
   color: var(--text);
   font: inherit;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  min-height: 48px;
+}
+
+@media (max-width: 768px) {
+  .form input,
+  .form select,
+  .form textarea {
+    padding: 0.95rem 1rem;
+    font-size: 1rem;
+    min-height: 52px;
+  }
+
+  .form label {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
 }
 
 .form input:focus,
