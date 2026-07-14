@@ -758,104 +758,9 @@
   max-width: 100%;
 }
 
-/* Desktop: 2 rows (6 items) */
-@media (min-width: 769px) {
-  .platforms-row.platforms-row-compact {
-    max-height: 80px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .platforms-row.platforms-row-compact.is-expanded {
-    max-height: none;
-  }
-
-  .platforms-row.platforms-row-compact .platform-chip:nth-child(n+7) {
-    display: none;
-  }
-
-  .platforms-row.platforms-row-compact.is-expanded .platform-chip:nth-child(n+7) {
-    display: inline-flex;
-  }
-
-  .platforms-show-more {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.55rem 1rem;
-    border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    border: 1px dashed var(--accent);
-  }
-
-  .platforms-show-more:hover {
-    background: var(--accent);
-    color: #fff;
-  }
-
-  .platforms-show-more i {
-    margin-left: 0.35rem;
-    transition: transform 0.2s;
-  }
-
-  .platforms-show-more.is-expanded i {
-    transform: rotate(180deg);
-  }
-}
-
-/* Mobile: 1 row (4 items) + show more button */
-@media (max-width: 768px) {
-  .platforms-row.platforms-row-compact {
-    max-height: 60px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .platforms-row.platforms-row-compact.is-expanded {
-    max-height: none;
-  }
-
-  .platforms-row.platforms-row-compact .platform-chip:nth-child(n+5) {
-    display: none;
-  }
-
-  .platforms-row.platforms-row-compact.is-expanded .platform-chip:nth-child(n+5) {
-    display: inline-flex;
-  }
-
-  .platforms-show-more {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.45rem 0.75rem;
-    border-radius: var(--radius-sm);
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 600;
-    font-size: 0.82rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    border: 1px dashed var(--accent);
-  }
-
-  .platforms-show-more:hover {
-    background: var(--accent);
-    color: #fff;
-  }
-
-  .platforms-show-more i {
-    margin-left: 0.35rem;
-    transition: transform 0.2s;
-  }
-
-  .platforms-show-more.is-expanded i {
-    transform: rotate(180deg);
-  }
+.platforms-expand-panel .platforms-row.platforms-row-compact {
+  max-height: none;
+  overflow: visible;
 }
 
 .platforms-row-label {
@@ -2720,7 +2625,8 @@
     background: var(--bg-elevated);
   }
 
-  .store-nav.is-open {
+  .store-nav.is-open,
+  .store-nav.open {
     display: flex;
     transform: translateX(0);
   }

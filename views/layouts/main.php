@@ -105,17 +105,21 @@ $platforms = \App\Services\ServiceLogo::platforms();
                         <span>Booste<strong>Rino</strong></span>
                     </a>
                     <p class="store-footer-desc">Интернет-магазин SMM-услуг: подписчики, лайки, просмотры и активность для популярных соцсетей.</p>
-                    <div class="platforms-row platforms-row-compact" id="footer-platforms-row">
-                        <?php foreach (array_slice($platforms, 1) as $p): ?>
-                            <a href="/services?platform=<?= \App\Core\View::e($p['slug']) ?>" class="platform-chip" title="<?= \App\Core\View::e($p['name']) ?>">
-                                <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="<?= \App\Core\View::e($p['name']) ?>" width="28" height="28">
-                            </a>
-                        <?php endforeach; ?>
-                        <button type="button" class="platforms-show-more" id="platforms-show-more">
-                            Показать все <i class="bi bi-chevron-down"></i>
+                    <div class="platforms-expand" id="footer-platforms">
+                        <div class="platforms-expand-panel" id="footer-platforms-panel">
+                            <div class="platforms-row platforms-row-compact">
+                                <?php foreach (array_slice($platforms, 1) as $p): ?>
+                                    <a href="/services?platform=<?= \App\Core\View::e($p['slug']) ?>" class="platform-chip platform-chip-mini" title="<?= \App\Core\View::e($p['name']) ?>">
+                                        <img src="<?= \App\Core\View::e($p['logo']) ?>" alt="<?= \App\Core\View::e($p['name']) ?>" width="22" height="22" loading="lazy">
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <button type="button" class="platforms-expand-btn" id="footer-platforms-toggle" aria-expanded="false" aria-controls="footer-platforms-panel">
+                            <span class="platforms-expand-btn-text">Все платформы</span>
+                            <i class="bi bi-chevron-down platforms-expand-chevron" aria-hidden="true"></i>
                         </button>
-                    </div>
-                </div>
+                    </div>                </div>
                 <div class="store-footer-col">
                     <h4>Магазин</h4>
                     <ul>
@@ -163,50 +167,35 @@ $platforms = \App\Services\ServiceLogo::platforms();
     document.getElementById('topbar-close')?.addEventListener('click', () => {
         document.getElementById('shop-topbar')?.remove();
     });
-    
+
     const navToggle = document.getElementById('nav-toggle');
     const storeNav = document.getElementById('store-nav');
     const navOverlay = document.getElementById('store-nav-overlay');
-    
+
     function toggleNav() {
         const isOpen = storeNav.classList.toggle('is-open');
         navOverlay.classList.toggle('is-visible', isOpen);
         document.body.style.overflow = isOpen ? 'hidden' : '';
     }
-    
+
     function closeNav() {
         storeNav.classList.remove('is-open');
         navOverlay.classList.remove('is-visible');
         document.body.style.overflow = '';
     }
-    
+
     navToggle?.addEventListener('click', toggleNav);
     navOverlay?.addEventListener('click', closeNav);
-    
-    // Close nav on link click
+
     storeNav?.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', closeNav);
     });
-    
-    // Close nav on escape key
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && storeNav?.classList.contains('is-open')) {
             closeNav();
         }
-    });
-
-    // Platforms show more button
-    const platformsShowMore = document.getElementById('platforms-show-more');
-    const platformsRow = document.getElementById('footer-platforms-row');
-    
-    platformsShowMore?.addEventListener('click', () => {
-        const isExpanded = platformsRow.classList.toggle('is-expanded');
-        platformsShowMore.classList.toggle('is-expanded', isExpanded);
-        platformsShowMore.innerHTML = isExpanded 
-            ? 'Свернуть <i class="bi bi-chevron-up"></i>' 
-            : 'Показать все <i class="bi bi-chevron-down"></i>';
-    });
-    </script>
+    });    </script>
     <?php if (!empty($scripts)): ?>
         <?php foreach ($scripts as $script): ?>
             <script src="<?= \App\Core\View::e($script) ?>"></script>
