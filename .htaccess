@@ -2,6 +2,7 @@
     RewriteEngine On
     RewriteBase /
 
+    RewriteRule ^favicon\.ico$ assets/images/logo/favicon.ico [L]
     RewriteRule ^(app|config|database|cron|bin|storage|bootstrap|views|debug)/ - [F,L]
 
     RewriteCond %{REQUEST_FILENAME} !-f

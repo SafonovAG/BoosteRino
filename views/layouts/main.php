@@ -15,6 +15,12 @@
     </script>
     <title><?= \App\Core\View::e($title ?? 'Boosterino - магазин SMM-услуг') ?></title>
     <meta name="description" content="Boosterino - интернет-магазин накрутки и продвижения в соцсетях. Telegram, VK, YouTube, TikTok. Оплата в рублях.">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" href="/assets/images/logo/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/images/logo/favicon-96x96.png">
+    <link rel="apple-touch-icon" href="/assets/images/logo/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#6366F1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
